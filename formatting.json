@@ -1,0 +1,20 @@
+[
+    {
+            "template": [
+                "http://example.com/data_$Y.dat",
+                "http://example.com/data_$(Y).dat"
+            ],
+            "timeRange": [
+                "2001-03-22/2004-08-18",
+                "2001-03/2004-08",
+                "2001/2005"
+            ],
+            "comment": "Example in section 1.1 of specification document. Note that stop date is exclusive, so 2001/2005 is needed to generate 2004 URI when only year start/stop is given.",
+            "output": [ 
+                "http://example.com/data_2001.dat",
+                "http://example.com/data_2002.dat",
+                "http://example.com/data_2003.dat",
+                "http://example.com/data_2004.dat"
+            ]
+    }
+]
