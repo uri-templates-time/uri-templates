@@ -9,6 +9,7 @@
                 "2001-03/2004-08",
                 "2001/2005"
             ],
+            "whatTests" ["fields"],
             "comment": "Example in section 1.1 of specification document. Note that stop date is exclusive, so 2001/2005 is needed to generate 2004 URI when only year start/stop is given.",
             "output": [ 
                 "http://example.com/data_2001.dat",
@@ -16,5 +17,156 @@
                 "http://example.com/data_2003.dat",
                 "http://example.com/data_2004.dat"
             ]
+    },
+
+    
+    {
+            "template": [
+                "http://example.com/$$$Y$$.dat"
+            ],
+            "timeRange": [
+                "2001/2003"
+            ],
+            "whatTests" ["escape"],
+            "comment": "$$ is interpreted as a literal $.",
+            "output": [ 
+                "http://example.com/$2001$.dat"
+                "http://example.com/$2002$.dat"
+            ]
+    },
+
+    {
+            "template": [
+                "http://example.com/data_$Y-$m.dat",
+                "http://example.com/data_$(Y)-$m.dat",
+                "http://example.com/data_$Y-$(m).dat"               
+            ],
+            "timeRange": [
+                "1998/1999",
+                "1998-01/1999-01",
+                "1998-01/1998-12-01",
+            ],
+            "whatTests" ["fields"],
+            "comment": "",
+            "output": [ 
+                "http://example.com/data_1998-01.dat",
+                "http://example.com/data_1998-02.dat",
+                "http://example.com/data_1998-03.dat",
+                "http://example.com/data_1998-04.dat",
+                "http://example.com/data_1998-05.dat",
+                "http://example.com/data_1998-06.dat",
+                "http://example.com/data_1998-07.dat",
+                "http://example.com/data_1998-08.dat",
+                "http://example.com/data_1998-09.dat",
+                "http://example.com/data_1998-10.dat",
+                "http://example.com/data_1998-11.dat",
+                "http://example.com/data_1998-12.dat"
+            ]
+    },
+
+    {
+            "template": [
+                "http://example.com/data_$(j;pad=none).dat",                              
+            ],
+            "timeRange": [
+                "1999-01/1999-03"
+            ],
+            "whatTests" ["pad"],
+            "comment": "",
+            "output": [ 
+                "http://example.com/data_1.dat",
+                "http://example.com/data_2.dat"
+            ]
+    },
+
+    {
+            "template": [
+                "http://example.com/data_$(m;pad=none).dat",                              
+            ],
+            "timeRange": [
+                "1999-01/1999-03"
+            ],
+            "whatTests" ["pad"],
+            "comment": "",
+            "output": [ 
+                "http://example.com/data_1.dat",
+                "http://example.com/data_2.dat"
+            ]
+    },
+
+    {
+            "template": [
+                "http://example.com/data_$(d;pad=none).dat",                              
+            ],
+            "timeRange": [
+                "1999-01-01/1999-01-03"
+            ],
+            "whatTests" ["pad"],        
+            "comment": "",
+            "output": [ 
+                "http://example.com/data_1.dat",
+                "http://example.com/data_2.dat"
+            ]
+    },
+
+    {
+            "template": [
+                "http://example.com/data_$(H;pad=none).dat",                              
+            ],
+            "timeRange": [
+                "1999-01-01T00/1999-01-01T03"
+            ],
+            "whatTests" ["pad"],
+            "comment": "",
+            "output": [ 
+                "http://example.com/data_1.dat",
+                "http://example.com/data_2.dat"
+            ]
+    },
+
+    {
+            "template": [
+                "http://example.com/data_$(M;pad=none).dat",                              
+            ],
+            "timeRange": [
+                "1999-01-01T00:00/1999-01-01T00:03"
+            ],
+            "whatTests" ["pad"],
+            "comment": "",
+            "output": [ 
+                "http://example.com/data_1.dat",
+                "http://example.com/data_2.dat"
+            ]
+    },
+
+    {
+            "template": [
+                "http://example.com/data_$(S;pad=none).dat",                              
+            ],
+            "timeRange": [
+                "1999-01-01T00:00:00/1999-01-01T00:00:03"
+            ],
+            "whatTests" ["pad"],
+            "comment": "",
+            "output": [ 
+                "http://example.com/data_1.dat",
+                "http://example.com/data_2.dat"
+            ]
+    },
+
+    {
+        "template": 
+        [
+            "$Y-$m-$(d;delta=2)",
+            "$Y-$m-$(d;delta=2d)"
+        ],
+        "timeRange": "2013-09-01/2013-09-05",
+        "whatTests" ["delta","units"],
+        "comment": "Basic example of delta. Note that http://example.com/ is omitted.",
+        "output": [
+            "2013-09-01",
+            "2013-09-03"
+        ]
     }
+
 ]
