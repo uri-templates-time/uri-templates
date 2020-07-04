@@ -1,5 +1,6 @@
 [
     {
+            "whatTests": ["fields"],
             "template": [
                 "http://example.com/data_$Y.dat",
                 "http://example.com/data_$(Y).dat"
@@ -9,7 +10,6 @@
                 "2001-03/2004-08",
                 "2001/2005"
             ],
-            "whatTests" ["fields"],
             "comment": "Example in section 1.1 of specification document. Note that stop date is exclusive, so 2001/2005 is needed to generate 2004 URI when only year start/stop is given.",
             "output": [ 
                 "http://example.com/data_2001.dat",
@@ -19,23 +19,8 @@
             ]
     },
 
-    
-    {
-            "template": [
-                "http://example.com/$$$Y$$.dat"
-            ],
-            "timeRange": [
-                "2001/2003"
-            ],
-            "whatTests" ["escape"],
-            "comment": "$$ is interpreted as a literal $.",
-            "output": [ 
-                "http://example.com/$2001$.dat"
-                "http://example.com/$2002$.dat"
-            ]
-    },
-
-    {
+        {
+            "whatTests": ["fields"],
             "template": [
                 "http://example.com/data_$Y-$m.dat",
                 "http://example.com/data_$(Y)-$m.dat",
@@ -46,7 +31,6 @@
                 "1998-01/1999-01",
                 "1998-01/1998-12-01",
             ],
-            "whatTests" ["fields"],
             "comment": "",
             "output": [ 
                 "http://example.com/data_1998-01.dat",
@@ -65,13 +49,28 @@
     },
 
     {
+            "whatTests": ["escape"],
+            "template": [
+                "http://example.com/$$$Y$$.dat"
+            ],
+            "timeRange": [
+                "2001/2003"
+            ],
+            "comment": "$$ is interpreted as a literal $.",
+            "output": [ 
+                "http://example.com/$2001$.dat"
+                "http://example.com/$2002$.dat"
+            ]
+    },
+
+    {
+            "whatTests": ["pad"],
             "template": [
                 "http://example.com/data_$(j;pad=none).dat",                              
             ],
             "timeRange": [
                 "1999-01/1999-03"
             ],
-            "whatTests" ["pad"],
             "comment": "",
             "output": [ 
                 "http://example.com/data_1.dat",
@@ -80,13 +79,13 @@
     },
 
     {
+            "whatTests": ["pad"],
             "template": [
                 "http://example.com/data_$(m;pad=none).dat",                              
             ],
             "timeRange": [
                 "1999-01/1999-03"
             ],
-            "whatTests" ["pad"],
             "comment": "",
             "output": [ 
                 "http://example.com/data_1.dat",
@@ -95,13 +94,13 @@
     },
 
     {
+            "whatTests": ["pad"],        
             "template": [
                 "http://example.com/data_$(d;pad=none).dat",                              
             ],
             "timeRange": [
                 "1999-01-01/1999-01-03"
             ],
-            "whatTests" ["pad"],        
             "comment": "",
             "output": [ 
                 "http://example.com/data_1.dat",
@@ -110,13 +109,13 @@
     },
 
     {
+            "whatTests": ["pad"],
             "template": [
                 "http://example.com/data_$(H;pad=none).dat",                              
             ],
             "timeRange": [
                 "1999-01-01T00/1999-01-01T03"
             ],
-            "whatTests" ["pad"],
             "comment": "",
             "output": [ 
                 "http://example.com/data_1.dat",
@@ -125,13 +124,13 @@
     },
 
     {
+            "whatTests": ["pad"],
             "template": [
                 "http://example.com/data_$(M;pad=none).dat",                              
             ],
             "timeRange": [
                 "1999-01-01T00:00/1999-01-01T00:03"
             ],
-            "whatTests" ["pad"],
             "comment": "",
             "output": [ 
                 "http://example.com/data_1.dat",
@@ -140,13 +139,13 @@
     },
 
     {
+            "whatTests": ["pad"],
             "template": [
                 "http://example.com/data_$(S;pad=none).dat",                              
             ],
             "timeRange": [
                 "1999-01-01T00:00:00/1999-01-01T00:00:03"
             ],
-            "whatTests" ["pad"],
             "comment": "",
             "output": [ 
                 "http://example.com/data_1.dat",
@@ -155,17 +154,65 @@
     },
 
     {
+        "whatTests": ["delta","units"],
         "template": 
         [
-            "$Y-$m-$(d;delta=2)",
-            "$Y-$m-$(d;delta=2d)"
+            "$Y-$(m;delta=2)",
+            "$Y-$(m;delta=2;phasestart=2013-01)",
+        ],
+        "timeRange": "2013-02/2013-06",
+        "comment": "Note no phase start needed when delta in month.",
+        "output": [
+            "2013-01",
+            "2013-03",
+            "2013-05"
+        ]
+    }
+
+    {
+        "whatTests": ["delta","units"],
+        "template": 
+        [
+            "$Y-$m-$(d;delta=7;phasestart=2019-05-05)",
+        ],
+        "timeRange": "2019-05-01/2013-06-01",
+        "comment": "Note that phasestart is required.",
+        "output": [
+            "2019-04-28",
+            "2019-05-05",
+            "2019-05-12",
+            "2019-05-19",
+            "2019-05-26"
+        ]
+    }
+
+    {
+        "whatTests": ["delta","units"],
+        "template": 
+        [
+            "$Y-$m-$(d;delta=2;phasestart=2013-09-01)",
         ],
         "timeRange": "2013-09-01/2013-09-05",
-        "whatTests" ["delta","units"],
-        "comment": "Basic example of delta. Note that http://example.com/ is omitted.",
+        "comment": "Note phasestart required.",
         "output": [
             "2013-09-01",
             "2013-09-03"
+        ]
+    }
+
+    {
+        "whatTests": ["shift","units"],
+        "template": 
+        [
+            "$Y-$m-$(d;shift=1).dat",
+            "$Y-$m-$(d;shift=1d).dat"
+        ],
+        "timeRange": "2013-09-01/2013-09-05",
+        "comment": "Basic example of shift. Example use case is where file name corresponds to when the file was written and file contains measurements made on the day before.",
+        "output": [
+            "2013-09-02.dat",
+            "2013-09-03.dat",
+            "2013-09-04.dat"
         ]
     }
 
