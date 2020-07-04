@@ -1,13 +1,10 @@
-# uri-templates
+# URI-templates
+>>>>>>> c57706317df49189bafe2e01ea472438d2fa2e8a
 
-Repository of tools for URI templates.
+Repository of tools and tests for URI templates.
 
-Specification: http://tsds.org/uri_templates
+Specification: https://github.com/hapi-server/uri-templates/wiki/Specification
 
-Autoplot (Java) implementation: http://jfaden.net/AutoplotServlet/URI_Templates.jsp (plan is to extract template code from Autoplot code base and place here)
+Wiki Page: https://github.com/hapi-server/uri-templates/wiki
 
-FileFinder (Java) http://filefinder.elasticbeanstalk.com/v1/finder
-
-TSDSET (Javascript) https://github.com/rweigel/tsdset/blob/master/lib/expandtemplate.js (limited set of features supported)
-
-Server for expanding templates and comparing results from three different template engines: https://github.com/rweigel/tsdset
+The files `formatting.json` and `parsing.json` can be used to run unit tests on code that implements the specification.
