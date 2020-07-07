@@ -227,6 +227,30 @@ public class TimeUtil {
         }
     }
 
+    /**
+     * fast parser requires that each character of string is a digit.
+     * @param s
+     * @return
+     */
+    private static int parseInt(String s, int deft ) {
+        if ( s==null ) return deft;
+        int result;
+        switch (s.length()) {
+            case 2:
+                result = 10 * (s.charAt(0) - 48) + (s.charAt(1) - 48);
+                return result;
+            case 3:
+                result = 100 * (s.charAt(0) - 48) + 10 * (s.charAt(1) - 48) + (s.charAt(2) - 48);
+                return result;
+            default:
+                result = 0;
+                for (int i = 0; i < s.length(); i++) {
+                    result = 10 * result + (s.charAt(i) - 48);
+                }
+                return result;
+        }
+    }
+    
     private static double parseDouble( String val, double deft ) {
         if ( val==null ) {
             if ( deft!=-99 ) return deft; else throw new IllegalArgumentException("bad digit");
@@ -239,6 +263,18 @@ public class TimeUtil {
         }
     }
     
+
+    /**
+     * return the array formatted as 
+     * @param nn the decomposed time
+     * @return the formatted time.
+     * @see #isoTimeToArray(java.lang.String) 
+     */
+    public static String isoTimeFromArray( int[] nn ) {
+        return String.format( "%04d-%02d-%02dT%02d:%02d:%02d.%09dZ", 
+                nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6] );
+    }
+    
     /**
      * return array [ year, months, days, hours, minutes, seconds, nanoseconds ]
      * preserving the day of year notation if this was used.  See the class
@@ -248,6 +284,7 @@ public class TimeUtil {
      * @param time isoTime to decompose
      * @return the decomposed time
      * @throws IllegalArgumentException when the time cannot be parsed.
+     * @see #isoTimeFromArray(int[]) 
      */
     public static int[] isoTimeToArray(String time) {
         int[] result;
@@ -400,9 +437,17 @@ public class TimeUtil {
 
     /**
      * returns a 7 element array with [year,mon,day,hour,min,sec,nanos].
+     * Note this does not allow fractional day, hours or minutes!  Examples
+     * include:<ul>
+     * <li>P1D - one day
+     * <li>PT1M - one minute
+     * <li>PT0.5S - 0.5 seconds
+     * </ul>
+     * TODO: there exists more complete code elsewhere.
      * @param stringIn
      * @return 7-element array with [year,mon,day,hour,min,sec,nanos]
      * @throws ParseException if the string does not appear to be valid.
+     * 
      */
     public static int[] parseISO8601Duration( String stringIn ) throws ParseException {
         Matcher m= iso8601DurationPattern.matcher(stringIn);
@@ -410,8 +455,9 @@ public class TimeUtil {
             double dsec=parseDouble( m.group(7),0 );
             int sec= (int)dsec;
             int nanosec= (int)( ( dsec - sec ) * 1e9 );
-            return new int[] { parseInt( m.group(1) ), parseInt( m.group(2) ), parseInt( m.group(3) ), 
-                parseInt( m.group(5) ), parseInt( m.group(6) ), sec, nanosec };
+            return new int[] { 
+                parseInt( m.group(1),0 ), parseInt( m.group(2),0 ), parseInt( m.group(3),0 ), 
+                parseInt( m.group(5),0 ), parseInt( m.group(6),0 ), sec, nanosec };
         } else {
             if ( stringIn.contains("P") && stringIn.contains("S") && !stringIn.contains("T") ) {
                 throw new ParseException("ISO8601 duration expected but not found.  Was the T missing before S?",0);
