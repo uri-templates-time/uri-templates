@@ -1,11 +1,15 @@
 
 package org.hapiserver;
 
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Utilities for times in IsoTime strings (limited set of ISO8601 times)
@@ -20,6 +24,8 @@ import java.util.Date;
  */
 public class TimeUtil {
 
+    private static final Logger logger= Logger.getLogger("hapiserver.timeutil");
+    
     /**
      * Rewrite the time using the format of the example time.  For example,
      * <pre>
@@ -71,6 +77,21 @@ public class TimeUtil {
         } else {
             return time.substring(0, exampleForm.length());
         }
+    }
+
+    private static String[] monthNames= {
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    };
+    
+    /**
+     * return the English month name, abbreviated to three letters, for the
+     * month number.
+     * @param i month number, from 1 to 12.
+     * @return the month name, like "Jan" or "Dec"
+     */
+    public static String monthNameAbbrev(int i) {
+        return monthNames[i-1];
     }
 
     private TimeUtil() {
@@ -206,11 +227,27 @@ public class TimeUtil {
         }
     }
 
+    private static double parseDouble( String val, double deft ) {
+        if ( val==null ) {
+            if ( deft!=-99 ) return deft; else throw new IllegalArgumentException("bad digit");
+        }
+        int n= val.length()-1;
+        if ( Character.isLetter( val.charAt(n) ) ) {
+            return Double.parseDouble(val.substring(0,n));
+        } else {
+            return Double.parseDouble(val);
+        }
+    }
+    
     /**
      * return array [ year, months, days, hours, minutes, seconds, nanoseconds ]
-     * preserving the day of year notation if this was used.
+     * preserving the day of year notation if this was used.  See the class
+     * documentation for allowed time formats, which are a subset of ISO8601 
+     * times.
+     * 
      * @param time isoTime to decompose
      * @return the decomposed time
+     * @throws IllegalArgumentException when the time cannot be parsed.
      */
     public static int[] isoTimeToArray(String time) {
         int[] result;
@@ -220,14 +257,24 @@ public class TimeUtil {
             if (time.length() < 8) {
                 throw new IllegalArgumentException("time must have 4 or greater than 7 elements");
             }
-            if (time.charAt(8) == 'T') {
+            // first, parse YMD part, and leave remaining components in time.
+            if ( time.length()==8 ) {
+                result = new int[]{parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), // days
+                0, 0, 0, 0};
+                time = "";
+            } else if (time.charAt(8) == 'T') {        
                 result = new int[]{parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), // days
                 0, 0, 0, 0};
                 time = time.substring(9);
             } else {
                 result = new int[]{parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), parseInt(time.substring(8, 10)), 0, 0, 0, 0};
-                time = time.substring(11);
+                if ( time.length()==10 ) {
+                    time="";
+                } else {
+                    time = time.substring(11);
+                }
             }
+            // second, parse HMS part.
             if (time.endsWith("Z")) {
                 time = time.substring(0, time.length() - 1);
             }
@@ -347,4 +394,113 @@ public class TimeUtil {
         }
     }
     
+    private static final String simpleFloat= "\\d?\\.?\\d+";
+    public static final String iso8601duration= "P(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?("+simpleFloat+"S)?)?";
+    public static final Pattern iso8601DurationPattern= Pattern.compile(iso8601duration);
+
+    /**
+     * returns a 7 element array with [year,mon,day,hour,min,sec,nanos].
+     * @param stringIn
+     * @return 7-element array with [year,mon,day,hour,min,sec,nanos]
+     * @throws ParseException if the string does not appear to be valid.
+     */
+    public static int[] parseISO8601Duration( String stringIn ) throws ParseException {
+        Matcher m= iso8601DurationPattern.matcher(stringIn);
+        if ( m.matches() ) {
+            double dsec=parseDouble( m.group(7),0 );
+            int sec= (int)dsec;
+            int nanosec= (int)( ( dsec - sec ) * 1e9 );
+            return new int[] { parseInt( m.group(1) ), parseInt( m.group(2) ), parseInt( m.group(3) ), 
+                parseInt( m.group(5) ), parseInt( m.group(6) ), sec, nanosec };
+        } else {
+            if ( stringIn.contains("P") && stringIn.contains("S") && !stringIn.contains("T") ) {
+                throw new ParseException("ISO8601 duration expected but not found.  Was the T missing before S?",0);
+            } else {
+                throw new ParseException("ISO8601 duration expected but not found.",0);
+            }
+        }
+    }    
+        
+    /**
+     * return the julianDay for the year month and day.  This was verified
+     * against another calculation (julianDayWP, commented out above) from 
+     * http://en.wikipedia.org/wiki/Julian_day.  Both calculations have 20 operations. 
+     * @see julianToGregorian
+     * @param year calendar year greater than 1582.
+     * @param month 
+     * @param day day of month. For day of year, use month=1 and doy for day.
+     * @return the Julian day
+     */
+    public static int julianDay( int year, int month, int day ) {
+        if ( year<=1582 ) {
+            throw new IllegalArgumentException("year must be more than 1582");
+        }
+        int jd = 367 * year - 7 * (year + (month + 9) / 12) / 4 -
+                3 * ((year + (month - 9) / 7) / 100 + 1) / 4 +
+                275 * month / 9 + day + 1721029;
+        return jd;
+    }
+    
+    /**
+     *Break the Julian day apart into month, day year.  This is based on
+     *http://en.wikipedia.org/wiki/Julian_day (GNU Public License), and 
+     *was introduced when toTimeStruct failed when the year was 1886.
+     *@see julianDay( int year, int mon, int day )
+     *@param julian the (integer) number of days that have elapsed since the initial epoch at noon Universal Time (UT) Monday, January 1, 4713 BC
+     *@return a TimeStruct with the month, day and year fields set.
+     */
+    public static int[] fromJulianDay( int julian ) {
+        int j = julian + 32044;
+        int g = j / 146097;
+        int dg = j % 146097;
+        int c = (dg / 36524 + 1) * 3 / 4;
+        int dc = dg - c * 36524;
+        int b = dc / 1461;
+        int db = dc % 1461;
+        int a = (db / 365 + 1) * 3 / 4;
+        int da = db - a * 365;
+        int y = g * 400 + c * 100 + b * 4 + a;
+        int m = (da * 5 + 308) / 153 - 2;
+        int d = da - (m + 4) * 153 / 5 + 122;
+        int Y = y - 4800 + (m + 2) / 12;
+        int M = (m + 2) % 12 + 1;
+        int D = d + 1;
+        int[] result= new int[7];
+        result[0]= Y;
+        result[1]= M;
+        result[2]= D;
+        result[3]= 0;
+        result[4]= 0;
+        result[5]= 0;
+        result[6]= 0;
+        return result;
+    }
+    
+    /**
+     * subtract the offset from the base time.
+     * @param base a time
+     * @param offset offset in each component.
+     * @return a time
+     */
+    public static int[] subtract( int[] base, int[] offset ) {
+        int[] result= new int[7];
+        for ( int i=0; i<7; i++ ) {
+            result[i]= base[i]-offset[i];
+        }
+        return result;
+    }
+    
+    /**
+     * add the offset to the base time.
+     * @param base a time
+     * @param offset offset in each component.
+     * @return a time
+     */
+    public static int[] add( int[] base, int[] offset ) {
+        int[] result= new int[7];
+        for ( int i=0; i<7; i++ ) {
+            result[i]= base[i]+offset[i];
+        }
+        return result;
+    }    
 }
