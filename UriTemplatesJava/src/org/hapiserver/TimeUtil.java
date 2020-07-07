@@ -235,6 +235,12 @@ public class TimeUtil {
     private static int parseInt(String s, int deft ) {
         if ( s==null ) return deft;
         int result;
+        for ( int i=0; i<s.length(); i++ ) {
+            char c= s.charAt(i);
+            if ( c<48 || c>=58 ) {
+                throw new IllegalArgumentException("only digits are allowed in string");
+            }
+        }
         switch (s.length()) {
             case 2:
                 result = 10 * (s.charAt(0) - 48) + (s.charAt(1) - 48);
@@ -432,7 +438,7 @@ public class TimeUtil {
     }
     
     private static final String simpleFloat= "\\d?\\.?\\d+";
-    public static final String iso8601duration= "P(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?("+simpleFloat+"S)?)?";
+    public static final String iso8601duration= "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?(("+simpleFloat+")S)?)?";
     public static final Pattern iso8601DurationPattern= Pattern.compile(iso8601duration);
 
     /**
@@ -452,12 +458,12 @@ public class TimeUtil {
     public static int[] parseISO8601Duration( String stringIn ) throws ParseException {
         Matcher m= iso8601DurationPattern.matcher(stringIn);
         if ( m.matches() ) {
-            double dsec=parseDouble( m.group(7),0 );
+            double dsec=parseDouble( m.group(13),0 );
             int sec= (int)dsec;
             int nanosec= (int)( ( dsec - sec ) * 1e9 );
             return new int[] { 
-                parseInt( m.group(1),0 ), parseInt( m.group(2),0 ), parseInt( m.group(3),0 ), 
-                parseInt( m.group(5),0 ), parseInt( m.group(6),0 ), sec, nanosec };
+                parseInt( m.group(2),0 ), parseInt( m.group(4),0 ), parseInt( m.group(6),0 ), 
+                parseInt( m.group(9),0 ), parseInt( m.group(11),0 ), sec, nanosec };
         } else {
             if ( stringIn.contains("P") && stringIn.contains("S") && !stringIn.contains("T") ) {
                 throw new ParseException("ISO8601 duration expected but not found.  Was the T missing before S?",0);
