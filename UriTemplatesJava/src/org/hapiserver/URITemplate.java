@@ -32,7 +32,7 @@ public class URITemplate {
     int[] handlers;
     int[] offsets;
     int[] lengths;
-    int[] shift; // needed in parse?
+    int[] shift; 
     String[] fc;
     
     /**
@@ -1034,6 +1034,10 @@ public class URITemplate {
                     } else {
                         digit= ( digit / span ) * span;
                     }
+                }
+                if ( shift[idigit]!=0 ) {
+                    logger.finer("applying shift to digit");
+                    digit= digit-shift[idigit];
                 }
                 if ( len<0 ) {
                     String ss= String.valueOf(digit);
