@@ -94,6 +94,23 @@ public class TimeUtil {
         return monthNames[i-1];
     }
 
+    /**
+     * return the month number for the English month name, such as "Jan" (1) or 
+     * "December" (12).  The first three letters are used to look up the number.
+     * 
+     * @param s the name (case-insensitive, only the first three letters are used.
+     * @return the number, for example 1 for "January"
+     * @throws ParseException 
+     */
+    public static int monthNumber(String s) throws ParseException {
+        if ( s.length()<3 ) throw new ParseException("need at least three letters",0);
+        s= s.substring(0,3);
+        for ( int i=0; i<12; i++ ) {
+            if ( s.equalsIgnoreCase( monthNames[i] ) ) return i+1;
+        }
+        throw new ParseException("Unable to parse month", 0 );
+    }
+
     private TimeUtil() {
         // this class is not instanciated.
     }
