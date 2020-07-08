@@ -7,6 +7,7 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.logging.Level;
@@ -40,7 +41,7 @@ public class URITemplate {
      */
     int stopTimeDigit= AFTERSTOP_INIT; 
     private int lsd;
-    private final int[] timeWidth;
+    private int[] timeWidth;
     private final String regex;
     private final int[] context;
     
@@ -141,6 +142,8 @@ public class URITemplate {
         public void parse(String fieldContent, int[] startTime, int[] timeWidth, Map<String, String> extra) throws ParseException {
             double value= Double.parseDouble(fieldContent);
             startTime[6]= (int)( value*nanosecondsFactor );
+            timeWidth[5]= 0;
+            timeWidth[6]= nanosecondsFactor;
         }
 
         @Override
@@ -220,9 +223,11 @@ public class URITemplate {
         int[] start;
         int julday;
         int[] period;
+        Map<String, String> args;
         
         @Override
         public String configure( Map<String, String> args ) {
+            this.args= new LinkedHashMap<>(args);
             String s= args.get("start");
             if ( s==null ) return "periodic field needs start";
             start= TimeUtil.isoTimeToArray(s);
@@ -941,11 +946,188 @@ public class URITemplate {
     }
     
     /**
+     * return the timeString, parsed into start time and stop time.  
+     * The result is a 14-element array, with the first 7 the start time
+     * and the last 7 the stop time.
+     * @param timeString
+     * @return
+     * @throws ParseException 
+     */
+    public int[] parse( String timeString ) throws ParseException {
+        logger.log(Level.FINER, "parse {0}", timeString);
+        
+        int offs = 0;
+        int len = 0;
+
+        Map<String,String> extra= new HashMap();
+
+        int[] time;
+        
+        int[] startTime, stopTime;
+        
+        startTime= new int[NUM_TIME_DIGITS];
+        stopTime= new int[NUM_TIME_DIGITS];
+        
+        time= startTime;
+        
+        System.arraycopy( context, 0, time, 0, NUM_TIME_DIGITS );
+
+        for (int idigit = 1; idigit < ndigits; idigit++) {
+            if ( idigit==stopTimeDigit ) {
+                System.arraycopy( time, 0, stopTime, 0, NUM_TIME_DIGITS );
+                time= stopTime;
+            }
+            
+            if (offsets[idigit] != -1) {  // note offsets[0] is always known
+
+                offs = offsets[idigit];
+            } else {
+                offs += len + this.delims[idigit - 1].length();
+            }
+            if (lengths[idigit] != -1) {
+                len = lengths[idigit];
+            } else {
+                if (this.delims[idigit].equals("")) {
+                    if (idigit == ndigits - 1) {
+                        len = timeString.length() - offs;
+                    } else {
+                        throw new IllegalArgumentException("No delimer specified after unknown length field, \"" + formatName[handlers[idigit]] + "\", field number=" + (1 + idigit) + "");
+                    }
+                } else {
+                    while ( offs<timeString.length() && Character.isWhitespace( timeString.charAt(offs) ) ) offs++;
+                    if ( offs>=timeString.length() ) {
+                        throw new ParseException( "expected delimiter \"" + this.delims[idigit] + "\" but reached end of string", offs);
+                    }
+                    int i = timeString.indexOf(this.delims[idigit], offs);
+                    if (i == -1) {
+                        throw new ParseException("expected delimiter \"" + this.delims[idigit] + "\"", offs);
+                    }
+                    len = i - offs;
+                }
+            }
+
+            if ( timeString.length()<offs+len ) {
+                throw new ParseException( "string is too short: "+timeString, timeString.length() );
+            }
+
+            String field= timeString.substring(offs, offs + len).trim();
+            
+            logger.log(Level.FINEST, "handling {0} with {1}", new Object[]{field, handlers[idigit]});
+            
+            try {
+
+                if (handlers[idigit] < 10) {
+                    int digit;
+                    digit= Integer.parseInt(field) + shift[idigit];
+                    switch (handlers[idigit]) {
+                        case 0:
+                            time[YEAR] = digit;
+                            break;
+                        case 1:
+                            time[YEAR] = digit < 58 ? 2000 + digit : 1900 + digit;
+                            break;
+                        case 2:
+                            time[MONTH] = 1;
+                            time[DAY] = digit;
+                            break;
+                        case 3:
+                            time[MONTH] = digit;
+                            break;
+                        case 4:
+                            time[DAY] = digit;
+                            break;
+                        case 5:
+                            time[HOUR] = digit;
+                            break;
+                        case 6:
+                            time[MINUTE] = digit;
+                            break;
+                        case 7:
+                            time[SECOND] = digit;
+                            break;
+                        case 8:
+                            time[NANOSECOND] = digit;
+                            break;
+                        default:
+                            throw new IllegalArgumentException("handlers[idigit] was not expected value (which shouldn't happen)");
+                    }
+                } else if (handlers[idigit] == 100) {
+                    FieldHandler handler = (FieldHandler) fieldHandlers.get(fc[idigit]);
+                    handler.parse(timeString.substring(offs, offs + len), time, timeWidth, extra );
+                    
+                } else if (handlers[idigit] == 10) { // AM/PM -- code assumes hour has been read already
+                    char ch = timeString.charAt(offs);
+                    if (ch == 'P' || ch == 'p') {
+                        if ( time[HOUR]==12 ) {
+                            // do nothing
+                        } else {
+                            time[HOUR] += 12;
+                        }
+                    } else if (ch == 'A' || ch == 'a') {
+                        if ( time[HOUR]==12 ) {
+                            time[HOUR] -= 12;
+                        } else {
+                            // do nothing
+                        }
+                    }
+                } else if (handlers[idigit] == 11) { // TimeZone is not supported, see code elsewhere.
+                    int offset;
+                    offset= Integer.parseInt(timeString.substring(offs, offs + len));
+                    time[HOUR] -= offset / 100;   // careful!
+
+                    time[MINUTE] -= offset % 100;
+                } else if (handlers[idigit] == 12) { // $(ignore)
+                    if ( len>=0 ) {
+                        extra.put( "ignore", timeString.substring(offs, offs + len) );
+                    }
+                } else if (handlers[idigit] == 13) { // month name
+                    time[MINUTE] = TimeUtil.monthNumber(timeString.substring(offs, offs + len));
+
+                } else if (handlers[idigit] == 14) { // "X"
+                    if ( len>=0 ) {
+                        extra.put( "X", timeString.substring(offs, offs + len) );
+                    }
+                } else if (handlers[idigit] == 15) { // "x"
+                    if ( len>=0 ) {
+                        extra.put( "x", timeString.substring(offs, offs + len) );
+                    }
+                }
+            } catch ( NumberFormatException ex ) {
+                throw new ParseException( String.format( "fail to parse digit number %d: %s", idigit, field ), offs );
+            }
+
+        }
+  
+        //TODO: phasestart
+        if ( this.phasestart!=null ) {
+            if ( timeWidth==null ) {
+                logger.warning("phasestart cannot be used for month or year resolution");
+            } else {
+                stopTime= TimeUtil.add( startTime, this.timeWidth );
+            }
+        } else {
+            stopTime= TimeUtil.add( startTime, this.timeWidth );
+        }
+        
+        int [] result= new int[NUM_TIME_DIGITS*2];
+        
+        int i;
+        for ( i=0; i<NUM_TIME_DIGITS; i++ ) {
+            result[i]= startTime[i];
+        }
+        for ( i= NUM_TIME_DIGITS; i<NUM_TIME_DIGITS*2; i++ ) {
+            result[i]= stopTime[i-NUM_TIME_DIGITS];
+        }
+        return result;
+        
+    }
+            
+    /**
      * return a list of formatted names, using the spec and the given 
      * time range.
      * @param startTimeStr iso8601 formatted time.
      * @param stopTimeStr iso8601 formatted time.
-     * @return 
+     * @return formatted time, often a resolvable URI.
      */
     public String format( String startTimeStr, String stopTimeStr ) {
         
