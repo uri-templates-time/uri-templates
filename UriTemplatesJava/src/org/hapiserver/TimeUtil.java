@@ -115,11 +115,17 @@ public class TimeUtil {
         // this class is not instanciated.
     }
     
+    /**
+     * the number of days in each month.
+     */
     private final static int[][] DAYS_IN_MONTH = {
         {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0},
         {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0}
     };
     
+    /**
+     * the number of days to the first of each month.
+     */
     private final static int[][] DAY_OFFSET = {
         {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365},
         {0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366}
@@ -326,6 +332,10 @@ public class TimeUtil {
                 result = new int[]{parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), // days
                 0, 0, 0, 0};
                 time = time.substring(9);
+            } else if ( time.charAt(8)=='Z' ) {
+                result = new int[]{parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), // days
+                0, 0, 0, 0};
+                time = time.substring(9);
             } else {
                 result = new int[]{parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), parseInt(time.substring(8, 10)), 0, 0, 0, 0};
                 if ( time.length()==10 ) {
@@ -417,10 +427,35 @@ public class TimeUtil {
      * </ul>
      * @param time
      */
-    private static void normalizeTime(int[] time) {
+    public static void normalizeTime(int[] time) {
         if (time[3] == 24) {
             time[2] += 1;
             time[3] = 0;
+        }
+        if ( time[6]<0 ) {
+            time[5]-= 1;
+            time[6]+= 1000000000;
+        }
+        if ( time[5]<0 ) {
+            time[4]-= 1; // take a minute
+            time[5]+= 60; // add 60 seconds.
+        }
+        if ( time[4]<0 ) {
+            time[3]-= 1; // take an hour
+            time[4]+= 60; // add 60 minutes
+        }
+        if ( time[3]<0 ) {
+            time[2]-= 1; // take a day
+            time[3]+= 24; // add 24 hours
+        }
+        if ( time[2]<1 ) {
+            time[1]-= 1; // take a month
+            int daysInMonth= time[1]==0 ? 31: TimeUtil.DAYS_IN_MONTH[isLeapYear(time[0])?1:0][time[1]];
+            time[2]+= daysInMonth; // add 24 hours
+        }
+        if ( time[1]<1 ) {
+            time[0]-= 1; // take a year
+            time[1]+= time[1]+12; // add 12 months
         }
         if (time[3] > 24) {
             throw new IllegalArgumentException("time[3] is greater than 24 (hours)");
@@ -556,6 +591,7 @@ public class TimeUtil {
         for ( int i=0; i<7; i++ ) {
             result[i]= base[i]-offset[i];
         }
+        normalizeTime(result);
         return result;
     }
     
@@ -570,6 +606,7 @@ public class TimeUtil {
         for ( int i=0; i<7; i++ ) {
             result[i]= base[i]+offset[i];
         }
+        normalizeTime(result);
         return result;
     }    
 }
