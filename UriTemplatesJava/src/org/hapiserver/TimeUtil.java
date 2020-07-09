@@ -237,6 +237,7 @@ public class TimeUtil {
      */
     public static String normalizeTimeString(String time) {
         int[] nn = isoTimeToArray(time);
+        normalizeTime(nn);
         return String.format("%d-%02d-%02dT%02d:%02d:%02d.%09dZ", nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6]);
     }
 
@@ -314,8 +315,9 @@ public class TimeUtil {
     }
 
     /**
-     * return the array formatted as
-     *
+     * return the array formatted as ISO8601 time, formatted to nanoseconds.
+     * For example,  int[] nn = new int[] { 1999, 12, 31, 23, 0, 0, 0  } is
+     * formatted to "1999-12-31T23:00:00.000000000Z";
      * @param nn the decomposed time
      * @return the formatted time.
      * @see #isoTimeToArray(java.lang.String)
@@ -456,9 +458,9 @@ public class TimeUtil {
      * @param time
      */
     public static void normalizeTime(int[] time) {
-        while (time[3] > 24) {
+        while (time[3] >= 24) {
             time[2] += 1;
-            time[3] = 0;
+            time[3] -= 24;
         }
         if (time[6] < 0) {
             time[5] -= 1;
