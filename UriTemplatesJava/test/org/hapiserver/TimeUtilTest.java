@@ -205,6 +205,8 @@ public class TimeUtilTest {
         long result = TimeUtil.toMillisecondsSince1970("2000-01-02T00:00:00.0Z");
         assertEquals( 10958,  result / 86400000 ); //  # 10958.0 days
         assertEquals( 0, result % 86400000 );
+        result = TimeUtil.toMillisecondsSince1970("2020-07-09T16:35:27Z");
+        assertEquals( 1594312527000L, result );
     }
 
     /**
