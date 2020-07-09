@@ -1,4 +1,3 @@
-
 package org.hapiserver;
 
 import java.text.ParseException;
@@ -16,29 +15,29 @@ import java.util.regex.Pattern;
  * Examples of isoTime strings include:<ul>
  * <li>2020-04-21Z
  * <li>2020-04-21T12:20Z
- * <li>2020-04-21T23:45:67.000000001Z  (nanosecond limit)
+ * <li>2020-04-21T23:45:67.000000001Z (nanosecond limit)
  * <li>2020-112Z (day-of-year instead of $Y-$m-$d)
  * <li>2020-112T23:45:67.000000001 (note Z is assumed)
  * </ul>
+ *
  * @author jbf
  */
 public class TimeUtil {
 
-    private static final Logger logger= Logger.getLogger("hapiserver.timeutil");
-    
+    private static final Logger logger = Logger.getLogger("hapiserver.timeutil");
+
     /**
-     * Rewrite the time using the format of the example time.  For example,
+     * Rewrite the time using the format of the example time. For example,
      * <pre>
      * {@code
      * from org.hapiserver.TimeUtil import *
      * print rewriteIsoTime( '2020-01-01T00:00Z', '2020-112Z' ) # ->  '2020-04-21T00:00Z'
      * }
-     * </pre>
-     * This allows direct comparisons of times for sorting.
-     * TODO: there's an optimization here, where if input and output are both $Y-$j or
-     * both $Y-$m-$d, then we need not break apart and recombine the time 
+     * </pre> This allows direct comparisons of times for sorting. TODO: there's
+     * an optimization here, where if input and output are both $Y-$j or both
+     * $Y-$m-$d, then we need not break apart and recombine the time
      * (isoTimeToArray call can be avoided).
-     * 
+     *
      * @param exampleForm isoTime string.
      * @param time the time in any allowed isoTime format
      * @return same time but in the same form as exampleForm.
@@ -59,8 +58,8 @@ public class TimeUtil {
                 time = String.format("%d-%03dZ", nn[0], nn[2]);
                 break;
             default:
-                if ( exampleForm.length()==10 ) {
-                    c= 'Z';
+                if (exampleForm.length() == 10) {
+                    c = 'Z';
                 } else {
                     c = exampleForm.charAt(10);
                 }
@@ -79,42 +78,48 @@ public class TimeUtil {
         }
     }
 
-    private static String[] monthNames= {
+    private static String[] monthNames = {
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     };
-    
+
     /**
      * return the English month name, abbreviated to three letters, for the
      * month number.
+     *
      * @param i month number, from 1 to 12.
      * @return the month name, like "Jan" or "Dec"
      */
     public static String monthNameAbbrev(int i) {
-        return monthNames[i-1];
+        return monthNames[i - 1];
     }
 
     /**
-     * return the month number for the English month name, such as "Jan" (1) or 
-     * "December" (12).  The first three letters are used to look up the number.
-     * 
-     * @param s the name (case-insensitive, only the first three letters are used.
+     * return the month number for the English month name, such as "Jan" (1) or
+     * "December" (12). The first three letters are used to look up the number.
+     *
+     * @param s the name (case-insensitive, only the first three letters are
+     * used.
      * @return the number, for example 1 for "January"
-     * @throws ParseException 
+     * @throws ParseException
      */
     public static int monthNumber(String s) throws ParseException {
-        if ( s.length()<3 ) throw new ParseException("need at least three letters",0);
-        s= s.substring(0,3);
-        for ( int i=0; i<12; i++ ) {
-            if ( s.equalsIgnoreCase( monthNames[i] ) ) return i+1;
+        if (s.length() < 3) {
+            throw new ParseException("need at least three letters", 0);
         }
-        throw new ParseException("Unable to parse month", 0 );
+        s = s.substring(0, 3);
+        for (int i = 0; i < 12; i++) {
+            if (s.equalsIgnoreCase(monthNames[i])) {
+                return i + 1;
+            }
+        }
+        throw new ParseException("Unable to parse month", 0);
     }
 
     private TimeUtil() {
         // this class is not instanciated.
     }
-    
+
     /**
      * the number of days in each month.
      */
@@ -122,7 +127,7 @@ public class TimeUtil {
         {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0},
         {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0}
     };
-    
+
     /**
      * the number of days to the first of each month.
      */
@@ -130,10 +135,11 @@ public class TimeUtil {
         {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365},
         {0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366}
     };
-    
+
     /**
      * count off the days between startTime and stopTime, but not including
      * stopTime.
+     *
      * @param startTime an iso time string
      * @param stopTime an iso time string
      * @return array of times, complete days, in the form $Y-$m-$d
@@ -160,11 +166,13 @@ public class TimeUtil {
     }
 
     /**
-     * return the next day boundary.  Note hours, minutes, seconds and nanoseconds are ignored.
+     * return the next day boundary. Note hours, minutes, seconds and
+     * nanoseconds are ignored.
+     *
      * @param day any isoTime format string.
      * @return the next day in $Y-$m-$dZ
-     * @see #ceil(java.lang.String) 
-     * @see #previousDay(java.lang.String) 
+     * @see #ceil(java.lang.String)
+     * @see #previousDay(java.lang.String)
      */
     public static String nextDay(String day) {
         int[] nn = isoTimeToArray(day);
@@ -174,11 +182,13 @@ public class TimeUtil {
     }
 
     /**
-     * return the previous day boundary.  Note hours, minutes, seconds and nanoseconds are ignored.
+     * return the previous day boundary. Note hours, minutes, seconds and
+     * nanoseconds are ignored.
+     *
      * @param day any isoTime format string.
      * @return the next day in $Y-$m-$dZ
-     * @see #floor(java.lang.String) 
-     * @see #nextDay(java.lang.String) 
+     * @see #floor(java.lang.String)
+     * @see #nextDay(java.lang.String)
      */
     public static String previousDay(String day) {
         int[] nn = isoTimeToArray(day);
@@ -186,10 +196,11 @@ public class TimeUtil {
         normalizeTime(nn);
         return String.format("%04d-%02d-%02dZ", nn[0], nn[1], nn[2]);
     }
-    
+
     /**
-     * return the $Y-$m-$dT00:00:00.000000000Z of the next boundary, or
-     * the same value (normalized) if we are already at a boundary.
+     * return the $Y-$m-$dT00:00:00.000000000Z of the next boundary, or the same
+     * value (normalized) if we are already at a boundary.
+     *
      * @param time any isoTime format string.
      * @return the next midnight or the value if already at midnight.
      */
@@ -203,8 +214,9 @@ public class TimeUtil {
     }
 
     /**
-     * return the $Y-$m-$dT00:00:00.000000000Z of the next boundary, or
-     * the same value (normalized) if we are already at a boundary.
+     * return the $Y-$m-$dT00:00:00.000000000Z of the next boundary, or the same
+     * value (normalized) if we are already at a boundary.
+     *
      * @param time any isoTime format string.
      * @return the previous midnight or the value if already at midnight.
      */
@@ -216,9 +228,10 @@ public class TimeUtil {
             return time.substring(0, 10) + "T00:00:00.000000000Z";
         }
     }
-    
+
     /**
      * return $Y-$m-$dT$H:$M:$S.$(subsec,places=9)Z
+     *
      * @param time any isoTime format string.
      * @return the time in standard form.
      */
@@ -229,6 +242,7 @@ public class TimeUtil {
 
     /**
      * fast parser requires that each character of string is a digit.
+     *
      * @param s
      * @return
      */
@@ -252,15 +266,18 @@ public class TimeUtil {
 
     /**
      * fast parser requires that each character of string is a digit.
-     * @param s
-     * @return
+     *
+     * @param s the number, containing 1 or more digits.
+     * @return the int value
      */
-    private static int parseInt(String s, int deft ) {
-        if ( s==null ) return deft;
+    private static int parseInt(String s, int deft) {
+        if (s == null) {
+            return deft;
+        }
         int result;
-        for ( int i=0; i<s.length(); i++ ) {
-            char c= s.charAt(i);
-            if ( c<48 || c>=58 ) {
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c < 48 || c >= 58) {
                 throw new IllegalArgumentException("only digits are allowed in string");
             }
         }
@@ -279,41 +296,45 @@ public class TimeUtil {
                 return result;
         }
     }
-    
-    private static double parseDouble( String val, double deft ) {
-        if ( val==null ) {
-            if ( deft!=-99 ) return deft; else throw new IllegalArgumentException("bad digit");
+
+    private static double parseDouble(String val, double deft) {
+        if (val == null) {
+            if (deft != -99) {
+                return deft;
+            } else {
+                throw new IllegalArgumentException("bad digit");
+            }
         }
-        int n= val.length()-1;
-        if ( Character.isLetter( val.charAt(n) ) ) {
-            return Double.parseDouble(val.substring(0,n));
+        int n = val.length() - 1;
+        if (Character.isLetter(val.charAt(n))) {
+            return Double.parseDouble(val.substring(0, n));
         } else {
             return Double.parseDouble(val);
         }
     }
-    
 
     /**
-     * return the array formatted as 
+     * return the array formatted as
+     *
      * @param nn the decomposed time
      * @return the formatted time.
-     * @see #isoTimeToArray(java.lang.String) 
+     * @see #isoTimeToArray(java.lang.String)
      */
-    public static String isoTimeFromArray( int[] nn ) {
-        return String.format( "%04d-%02d-%02dT%02d:%02d:%02d.%09dZ", 
-                nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6] );
+    public static String isoTimeFromArray(int[] nn) {
+        return String.format("%04d-%02d-%02dT%02d:%02d:%02d.%09dZ",
+                nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6]);
     }
-    
+
     /**
      * return array [ year, months, days, hours, minutes, seconds, nanoseconds ]
-     * preserving the day of year notation if this was used.  See the class
-     * documentation for allowed time formats, which are a subset of ISO8601 
+     * preserving the day of year notation if this was used. See the class
+     * documentation for allowed time formats, which are a subset of ISO8601
      * times.
-     * 
+     *
      * @param time isoTime to decompose
      * @return the decomposed time
      * @throws IllegalArgumentException when the time cannot be parsed.
-     * @see #isoTimeFromArray(int[]) 
+     * @see #isoTimeFromArray(int[])
      */
     public static int[] isoTimeToArray(String time) {
         int[] result;
@@ -324,22 +345,22 @@ public class TimeUtil {
                 throw new IllegalArgumentException("time must have 4 or greater than 7 elements");
             }
             // first, parse YMD part, and leave remaining components in time.
-            if ( time.length()==8 ) {
+            if (time.length() == 8) {
                 result = new int[]{parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), // days
-                0, 0, 0, 0};
+                    0, 0, 0, 0};
                 time = "";
-            } else if (time.charAt(8) == 'T') {        
+            } else if (time.charAt(8) == 'T') {
                 result = new int[]{parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), // days
-                0, 0, 0, 0};
+                    0, 0, 0, 0};
                 time = time.substring(9);
-            } else if ( time.charAt(8)=='Z' ) {
+            } else if (time.charAt(8) == 'Z') {
                 result = new int[]{parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), // days
-                0, 0, 0, 0};
+                    0, 0, 0, 0};
                 time = time.substring(9);
             } else {
                 result = new int[]{parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), parseInt(time.substring(8, 10)), 0, 0, 0, 0};
-                if ( time.length()==10 ) {
-                    time="";
+                if (time.length() == 10) {
+                    time = "";
                 } else {
                     time = time.substring(11);
                 }
@@ -366,13 +387,15 @@ public class TimeUtil {
     }
 
     /**
-     * return the doy of year of the month and day for the year.  For example, in Jython:
+     * return the doy of year of the month and day for the year. For example, in
+     * Jython:
      * <pre>
      * {@code
      * from org.hapiserver.TimeUtil import *
      * print dayOfYear( 2020, 4, 21 ) # 112
      * }
      * </pre>
+     *
      * @param year the year
      * @param month the month, from 1 to 12.
      * @param day the day in the month.
@@ -388,16 +411,16 @@ public class TimeUtil {
         if (month > 12) {
             throw new IllegalArgumentException("month must be less than 12.");
         }
-        if ( day>366 ) {
-            throw new IllegalArgumentException("day ("+day+") must be less than 366.");
+        if (day > 366) {
+            throw new IllegalArgumentException("day (" + day + ") must be less than 366.");
         }
         int leap = isLeapYear(year) ? 1 : 0;
         return DAY_OFFSET[leap][month] + day;
     }
 
     /**
-     * return the time as milliseconds since 1970-01-01T00:00Z.  This
-     * does not include leap seconds.  For example, in Jython:
+     * return the time as milliseconds since 1970-01-01T00:00Z. This does not
+     * include leap seconds. For example, in Jython:
      * <pre>
      * {@code
      * from org.hapiserver.TimeUtil import *
@@ -406,12 +429,14 @@ public class TimeUtil {
      * print x % 86400000   # and no milliseconds
      * }
      * </pre>
-     * @param time the isoTime, which is parsed using DateTimeFormatter.ISO_INSTANT.parse.
+     *
+     * @param time the isoTime, which is parsed using
+     * DateTimeFormatter.ISO_INSTANT.parse.
      * @return number of non-leap-second milliseconds since 1970-01-01T00:00Z.
-     * @see DateTimeFormatter#parse 
+     * @see DateTimeFormatter#parse
      */
     public static long toMillisecondsSince1970(String time) {
-        time= normalizeTimeString(time);
+        time = normalizeTimeString(time);
         TemporalAccessor ta = DateTimeFormatter.ISO_INSTANT.parse(time);
         Instant i = Instant.from(ta);
         Date d = Date.from(i);
@@ -419,13 +444,15 @@ public class TimeUtil {
     }
 
     /**
-     * normalize the decomposed time by expressing day of year and month
-     * and day of month, and moving hour="24" into the next day. This
-     * also handles day increment or decrements, by:<ul>
-     * <li>handle day=0 by decrementing month and adding the days in the new month.
+     * normalize the decomposed time by expressing day of year and month and day
+     * of month, and moving hour="24" into the next day. This also handles day
+     * increment or decrements, by:<ul>
+     * <li>handle day=0 by decrementing month and adding the days in the new
+     * month.
      * <li>handle day=32 by incrementing month.
      * <li>handle negative components by borrowing from the next significant.
      * </ul>
+     *
      * @param time
      */
     public static void normalizeTime(int[] time) {
@@ -433,30 +460,30 @@ public class TimeUtil {
             time[2] += 1;
             time[3] = 0;
         }
-        if ( time[6]<0 ) {
-            time[5]-= 1;
-            time[6]+= 1000000000;
+        if (time[6] < 0) {
+            time[5] -= 1;
+            time[6] += 1000000000;
         }
-        if ( time[5]<0 ) {
-            time[4]-= 1; // take a minute
-            time[5]+= 60; // add 60 seconds.
+        if (time[5] < 0) {
+            time[4] -= 1; // take a minute
+            time[5] += 60; // add 60 seconds.
         }
-        if ( time[4]<0 ) {
-            time[3]-= 1; // take an hour
-            time[4]+= 60; // add 60 minutes
+        if (time[4] < 0) {
+            time[3] -= 1; // take an hour
+            time[4] += 60; // add 60 minutes
         }
-        if ( time[3]<0 ) {
-            time[2]-= 1; // take a day
-            time[3]+= 24; // add 24 hours
+        if (time[3] < 0) {
+            time[2] -= 1; // take a day
+            time[3] += 24; // add 24 hours
         }
-        if ( time[2]<1 ) {
-            time[1]-= 1; // take a month
-            int daysInMonth= time[1]==0 ? 31: TimeUtil.DAYS_IN_MONTH[isLeapYear(time[0])?1:0][time[1]];
-            time[2]+= daysInMonth; // add 24 hours
+        if (time[2] < 1) {
+            time[1] -= 1; // take a month
+            int daysInMonth = time[1] == 0 ? 31 : TimeUtil.DAYS_IN_MONTH[isLeapYear(time[0]) ? 1 : 0][time[1]];
+            time[2] += daysInMonth; // add 24 hours
         }
-        if ( time[1]<1 ) {
-            time[0]-= 1; // take a year
-            time[1]+= time[1]+12; // add 12 months
+        if (time[1] < 1) {
+            time[0] -= 1; // take a year
+            time[1] += time[1] + 12; // add 12 months
         }
         if (time[3] > 24) {
             throw new IllegalArgumentException("time[3] is greater than 24 (hours)");
@@ -471,13 +498,13 @@ public class TimeUtil {
             return;
         }
         int leap = isLeapYear(time[0]) ? 1 : 0;
-        if ( time[2]==0 ) {
-            time[1]= time[1]-1;
-            if ( time[1]==0 ) {
-                time[0]= time[0]-1;
-                time[1]= 12;
+        if (time[2] == 0) {
+            time[1] = time[1] - 1;
+            if (time[1] == 0) {
+                time[0] = time[0] - 1;
+                time[1] = 12;
             }
-            time[2]= TimeUtil.DAYS_IN_MONTH[leap][time[1]];
+            time[2] = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
         }
         int d = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
         while (time[2] > d) {
@@ -489,72 +516,77 @@ public class TimeUtil {
             }
         }
     }
-    
-    private static final String simpleFloat= "\\d?\\.?\\d+";
-    public static final String iso8601duration= "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?(("+simpleFloat+")S)?)?";
-    public static final Pattern iso8601DurationPattern= Pattern.compile(iso8601duration);
+
+    private static final String simpleFloat = "\\d?\\.?\\d+";
+    public static final String iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((" + simpleFloat + ")S)?)?";
+    public static final Pattern iso8601DurationPattern = Pattern.compile(iso8601duration);
 
     /**
-     * returns a 7 element array with [year,mon,day,hour,min,sec,nanos].
-     * Note this does not allow fractional day, hours or minutes!  Examples
+     * returns a 7 element array with [year,mon,day,hour,min,sec,nanos]. Note
+     * this does not allow fractional day, hours or minutes! Examples
      * include:<ul>
      * <li>P1D - one day
      * <li>PT1M - one minute
      * <li>PT0.5S - 0.5 seconds
      * </ul>
      * TODO: there exists more complete code elsewhere.
+     *
      * @param stringIn
      * @return 7-element array with [year,mon,day,hour,min,sec,nanos]
      * @throws ParseException if the string does not appear to be valid.
-     * 
+     *
      */
-    public static int[] parseISO8601Duration( String stringIn ) throws ParseException {
-        Matcher m= iso8601DurationPattern.matcher(stringIn);
-        if ( m.matches() ) {
-            double dsec=parseDouble( m.group(13),0 );
-            int sec= (int)dsec;
-            int nanosec= (int)( ( dsec - sec ) * 1e9 );
-            return new int[] { 
-                parseInt( m.group(2),0 ), parseInt( m.group(4),0 ), parseInt( m.group(6),0 ), 
-                parseInt( m.group(9),0 ), parseInt( m.group(11),0 ), sec, nanosec };
+    public static int[] parseISO8601Duration(String stringIn) throws ParseException {
+        Matcher m = iso8601DurationPattern.matcher(stringIn);
+        if (m.matches()) {
+            double dsec = parseDouble(m.group(13), 0);
+            int sec = (int) dsec;
+            int nanosec = (int) ((dsec - sec) * 1e9);
+            return new int[]{
+                parseInt(m.group(2), 0), parseInt(m.group(4), 0), parseInt(m.group(6), 0),
+                parseInt(m.group(9), 0), parseInt(m.group(11), 0), sec, nanosec};
         } else {
-            if ( stringIn.contains("P") && stringIn.contains("S") && !stringIn.contains("T") ) {
-                throw new ParseException("ISO8601 duration expected but not found.  Was the T missing before S?",0);
+            if (stringIn.contains("P") && stringIn.contains("S") && !stringIn.contains("T")) {
+                throw new ParseException("ISO8601 duration expected but not found.  Was the T missing before S?", 0);
             } else {
-                throw new ParseException("ISO8601 duration expected but not found.",0);
+                throw new ParseException("ISO8601 duration expected but not found.", 0);
             }
         }
     }
-        
+
     /**
-     * return the julianDay for the year month and day.  This was verified
-     * against another calculation (julianDayWP, commented out above) from 
-     * http://en.wikipedia.org/wiki/Julian_day.  Both calculations have 20 operations. 
+     * return the julianDay for the year month and day. This was verified
+     * against another calculation (julianDayWP, commented out above) from
+     * http://en.wikipedia.org/wiki/Julian_day. Both calculations have 20
+     * operations.
+     *
      * @see julianToGregorian
      * @param year calendar year greater than 1582.
-     * @param month 
+     * @param month
      * @param day day of month. For day of year, use month=1 and doy for day.
      * @return the Julian day
      */
-    public static int julianDay( int year, int month, int day ) {
-        if ( year<=1582 ) {
+    public static int julianDay(int year, int month, int day) {
+        if (year <= 1582) {
             throw new IllegalArgumentException("year must be more than 1582");
         }
-        int jd = 367 * year - 7 * (year + (month + 9) / 12) / 4 -
-                3 * ((year + (month - 9) / 7) / 100 + 1) / 4 +
-                275 * month / 9 + day + 1721029;
+        int jd = 367 * year - 7 * (year + (month + 9) / 12) / 4
+                - 3 * ((year + (month - 9) / 7) / 100 + 1) / 4
+                + 275 * month / 9 + day + 1721029;
         return jd;
     }
-    
+
     /**
-     *Break the Julian day apart into month, day year.  This is based on
-     *http://en.wikipedia.org/wiki/Julian_day (GNU Public License), and 
-     *was introduced when toTimeStruct failed when the year was 1886.
-     *@see julianDay( int year, int mon, int day )
-     *@param julian the (integer) number of days that have elapsed since the initial epoch at noon Universal Time (UT) Monday, January 1, 4713 BC
-     *@return a TimeStruct with the month, day and year fields set.
+     * Break the Julian day apart into month, day year. This is based on
+     * http://en.wikipedia.org/wiki/Julian_day (GNU Public License), and was
+     * introduced when toTimeStruct failed when the year was 1886.
+     *
+     * @see julianDay( int year, int mon, int day )
+     * @param julian the (integer) number of days that have elapsed since the
+     * initial epoch at noon Universal Time (UT) Monday, January 1, 4713 BC
+     * @return a TimeStruct with the month, day and year fields set.
      */
-    public static int[] fromJulianDay( int julian ) {
+    public static int[] fromJulianDay(int julian) {
         int j = julian + 32044;
         int g = j / 146097;
         int dg = j % 146097;
@@ -570,46 +602,43 @@ public class TimeUtil {
         int Y = y - 4800 + (m + 2) / 12;
         int M = (m + 2) % 12 + 1;
         int D = d + 1;
-        int[] result= new int[7];
-        result[0]= Y;
-        result[1]= M;
-        result[2]= D;
-        result[3]= 0;
-        result[4]= 0;
-        result[5]= 0;
-        result[6]= 0;
+        int[] result = new int[7];
+        result[0] = Y;
+        result[1] = M;
+        result[2] = D;
         return result;
     }
-    
+
     /**
      * subtract the offset from the base time.
+     *
      * @param base a time
      * @param offset offset in each component.
      * @return a time
      */
-    public static int[] subtract( int[] base, int[] offset ) {
-        int[] result= new int[7];
-        for ( int i=0; i<7; i++ ) {
-            result[i]= base[i]-offset[i];
+    public static int[] subtract(int[] base, int[] offset) {
+        int[] result = new int[7];
+        for (int i = 0; i < 7; i++) {
+            result[i] = base[i] - offset[i];
         }
-        if ( result[0]>400 ) {
+        if (result[0] > 400) {
             normalizeTime(result);
         }
         return result;
     }
-    
+
     /**
-     * add the offset to the base time.  This should not be used to 
-     * combine two offsets, because the code has not been verified for this
-     * use.
+     * add the offset to the base time. This should not be used to combine two
+     * offsets, because the code has not been verified for this use.
+     *
      * @param base a time
      * @param offset offset in each component.
      * @return a time
      */
-    public static int[] add( int[] base, int[] offset ) {
-        int[] result= new int[7];
-        for ( int i=0; i<7; i++ ) {
-            result[i]= base[i]+offset[i];
+    public static int[] add(int[] base, int[] offset) {
+        int[] result = new int[7];
+        for (int i = 0; i < 7; i++) {
+            result[i] = base[i] + offset[i];
         }
         normalizeTime(result);
         return result;
