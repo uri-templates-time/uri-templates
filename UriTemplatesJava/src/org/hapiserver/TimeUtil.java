@@ -424,11 +424,12 @@ public class TimeUtil {
      * also handles day increment or decrements, by:<ul>
      * <li>handle day=0 by decrementing month and adding the days in the new month.
      * <li>handle day=32 by incrementing month.
+     * <li>handle negative components by borrowing from the next significant.
      * </ul>
      * @param time
      */
     public static void normalizeTime(int[] time) {
-        if (time[3] == 24) {
+        while (time[3] > 24) {
             time[2] += 1;
             time[3] = 0;
         }
@@ -591,12 +592,16 @@ public class TimeUtil {
         for ( int i=0; i<7; i++ ) {
             result[i]= base[i]-offset[i];
         }
-        normalizeTime(result);
+        if ( result[0]>400 ) {
+            normalizeTime(result);
+        }
         return result;
     }
     
     /**
-     * add the offset to the base time.
+     * add the offset to the base time.  This should not be used to 
+     * combine two offsets, because the code has not been verified for this
+     * use.
      * @param base a time
      * @param offset offset in each component.
      * @return a time
