@@ -963,7 +963,7 @@ public class URITemplate {
      * The result is a 14-element array, with the first 7 the start time
      * and the last 7 the stop time.
      * @param timeString
-     * @return
+     * @return 14 element array
      * @throws ParseException 
      */
     public int[] parse( String timeString ) throws ParseException {
