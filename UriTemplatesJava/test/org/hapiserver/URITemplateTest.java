@@ -1,6 +1,7 @@
 
 package org.hapiserver;
 
+import java.text.ParseException;
 import java.util.Arrays;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -66,7 +67,12 @@ public class URITemplateTest {
         
         int[] res;
         
-        res= ut.parse( test );
+        try {
+            res= ut.parse( test );
+        } catch ( ParseException ex ) {
+            fail(ex.getMessage());
+            return;
+        }
         
         char arrow= (char)8594;
         if ( Arrays.equals( res, inorm  ) ) {
@@ -101,8 +107,9 @@ public class URITemplateTest {
         testTimeParser1( "$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
         // The following shows a bug where it doesn't consider the length of $H and just stops on the next period.
         // A field cannot contain the following delimiter.
-        //testTimeParser1( "$(j,Y=2012).*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
-        //testTimeParser1( "$(o;id=rbspa-pp)", "31",  "2012-09-10T14:48:30.914Z/2012-09-10T23:47:34.973Z");
+        //testTimeParser1( "$(j,Y=2012).*.$H",     "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
+        //Orbits are not supported.
+        //testTimeParser1( "$(o;id=rbspa-pp)", "31",  "2012-09-10T14:48:30.914Z/2012-09-10T23:47:34.973Z"); 
         testTimeParser1( "$(j;Y=2012)$(hrinterval;names=01,02,03,04)", "01702", "2012-01-17T06:00/2012-01-17T12:00");
         testTimeParser1( "$-1Y $-1m $-1d $H$M", "2012 3 30 1620", "2012-03-30T16:20/2012-03-30T16:21" );
         testTimeParser1( "$Y",            "2012",     "2012-01-01T00:00/2013-01-01T00:00");
