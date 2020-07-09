@@ -524,7 +524,7 @@ public class TimeUtil {
                 throw new ParseException("ISO8601 duration expected but not found.",0);
             }
         }
-    }    
+    }
         
     /**
      * return the julianDay for the year month and day.  This was verified
@@ -613,5 +613,5 @@ public class TimeUtil {
         }
         normalizeTime(result);
         return result;
-    }    
+    }
 }
