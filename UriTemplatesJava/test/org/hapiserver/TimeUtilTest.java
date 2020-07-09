@@ -37,12 +37,9 @@ public class TimeUtilTest {
     @Test
     public void testMonthNameAbbrev() {
         System.out.println("monthNameAbbrev");
-        int i = 0;
-        String expResult = "";
-        String result = TimeUtil.monthNameAbbrev(i);
+        String expResult = "Mar";
+        String result = TimeUtil.monthNameAbbrev(3);
         assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
     }
 
     /**
@@ -51,12 +48,10 @@ public class TimeUtilTest {
     @Test
     public void testMonthNumber() throws Exception {
         System.out.println("monthNumber");
-        String s = "";
-        int expResult = 0;
+        String s = "December";
+        int expResult = 12;
         int result = TimeUtil.monthNumber(s);
         assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
     }
 
     /**
@@ -65,13 +60,11 @@ public class TimeUtilTest {
     @Test
     public void testCountOffDays() {
         System.out.println("countOffDays");
-        String startTime = "";
-        String stopTime = "";
-        String[] expResult = null;
+        String startTime = "1999-12-31Z";
+        String stopTime = "2000-01-03Z";
+        String[] expResult = new String[] { "1999-12-31Z", "2000-01-01Z", "2000-01-02Z" };
         String[] result = TimeUtil.countOffDays(startTime, stopTime);
         assertArrayEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
     }
 
     /**
@@ -80,12 +73,10 @@ public class TimeUtilTest {
     @Test
     public void testNextDay() {
         System.out.println("nextDay");
-        String day = "";
-        String expResult = "";
+        String day = "2019-12-31Z";
+        String expResult = "2020-01-01Z";
         String result = TimeUtil.nextDay(day);
         assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
     }
 
     /**
@@ -94,12 +85,10 @@ public class TimeUtilTest {
     @Test
     public void testPreviousDay() {
         System.out.println("previousDay");
-        String day = "";
-        String expResult = "";
+        String day = "2020-01-01";
+        String expResult = "2019-12-31Z";
         String result = TimeUtil.previousDay(day);
         assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
     }
 
     /**
@@ -108,12 +97,14 @@ public class TimeUtilTest {
     @Test
     public void testCeil() {
         System.out.println("ceil");
-        String time = "";
-        String expResult = "";
+        String time = "2000-01-01T00:00";
+        String expResult = "2000-01-01T00:00:00.000000000Z";
         String result = TimeUtil.ceil(time);
         assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        time = "2000-01-01T23:59";
+        expResult = "2000-01-02T00:00:00.000000000Z";
+        result = TimeUtil.ceil(time);
+        assertEquals(expResult, result);
     }
 
     /**
@@ -122,12 +113,14 @@ public class TimeUtilTest {
     @Test
     public void testFloor() {
         System.out.println("floor");
-        String time = "";
-        String expResult = "";
+        String time = "2000-01-01T00:00";
+        String expResult = "2000-01-01T00:00:00.000000000Z";
         String result = TimeUtil.floor(time);
         assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        time = "2000-01-01T23:59";
+        expResult = "2000-01-01T00:00:00.000000000Z";
+        result = TimeUtil.floor(time);
+        assertEquals(expResult, result);
     }
 
     /**
@@ -136,12 +129,10 @@ public class TimeUtilTest {
     @Test
     public void testNormalizeTimeString() {
         System.out.println("normalizeTimeString");
-        String time = "";
-        String expResult = "";
+        String time = "2020-03-04T24:00:00Z";
+        String expResult = "2020-03-05T00:00:00.000000000Z";
         String result = TimeUtil.normalizeTimeString(time);
         assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
     }
     
   
@@ -168,12 +159,10 @@ public class TimeUtilTest {
     @Test
     public void testIsoTimeFromArray() {
         System.out.println("isoTimeFromArray");
-        int[] nn = null;
-        String expResult = "";
+        int[] nn = new int[] { 1999, 12, 31, 23, 0, 0, 0  };
+        String expResult = "1999-12-31T23:00:00.000000000Z";
         String result = TimeUtil.isoTimeFromArray(nn);
         assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
     }
 
     /**
@@ -199,14 +188,12 @@ public class TimeUtilTest {
     @Test
     public void testDayOfYear() {
         System.out.println("dayOfYear");
-        int year = 0;
-        int month = 0;
-        int day = 0;
-        int expResult = 0;
+        int year = 2000;
+        int month = 3;
+        int day = 1;
+        int expResult = 61;
         int result = TimeUtil.dayOfYear(year, month, day);
         assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
     }
 
     /**
@@ -215,12 +202,9 @@ public class TimeUtilTest {
     @Test
     public void testToMillisecondsSince1970() {
         System.out.println("toMillisecondsSince1970");
-        String time = "";
-        long expResult = 0L;
-        long result = TimeUtil.toMillisecondsSince1970(time);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        long result = TimeUtil.toMillisecondsSince1970("2000-01-02T00:00:00.0Z");
+        assertEquals( 10958,  result / 86400000 ); //  # 10958.0 days
+        assertEquals( 0, result % 86400000 );
     }
 
     /**
@@ -229,12 +213,13 @@ public class TimeUtilTest {
     @Test
     public void testParseISO8601Duration() throws Exception {
         System.out.println("parseISO8601Duration");
-        String stringIn = "";
-        int[] expResult = null;
+        String stringIn = "PT5H4M";
+        int[] expResult = new int[] { 0, 0, 0, 5, 4, 0, 0 };
         int[] result = TimeUtil.parseISO8601Duration(stringIn);
         assertArrayEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        expResult = new int[] { 0, 0, 0, 0, 0, 0, 123000 };
+        result = TimeUtil.parseISO8601Duration("PT0.000123S");
+        assertArrayEquals(expResult, result);
     }
 
     /**
@@ -243,14 +228,12 @@ public class TimeUtilTest {
     @Test
     public void testJulianDay() {
         System.out.println("julianDay");
-        int year = 0;
-        int month = 0;
-        int day = 0;
-        int expResult = 0;
+        int year = 2020;
+        int month = 7;
+        int day = 9;
+        int expResult = 2459040;
         int result = TimeUtil.julianDay(year, month, day);
         assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
     }
 
     /**
@@ -259,12 +242,10 @@ public class TimeUtilTest {
     @Test
     public void testFromJulianDay() {
         System.out.println("fromJulianDay");
-        int julian = 0;
-        int[] expResult = null;
+        int julian = 2459040;
+        int[] expResult = new int[] { 2020, 7, 9, 0, 0, 0, 0 };
         int[] result = TimeUtil.fromJulianDay(julian);
         assertArrayEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
     }
 
     /**
@@ -273,13 +254,11 @@ public class TimeUtilTest {
     @Test
     public void testSubtract() {
         System.out.println("subtract");
-        int[] base = null;
-        int[] offset = null;
-        int[] expResult = null;
+        int[] base = new int[] { 2020, 7, 9, 1, 0, 0, 0 };
+        int[] offset = new int[] { 0, 0, 0, 2, 0, 0, 0 };
+        int[] expResult = new int[] { 2020, 7, 8, 23, 0, 0, 0 };
         int[] result = TimeUtil.subtract(base, offset);
         assertArrayEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
     }
 
     /**
@@ -288,13 +267,11 @@ public class TimeUtilTest {
     @Test
     public void testAdd() {
         System.out.println("add");
-        int[] base = null;
-        int[] offset = null;
-        int[] expResult = null;
+        int[] base = new int[] { 2020, 7, 8, 23, 0, 0, 0 };
+        int[] offset = new int[] { 0, 0, 0, 2, 0, 0, 0 };
+        int[] expResult = new int[] { 2020, 7, 9, 1, 0, 0, 0 };
         int[] result = TimeUtil.add(base, offset);
         assertArrayEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
     }
     
 }
