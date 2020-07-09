@@ -40,6 +40,7 @@ public class URITemplate {
      * first digit which is part of the stop time
      */
     int stopTimeDigit= AFTERSTOP_INIT; 
+    
     private int lsd;
     private int[] timeWidth;
     private final String regex;
@@ -479,6 +480,18 @@ public class URITemplate {
         if ( wildcard ) {
             formatString= formatString.replaceAll("\\*", "\\$x");
         }
+        int i=1;
+        if ( i<formatString.length() && formatString.charAt(i)=='(' ) {
+            i++;
+        }
+        while ( i<formatString.length() 
+                && Character.isAlphabetic(formatString.charAt(i) ) ) {
+            i++;
+        }
+        if ( i<formatString.length() && formatString.charAt(i)==',' ) {
+            formatString= formatString.replaceFirst(",",";");
+        }
+            
         return formatString;
     }
     
@@ -973,7 +986,9 @@ public class URITemplate {
         System.arraycopy( context, 0, time, 0, NUM_TIME_DIGITS );
 
         for (int idigit = 1; idigit < ndigits; idigit++) {
+            
             if ( idigit==stopTimeDigit ) {
+                logger.finer("switching to parsing end time");
                 System.arraycopy( time, 0, stopTime, 0, NUM_TIME_DIGITS );
                 time= stopTime;
             }
@@ -1106,7 +1121,9 @@ public class URITemplate {
                 stopTime= TimeUtil.add( startTime, this.timeWidth );
             }
         } else {
-            stopTime= TimeUtil.add( startTime, this.timeWidth );
+            if ( stopTimeDigit==AFTERSTOP_INIT ) {
+                stopTime= TimeUtil.add( startTime, this.timeWidth );
+            }
         }
         
         int [] result= new int[NUM_TIME_DIGITS*2];
