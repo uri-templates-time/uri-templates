@@ -4,6 +4,7 @@ package org.hapiserver;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -1137,6 +1138,41 @@ public class URITemplate {
         }
         return result;
         
+    }
+    
+    /**
+     * for convenience, add API to match that suggested by 
+     * https://github.com/hapi-server/uri-templates/blob/master/formatting.json
+     * @param template
+     * @param startTimeStr
+     * @param stopTimeStr
+     * @return
+     * @throws ParseException 
+     */
+    public static String[] formatRange( String template, String startTimeStr, String stopTimeStr ) throws ParseException {
+        URITemplate ut= new URITemplate(template);
+        ArrayList<String> result= new ArrayList<>();
+        String s1;
+        String sptr= TimeUtil.isoTimeFromArray( TimeUtil.isoTimeToArray(startTimeStr) );
+        String stop= TimeUtil.isoTimeFromArray( TimeUtil.isoTimeToArray(stopTimeStr) );
+        int i=0;
+        while ( sptr.compareTo(stop)<0 ) {
+            String sptr0= sptr;
+            s1= ut.format( sptr, sptr );
+            int [] tta= ut.parse(s1);
+            if ( Arrays.equals( Arrays.copyOfRange(tta,0,7), Arrays.copyOfRange(tta,7,14) ) ) {
+                result.add( ut.format( startTimeStr, stopTimeStr ) );
+                break;
+            } else {
+                result.add( s1 );
+            }
+            sptr= TimeUtil.isoTimeFromArray(Arrays.copyOfRange(tta,7,14));
+            if ( sptr0.equals(sptr) ) {
+                throw new IllegalArgumentException("template fails to advance");
+            }
+            i=i+1;
+        }
+        return result.toArray( new String[result.size()] );
     }
             
     /**
