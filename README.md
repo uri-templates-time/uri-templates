@@ -1,5 +1,4 @@
 # URI-templates
->>>>>>> c57706317df49189bafe2e01ea472438d2fa2e8a
 
 Repository of tools and tests for URI templates.
 
