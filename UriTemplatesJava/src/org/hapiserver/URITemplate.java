@@ -316,7 +316,8 @@ public class URITemplate {
     }
     
     /**
-     * "$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03" 
+     * "$Y$m$d-$(enum;values=a,b,c,d;id=sc)", "20130202-a", "2013-02-02/2013-02-03" 
+     * @see https://github.com/hapi-server/uri-templates/wiki/Specification#enum
      */
     public static class EnumFieldHandler implements FieldHandler {
 
@@ -326,7 +327,7 @@ public class URITemplate {
         @Override
         public String configure( Map<String, String> args ) {
             values= new LinkedHashSet();
-            String svalues= args.get("values");
+            String svalues= args.remove("values");
             String[] ss= svalues.split(",",-2);
             if ( ss.length==1 ) {
                 String[] ss2= svalues.split("|",-2); // support legacy URIs.
@@ -337,8 +338,12 @@ public class URITemplate {
             }
             values.addAll(Arrays.asList(ss));
             
-            String s= args.get("id");
+            String s= args.remove("id");
             if ( s!=null ) id= s; else id="unindentifiedEnum";
+            
+            if ( args.size()>0 ) {
+                throw new IllegalArgumentException("unrecognized field: "+args);
+            }
             
             return null;
         }
@@ -394,10 +399,20 @@ public class URITemplate {
     public static class IgnoreFieldHandler implements FieldHandler {
 
         String regex;
+        Pattern pattern;
+        String name;
         
         @Override
         public String configure(Map<String, String> args) {
             regex= args.get("regex");
+            if ( regex!=null ) {
+                pattern= Pattern.compile(regex);
+            }
+            if ( args.containsKey("name") ) {
+                name= args.get("name");
+            } else {
+                name= "unnamed";
+            }
             return null;
         }
 
@@ -408,11 +423,23 @@ public class URITemplate {
 
         @Override
         public void parse(String fieldContent, int[] startTime, int[] timeWidth, Map<String, String> extra) throws ParseException {
+            if ( regex!=null ) {
+                if ( !pattern.matcher(fieldContent).matches() ) {
+                    throw new ParseException("ignore content doesn't match regex: "+fieldContent,0);
+                }
+            }
+            if ( !name.equals("unnamed") ) {
+                extra.put( name, fieldContent );
+            }
         }
 
         @Override
         public String format( int[] startTime, int[] timeWidth, int length, Map<String, String> extra) throws IllegalArgumentException {
-            return "";
+            if ( extra.containsKey(name) ) {
+                return extra.get(name);
+            } else {
+                return "";
+            }
         }
         
     }
@@ -968,12 +995,23 @@ public class URITemplate {
      * @throws ParseException 
      */
     public int[] parse( String timeString ) throws ParseException {
+        return parse( timeString, new HashMap<>() );
+    }
+    
+    /**
+     * return the timeString, parsed into start time and stop time.  
+     * The result is a 14-element array, with the first 7 the start time
+     * and the last 7 the stop time.
+     * @param timeString
+     * @param extra extension results, like $(x,name=sc) appear here.
+     * @return 14 element array
+     * @throws ParseException 
+     */
+    public int[] parse( String timeString, Map<String,String> extra ) throws ParseException {
         logger.log(Level.FINER, "parse {0}", timeString);
         
         int offs = 0;
         int len = 0;
-
-        Map<String,String> extra= new HashMap();
 
         int[] time;
         
@@ -1183,12 +1221,23 @@ public class URITemplate {
      * @return formatted time, often a resolvable URI.
      */
     public String format( String startTimeStr, String stopTimeStr ) {
-        
+        return format( startTimeStr, stopTimeStr, new HashMap<>() );
+    }
+    
+    /**
+     * return a list of formatted names, using the spec and the given 
+     * time range.
+     * @param startTimeStr iso8601 formatted time.
+     * @param stopTimeStr iso8601 formatted time.
+     * @param extra extra parameters
+     * @return formatted time, often a resolvable URI.
+     */
+    public String format( String startTimeStr, String stopTimeStr, 
+            Map<String,String> extra ) {
+             
         int[] timel= TimeUtil.isoTimeToArray( startTimeStr );
         int[] stopTimel= TimeUtil.isoTimeToArray( stopTimeStr );
         int[] timeWidthl= TimeUtil.subtract( stopTimel, timel );
-        
-        Map<String,String> extra= new HashMap<>();
         
         StringBuilder result = new StringBuilder(100);
 
