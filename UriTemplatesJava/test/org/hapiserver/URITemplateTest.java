@@ -3,6 +3,8 @@ package org.hapiserver;
 
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -85,6 +87,14 @@ public class URITemplateTest {
         
     }    
 
+    private void testParse1() throws ParseException {
+        URITemplate ut= new URITemplate("$Y_sc$(enum;values=a,b,c,d;id=sc)");
+        Map<String,String> extra= new HashMap<>();
+        int[] digits= ut.parse("2003_scd",extra);
+        String actual= String.format("%d %s",digits[0],extra.get("sc"));
+        assertEquals("2003 d",actual);
+        System.out.println(actual);
+    }
     /**
      * Test of parse method, of class URITemplate.
      * @throws java.lang.Exception
@@ -92,6 +102,7 @@ public class URITemplateTest {
     @Test
     public void testParse() throws Exception {
         System.out.println("parse");
+        testParse1();
         testTimeParser1( "$Y $m $d $H $M", "2012 03 30 16 20", "2012-03-30T16:20/2012-03-30T16:21" );
         testTimeParser1( "$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03" );
         testTimeParser1( "$Y$m$d-$(Y;end)$m$d", "20130202-20140303", "2013-02-02/2014-03-03" );
@@ -181,6 +192,32 @@ public class URITemplateTest {
         testTimeFormat1( "$(j,Y=2012)",   "017",      "2012-01-17T00:00/2012-01-18T00:00");
         testTimeFormat1( "ace_mag_$Y_$j_to_$(Y;end)_$j.cdf",   "ace_mag_2005_001_to_2005_003.cdf",      "2005-001T00:00/2005-003T00:00");        
         
+    }
+    
+    @Test
+    public void testFormatRange() {
+        try {
+            String t;            
+            String[] ss;
+            
+            t = "data_$Y.dat";
+            ss = URITemplate.formatRange( t, "2001-03-22", "2004-08-18" );
+            if ( ss.length!=4 ) {
+                fail(t);
+            }
+            
+//            t = "data_$Y_$(Y,end).dat";
+//            ss = URITemplate.formatRange( t, "2001-03-22", "2004-08-18" );
+//            if ( ss.length!=1 ) {
+//                fail(t);
+//            }
+            
+            for ( String s: ss ) {
+                System.err.println(s);
+            }
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
     }
     
 }
