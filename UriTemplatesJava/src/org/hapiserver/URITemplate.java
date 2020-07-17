@@ -6,6 +6,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -445,6 +446,138 @@ public class URITemplate {
     }
     
     /**
+     * Versioning types 
+     */
+    static enum VersioningType {
+        
+        none( null ),
+        
+        /**
+         * simple floating point numeric comparisons.
+         */
+        numeric( new Comparator() {       // 4.10 > 4.01
+            @Override
+            public int compare(Object o1, Object o2) {
+                Double d1= Double.parseDouble((String)o1);
+                Double d2= Double.parseDouble((String)o2);
+                return d1.compareTo(d2);
+            }
+        } ),
+        /**
+         * comparison by lexical sort v2013a>v2012b.
+         */
+        alphanumeric(new Comparator() {   // a001
+            @Override
+            public int compare(Object o1, Object o2) {
+                return ((String)o1).compareTo((String)o2);
+            }
+        } ),
+        /**
+         * comparison of numbers split by decimal points and dashes, so 1.20 > 1.3.
+         */
+        numericSplit( new Comparator() {  // 4.3.23   // 1.1.3-01 for RBSP (rbspice lev-2 isrhelt)
+           @Override
+           public int compare(Object o1, Object o2) {
+                String[] ss1= o1.toString().split("[\\.-]",-2);
+                String[] ss2= o2.toString().split("[\\.-]",-2);
+                int n= Math.min( ss1.length, ss2.length );
+                for ( int i=0; i<n; i++ ) {
+                    int d1= Integer.parseInt(ss1[i]);
+                    int d2= Integer.parseInt(ss2[i]);
+                    if ( d1!=d2 ) {
+                        return d1 < d2 ? -1 : 1;
+                    }
+                }
+                return ss1.length - ss2.length;  // the longer version wins (3.2.1 > 3.2)
+            } 
+        });
+
+        Comparator<String> comp;
+        VersioningType( Comparator<String> comp ) {
+            this.comp= comp;
+        }
+    };
+    
+
+    /**
+     * Version field handler.  Versions are codes with special sort orders.
+     */
+    public static class VersionFieldHandler implements FieldHandler {
+        VersioningType versioningType;
+        
+        String versionGe= null; // the version must be greater than or equal to this if non-null. 
+        String versionLt= null; // the version must be less than this if non-null. 
+                
+        @Override
+        public String configure( Map<String,String> args ) {
+            String sep= args.get( "sep" );
+            if ( sep==null && args.containsKey("dotnotation")) {
+                sep= "T";
+            }
+            String alpha= args.get( "alpha" );
+            if ( alpha==null && args.containsKey("alphanumeric") ) {
+                alpha="T";
+            }
+            String type= args.get("type");
+            if ( type!=null ) {
+                if ( type.equals("sep") || type.equals("dotnotation") ) {
+                    sep= "T";
+                } else if (type.equals("alpha") || type.equals("alphanumeric") ) {
+                    alpha="T"; 
+                }
+            }
+            if ( args.get("gt")!=null ) {
+                throw new IllegalArgumentException("gt specified but not supported: must be ge or lt");
+            }
+            if ( args.get("le")!=null ) {
+                throw new IllegalArgumentException("le specified but not supported: must be ge or lt");
+            }
+            String ge= args.get("ge");
+            if ( ge!=null ) {
+                versionGe= ge;
+            }
+            String lt= args.get("lt");
+            if ( lt!=null ) {
+                versionLt= lt;
+            }
+            if ( alpha!=null ) {  
+                if ( sep!=null ) {
+                    return "alpha with split not supported";
+                } else {
+                    versioningType= VersioningType.alphanumeric;
+                }
+            } else {
+                if ( sep!=null ) {
+                    versioningType= VersioningType.numericSplit;
+                } else {
+                    versioningType= VersioningType.numeric;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public void parse( String fieldContent, int[] startTime, int[] timeWidth, Map<String,String> extra ) {
+            String v= extra.get("v");
+            if ( v!=null ) {
+                versioningType= VersioningType.numericSplit; 
+                fieldContent= v+"."+fieldContent; // Support $v.$v.$v
+            } 
+            extra.put( "v", fieldContent );                    
+        }
+
+        @Override
+        public String getRegex() {
+            return ".*";
+        }
+
+        @Override
+        public String format( int[] startTime, int[] timeWidth, int length, Map<String, String> extra ) {
+            return extra.get("v"); //TODO: length
+        }
+    };
+    
+    /**
      * the earliest valid year, limited because of Julian day calculations.
      */
     public static final int MIN_VALID_YEAR= 1582;
@@ -579,13 +712,11 @@ public class URITemplate {
         this.fieldHandlers= new HashMap<>();
         
         this.fieldHandlers.put("subsec",new SubsecFieldHandler());
-        
         this.fieldHandlers.put("hrinterval",new HrintervalFieldHandler());
-
         this.fieldHandlers.put("periodic",new PeriodicFieldHandler());
-        
         this.fieldHandlers.put("enum",new EnumFieldHandler());
-        
+        this.fieldHandlers.put("x",new IgnoreFieldHandler());
+        this.fieldHandlers.put("v",new VersionFieldHandler());
 
         logger.log(Level.FINE, "new TimeParser({0},...)", formatString);
         

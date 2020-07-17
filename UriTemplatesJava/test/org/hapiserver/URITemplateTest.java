@@ -95,6 +95,18 @@ public class URITemplateTest {
         assertEquals("2003 d",actual);
         System.out.println(actual);
     }
+    
+    private void testParse2() throws ParseException {
+        URITemplate ut= new URITemplate("$Y_$m_v$v.dat");
+        Map<String,String> extra= new HashMap<>();
+        int[] digits= ut.parse("2003_10_v20.3.dat",extra);
+        assertEquals(2003,digits[0]);
+        assertEquals(10,digits[1]);
+        assertEquals(11,digits[8]);
+        assertEquals("20.3",extra.get("v"));
+        
+    }
+    
     /**
      * Test of parse method, of class URITemplate.
      * @throws java.lang.Exception
@@ -103,6 +115,7 @@ public class URITemplateTest {
     public void testParse() throws Exception {
         System.out.println("parse");
         testParse1();
+        testParse2();
         testTimeParser1( "$Y $m $d $H $M", "2012 03 30 16 20", "2012-03-30T16:20/2012-03-30T16:21" );
         testTimeParser1( "$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03" );
         testTimeParser1( "$Y$m$d-$(Y;end)$m$d", "20130202-20140303", "2013-02-02/2014-03-03" );
