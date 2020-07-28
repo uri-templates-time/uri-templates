@@ -1,10 +1,19 @@
 
 package org.hapiserver;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -207,9 +216,95 @@ public class URITemplateTest {
         
     }
     
+    private static String readJSONToString( URL url ) {
+        InputStream ins= null;
+        try {
+            ins = url.openStream();
+            StringBuilder sb= new StringBuilder();
+            byte[] buffer= new byte[2048];
+            int bytesRead= ins.read(buffer);
+            while ( bytesRead!=-1 ) {
+                sb.append( new String(buffer,0,bytesRead) );
+                bytesRead= ins.read(buffer);
+            }
+            return sb.toString();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        
+        } finally {
+            try {
+                ins.close();
+            } catch (IOException ex) {
+                Logger.getLogger(URITemplateTest.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    private void testFormatHapiServerSiteOne( 
+            JSONArray outputs, String t, String startTime, String stopTime )
+            throws ParseException, JSONException {
+        String[] testOutputs= URITemplate.formatRange( t, startTime, stopTime );
+        if ( testOutputs.length!=outputs.length() ) {
+            throw new RuntimeException("bad number of results in formatRange: "+t);
+        }
+        for ( int l=0; l<outputs.length(); l++ ) {
+            if ( !testOutputs[l].equals(outputs.getString(l) ) ) {
+                throw new RuntimeException("result doesn't match, got "+testOutputs[l]+", should be "+outputs.getString(l) );
+            }
+        }   
+    }
+    
+    /**
+     * for each timeRange and template in 
+     * https://github.com/hapi-server/uri-templates/blob/master/formatting.json
+     * enumerate the files (formatRange) to see that we get the correct result.
+     */
+    @Test 
+    public void testFormatHapiServerSite() {
+        try {
+            String ss= readJSONToString( new URL( "https://raw.githubusercontent.com/hapi-server/uri-templates/master/formatting.json" ) );
+            JSONArray jo= new JSONArray(ss);
+            for ( int i=0; i<jo.length(); i++ ) {
+                JSONObject jo1= jo.getJSONObject(i);
+                System.out.println( String.format("# %2d: %s", i, jo1.get("whatTests") ) );
+                if ( i<3 ) {
+                    System.out.println( "###  Skipping test "+i );
+                    continue;
+                }
+                JSONArray templates= jo1.getJSONArray("template");
+                JSONArray outputs= jo1.getJSONArray("output");
+                JSONArray timeRanges= jo1.getJSONArray("timeRange");
+                for ( int j=0; j<templates.length(); j++ ) {
+                    String t= templates.getString(j);
+                    for ( int k=0; k<timeRanges.length(); k++ ) {
+                        String timeRange= timeRanges.getString(k);
+                        System.out.println("timeRange:"+timeRange);
+                        String[] timeStartStop= timeRange.split("/",-2);
+                        try {
+                            testFormatHapiServerSiteOne( outputs, t, timeStartStop[0], timeStartStop[1] );
+                        } catch (ParseException ex) {
+                            try {
+                                testFormatHapiServerSiteOne( outputs, t, timeStartStop[0], timeStartStop[1] );
+                            } catch (ParseException ex1) {
+                                fail(ex.getMessage());
+                            }
+                            throw new RuntimeException(ex);
+                        }
+                    }
+                    System.out.println("" +t);
+                }
+                
+            }
+        } catch (JSONException | MalformedURLException ex) {
+            Logger.getLogger(URITemplateTest.class.getName()).log(Level.SEVERE, null, ex);
+            fail(ex.getLocalizedMessage());
+        }
+        
+    }
+    
     @Test
     public void testFormatRange() {
-        try {
+        try { 
             String t;            
             String[] ss;
             
@@ -226,7 +321,7 @@ public class URITemplateTest {
 //            }
             
             for ( String s: ss ) {
-                System.err.println(s);
+                System.out.println(s);
             }
         } catch (ParseException ex) {
             fail(ex.getMessage());
