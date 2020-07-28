@@ -29,7 +29,10 @@ public class URITemplate {
     int ndigits; // one for each field
     String[] digits;
     String[] delims; // non-template stuff between fields (_ in $Y_$m)
+    
     String[] qualifiers;
+    Map<String,String>[] qualifiersMaps;
+    
     Map<String,FieldHandler> fieldHandlers;
     Map<String,FieldHandler> fieldHandlersById;
     int[] handlers;
@@ -754,7 +757,8 @@ public class URITemplate {
         }
         
         shift= new int[ndigits];
-
+        this.qualifiersMaps= new HashMap[ndigits];
+        
         delim[0] = ss[0];
         for (int i = 1; i < ndigits; i++) {
             int pp = 0;
@@ -991,8 +995,12 @@ public class URITemplate {
                             case "shift":
                                 shift[i]= Integer.parseInt(val);
                                 break;
-                            case "":
-                                ;
+                            case "pad":
+                            case "fmt":
+                            case "case":
+                                if ( name.equals("pad") && val.equals("none") ) lengths[i]= -1;
+                                if ( qualifiersMaps[i]==null ) qualifiersMaps[i]= new HashMap();
+                                qualifiersMaps[i].put(name,val);
                                 break;
                             case "end":
                                 if ( stopTimeDigit==AFTERSTOP_INIT ) {
@@ -1459,8 +1467,44 @@ public class URITemplate {
                     result.insert(offs, ss);
                     offs+= ss.length();
                 } else {
-                    result.insert(offs, nf[len].format(digit));
-                    offs += len;
+                    if ( this.qualifiersMaps[idigit]!=null ) {
+                        // TODO: suboptimal
+                        String pad= this.qualifiersMaps[digit].get("pad");
+                        if ( pad==null || pad.equals("zero") ) { 
+                            result.insert(offs, nf[len].format(digit));
+                        } else {
+                            if ( digit<10 ) {
+                                switch (pad) {
+                                    case "space":
+                                        result.insert( offs, " " );
+                                        result.insert(offs, String.valueOf(digit) );
+                                        offs+= 2;
+                                        break;
+                                    case "underscore":
+                                        result.insert( offs, "_" );
+                                        result.insert(offs, String.valueOf(digit) );
+                                        offs+= 2;
+                                        break;
+                                // do nothing.
+                                    case "none":
+                                        result.insert(offs, String.valueOf(digit) );
+                                        offs+= 1;
+                                        break;
+                                    default:
+                                        result.insert(offs, nf[len].format(digit));
+                                        offs+= 2;
+                                        break;
+                                }
+                                
+                            } else {
+                                result.insert(offs, nf[len].format(digit));
+                                offs+= len;
+                            }
+                        }
+                    } else {
+                        result.insert(offs, nf[len].format(digit));
+                        offs += len;
+                    }
                 }
 
             } else if (handlers[idigit] == 13) { // month names
