@@ -343,11 +343,15 @@ public class TimeUtil {
         if (time.length() == 4) {
             result = new int[]{Integer.parseInt(time), 1, 1, 0, 0, 0, 0};
         } else {
-            if (time.length() < 8) {
+            if (time.length() < 7) {
                 throw new IllegalArgumentException("time must have 4 or greater than 7 elements");
             }
             // first, parse YMD part, and leave remaining components in time.
-            if (time.length() == 8) {
+            if ( time.length()==7 ) {
+                result = new int[]{ parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), 1, // days
+                    0, 0, 0, 0 };
+                time = "";
+            } else if (time.length() == 8) {
                 result = new int[]{parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), // days
                     0, 0, 0, 0};
                 time = "";
@@ -491,7 +495,8 @@ public class TimeUtil {
             throw new IllegalArgumentException("time[3] is greater than 24 (hours)");
         }
         if (time[1] > 12) {
-            throw new IllegalArgumentException("time[1] is greater than 12 (months)");
+            time[0]= time[0] + 1;
+            time[1]= time[1] - 12;
         }
         if (time[1] == 12 && time[2] == 32) {
             time[0] = time[0] + 1;
