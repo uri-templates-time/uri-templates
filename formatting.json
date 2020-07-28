@@ -29,7 +29,7 @@
             "timeRange": [
                 "1998/1999",
                 "1998-01/1999-01",
-                "1998-01/1998-12-01",
+                "1998-01/1998-12-01"
             ],
             "comment": "",
             "output": [ 
@@ -58,7 +58,7 @@
             ],
             "comment": "$$ is interpreted as a literal $.",
             "output": [ 
-                "http://example.com/$2001$.dat"
+                "http://example.com/$2001$.dat",
                 "http://example.com/$2002$.dat"
             ]
     },
@@ -66,7 +66,7 @@
     {
             "whatTests": ["pad"],
             "template": [
-                "http://example.com/data_$(j;pad=none).dat",                              
+                "http://example.com/data_$(j;pad=none).dat"                            
             ],
             "timeRange": [
                 "1999-01/1999-03"
@@ -81,7 +81,7 @@
     {
             "whatTests": ["pad"],
             "template": [
-                "http://example.com/data_$(m;pad=none).dat",                              
+                "http://example.com/data_$(m;pad=none).dat"                         
             ],
             "timeRange": [
                 "1999-01/1999-03"
@@ -96,7 +96,7 @@
     {
             "whatTests": ["pad"],        
             "template": [
-                "http://example.com/data_$(d;pad=none).dat",                              
+                "http://example.com/data_$(d;pad=none).dat"             
             ],
             "timeRange": [
                 "1999-01-01/1999-01-03"
@@ -111,7 +111,7 @@
     {
             "whatTests": ["pad"],
             "template": [
-                "http://example.com/data_$(H;pad=none).dat",                              
+                "http://example.com/data_$(H;pad=none).dat"
             ],
             "timeRange": [
                 "1999-01-01T00/1999-01-01T03"
@@ -126,7 +126,7 @@
     {
             "whatTests": ["pad"],
             "template": [
-                "http://example.com/data_$(M;pad=none).dat",                              
+                "http://example.com/data_$(M;pad=none).dat"
             ],
             "timeRange": [
                 "1999-01-01T00:00/1999-01-01T00:03"
@@ -141,7 +141,7 @@
     {
             "whatTests": ["pad"],
             "template": [
-                "http://example.com/data_$(S;pad=none).dat",                              
+                "http://example.com/data_$(S;pad=none).dat"
             ],
             "timeRange": [
                 "1999-01-01T00:00:00/1999-01-01T00:00:03"
@@ -158,7 +158,7 @@
         "template": 
         [
             "$Y-$(m;delta=2)",
-            "$Y-$(m;delta=2;phasestart=2013-01)",
+            "$Y-$(m;delta=2;phasestart=2013-01)"
         ],
         "timeRange": "2013-02/2013-06",
         "comment": "Note no phase start needed when delta in month.",
@@ -167,13 +167,13 @@
             "2013-03",
             "2013-05"
         ]
-    }
+    },
 
     {
         "whatTests": ["delta","units"],
         "template": 
         [
-            "$Y-$m-$(d;delta=7;phasestart=2019-05-05)",
+            "$Y-$m-$(d;delta=7;phasestart=2019-05-05)"
         ],
         "timeRange": "2019-05-01/2013-06-01",
         "comment": "Note that phasestart is required.",
@@ -184,13 +184,13 @@
             "2019-05-19",
             "2019-05-26"
         ]
-    }
+    },
 
     {
         "whatTests": ["delta","units"],
         "template": 
         [
-            "$Y-$m-$(d;delta=2;phasestart=2013-09-01)",
+            "$Y-$m-$(d;delta=2;phasestart=2013-09-01)"
         ],
         "timeRange": "2013-09-01/2013-09-05",
         "comment": "Note phasestart required.",
@@ -198,7 +198,7 @@
             "2013-09-01",
             "2013-09-03"
         ]
-    }
+    },
 
     {
         "whatTests": ["shift","units"],
