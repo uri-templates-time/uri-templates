@@ -159,8 +159,8 @@ public class TimeUtil {
     }
 
     private static boolean isLeapYear(int year) {
-        if (year < 1800 || year > 2400) {
-            throw new IllegalArgumentException("year must be between 1800 and 2400");
+        if (year < 1582 || year > 2400) {
+            throw new IllegalArgumentException("year must be between 1582 and 2400");
         }
         return (year % 4) == 0 && (year % 400 == 0 || year % 100 != 0);
     }
