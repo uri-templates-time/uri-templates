@@ -51,6 +51,11 @@ public class URITemplate {
     private final String regex;
     private final int[] context;
     
+    /**
+     * typically zero, the number of digits which come from an external context.
+     */
+    private int externalContext;
+    
     private String[] valid_formatCodes = new String[]{"Y", "y", "j", "m", "d", "H", "M", "S", "milli", "micro", "p", "z", "ignore", "b", "X", "x" };
     private String[] formatName = new String[]{"Year", "2-digit-year", "day-of-year", "month", "day", "Hour", "Minute", "Second", "millisecond", "microsecond",
         "am/pm", "RFC-822 numeric time zone", "ignore", "3-char-month-name", "ignore", "ignore" };
@@ -59,7 +64,7 @@ public class URITemplate {
     private char startTimeOnly;
     private int[] phasestart;
     private int startLsd;
-        
+
     /**
      * Interface to add custom handlers for strings with unique formats.  For 
      * example, the RPWS group had files with two-hex digits indicating the 
@@ -802,10 +807,10 @@ public class URITemplate {
 
         lsd = -1;
         int lsdMult= 1;
-//TODO: We want to add $Y_1XX/$j/WAV_$Y$jT$(H,span=5)$M$S_REC_V01.PKT
+
         context= new int[NUM_TIME_DIGITS];
-        
         System.arraycopy( startTime, 0, context, 0, NUM_TIME_DIGITS );
+        externalContext= NUM_TIME_DIGITS;  // this will lower and will typically be 0.
         
         boolean haveHour= false;
         
@@ -902,25 +907,32 @@ public class URITemplate {
                         switch (name) {
                             case "Y":
                                 context[YEAR]= Integer.parseInt(val);
+                                externalContext= Math.min( externalContext, 0 );
                                 break;
                             case "m":
                                 context[MONTH]= Integer.parseInt(val);
+                                externalContext= Math.min( externalContext, 1 );
                                 break;
                             case "d":
                                 context[DAY]= Integer.parseInt(val);
+                                externalContext= Math.min( externalContext, 2 );
                                 break;
                             case "j":
                                 context[MONTH]= 1;
                                 context[DAY]= Integer.parseInt(val);
+                                externalContext= Math.min( externalContext, 1 );
                                 break;
                             case "H":
                                 context[HOUR]= Integer.parseInt(val);
+                                externalContext= Math.min( externalContext, 3 );
                                 break;
                             case "M":
                                 context[MINUTE]= Integer.parseInt(val);
+                                externalContext= Math.min( externalContext, 4 );
                                 break;
                             case "S":
                                 context[SECOND]= Integer.parseInt(val);
+                                externalContext= Math.min( externalContext, 5 );
                                 break;
                             case "cadence":
                                 span= Integer.parseInt(val);
@@ -1071,6 +1083,34 @@ public class URITemplate {
                 }
             }
 
+            if ( fc[i].length()==1 ) {
+                switch ( fc[i].charAt(0) ) {
+                    case 'Y':
+                        externalContext= Math.min( externalContext, 0 );
+                        break;
+                    case 'm':
+                        externalContext= Math.min( externalContext, 1 );
+                        break;
+                    case 'd':
+                        externalContext= Math.min( externalContext, 2 );
+                        break;
+                    case 'j':
+                        externalContext= Math.min( externalContext, 1 );
+                        break;
+                    case 'H':
+                        externalContext= Math.min( externalContext, 3 );
+                        break;
+                    case 'M':
+                        externalContext= Math.min( externalContext, 4 );
+                        break;
+                    case 'S':
+                        externalContext= Math.min( externalContext, 5 );
+                        break;                
+                    default:
+                        break;
+                }
+            }
+            
             if (handler < 100) {
                 if ( precision[handler] > lsd && lsdMult==1 ) {  // omni2_h0_mrg1hr_$Y$(m,span=6)$d_v01.cdf.  Essentially we ignore the $d.
                     lsd = precision[handler];
@@ -1318,6 +1358,28 @@ public class URITemplate {
     }
     
     /**
+     * return the number of digits, starting with the year, which must be
+     * provided by some external context.  For example, data_$j.dat has an
+     * external context of 1 because there is no year field, and data_$d.dat
+     * would be 2 because the year and month are provided externally.  Note
+     * the modifier Y= can be used to provide the context within the 
+     * URI template.
+     * @return the external context implied by the template.
+     */
+    public int getExternalContext() {
+        return externalContext;
+    }
+    
+    /**
+     * set the context time.  The number of digits copied from 
+     * externalContextTime is determined by the state of externalContext.
+     * @param externalContextTime
+     */
+    public void setContext( int[] externalContextTime ) {
+        System.arraycopy(externalContextTime, 0, context, 0, externalContext);
+    }
+    
+    /**
      * for convenience, add API to match that suggested by 
      * https://github.com/hapi-server/uri-templates/blob/master/formatting.json
      * @param template
@@ -1331,8 +1393,16 @@ public class URITemplate {
         ArrayList<String> result= new ArrayList<>();
         String s1;
         String sptr= TimeUtil.isoTimeFromArray( TimeUtil.isoTimeToArray(startTimeStr) );
-        String stop= TimeUtil.isoTimeFromArray( TimeUtil.isoTimeToArray(stopTimeStr) );
+        int[] stopDigits= TimeUtil.isoTimeToArray(stopTimeStr);
+        String stop= TimeUtil.isoTimeFromArray( stopDigits );
         int i=0;
+        int externalContext= ut.getExternalContext();
+        if ( externalContext>0 ) {
+            int[] context= new int[NUM_TIME_DIGITS];
+            System.arraycopy(stopDigits, 0, context, 0, externalContext);
+            ut.setContext(context);
+        }
+
         while ( sptr.compareTo(stop)<0 ) {
             String sptr0= sptr;
             s1= ut.format( sptr, sptr );
