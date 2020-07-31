@@ -235,7 +235,7 @@
         [
             "$Y-$m-$(d;delta=7;phasestart=2019-05-05)"
         ],
-        "timeRange": "2019-05-01/2013-06-01",
+        "timeRange": "2019-05-01/2019-06-01",
         "comment": "Note that phasestart is required.",
         "output": [
             "2019-04-28",
