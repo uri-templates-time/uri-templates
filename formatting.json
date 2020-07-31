@@ -175,6 +175,7 @@
             ],
             "comment": "",
             "output": [ 
+                "http://example.com/data_0.dat",
                 "http://example.com/data_1.dat",
                 "http://example.com/data_2.dat"
             ]
@@ -190,6 +191,7 @@
             ],
             "comment": "",
             "output": [ 
+                "http://example.com/data_0.dat",
                 "http://example.com/data_1.dat",
                 "http://example.com/data_2.dat"
             ]
@@ -205,6 +207,7 @@
             ],
             "comment": "",
             "output": [ 
+                "http://example.com/data_0.dat",
                 "http://example.com/data_1.dat",
                 "http://example.com/data_2.dat"
             ]
