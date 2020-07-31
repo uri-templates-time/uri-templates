@@ -7,6 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -245,11 +246,11 @@ public class URITemplateTest {
             throws ParseException, JSONException {
         String[] testOutputs= URITemplate.formatRange( t, startTime, stopTime );
         if ( testOutputs.length!=outputs.length() ) {
-            throw new RuntimeException("bad number of results in formatRange: "+t);
+            fail("bad number of results in formatRange: "+t);
         }
         for ( int l=0; l<outputs.length(); l++ ) {
             if ( !testOutputs[l].equals(outputs.getString(l) ) ) {
-                throw new RuntimeException("result doesn't match, got "+testOutputs[l]+", should be "+outputs.getString(l) );
+                fail("result doesn't match, got "+testOutputs[l]+", should be "+outputs.getString(l) );
             }
         }   
     }
@@ -273,7 +274,13 @@ public class URITemplateTest {
                 }
                 JSONArray templates= jo1.getJSONArray("template");
                 JSONArray outputs= jo1.getJSONArray("output");
-                JSONArray timeRanges= jo1.getJSONArray("timeRange");
+                JSONArray timeRanges;
+                try {
+                    timeRanges = jo1.getJSONArray("timeRange");
+                } catch ( JSONException ex ) {
+                    String timeRange= jo1.getString("timeRange");
+                    timeRanges= new JSONArray( Collections.singletonList(timeRange) );
+                }
                 for ( int j=0; j<templates.length(); j++ ) {
                     String t= templates.getString(j);
                     for ( int k=0; k<timeRanges.length(); k++ ) {
@@ -307,13 +314,13 @@ public class URITemplateTest {
         try { 
             String t;            
             String[] ss;
-            
+
             t = "data_$Y.dat";
             ss = URITemplate.formatRange( t, "2001-03-22", "2004-08-18" );
             if ( ss.length!=4 ) {
                 fail(t);
             }
-            
+                        
 //            t = "data_$Y_$(Y,end).dat";
 //            ss = URITemplate.formatRange( t, "2001-03-22", "2004-08-18" );
 //            if ( ss.length!=1 ) {
