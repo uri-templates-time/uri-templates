@@ -6,6 +6,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -64,7 +65,7 @@ public class URITemplate {
     private char startTimeOnly;
     private int[] phasestart;
     private int startLsd;
-
+        
     /**
      * Interface to add custom handlers for strings with unique formats.  For 
      * example, the RPWS group had files with two-hex digits indicating the 
@@ -764,6 +765,8 @@ public class URITemplate {
         shift= new int[ndigits];
         this.qualifiersMaps= new HashMap[ndigits];
         
+        this.phasestart= null;
+        
         delim[0] = ss[0];
         for (int i = 1; i < ndigits; i++) {
             int pp = 0;
@@ -807,7 +810,7 @@ public class URITemplate {
 
         lsd = -1;
         int lsdMult= 1;
-
+//TODO: We want to add $Y_1XX/$j/WAV_$Y$jT$(H,span=5)$M$S_REC_V01.PKT
         context= new int[NUM_TIME_DIGITS];
         System.arraycopy( startTime, 0, context, 0, NUM_TIME_DIGITS );
         externalContext= NUM_TIME_DIGITS;  // this will lower and will typically be 0.
@@ -891,6 +894,7 @@ public class URITemplate {
 
             if ( qualifiers[i]!=null ) {
                 String[] ss2= qualifiers[i].split(";");
+                qualifiersMaps[i]= new HashMap<>();
                 for ( String ss21 : ss2 ) {
                     boolean okay=false;
                     String qual = ss21.trim();
@@ -902,6 +906,7 @@ public class URITemplate {
                     if ( !okay && idx>-1 ) {
                         String name= qual.substring(0,idx).trim();
                         String val= qual.substring(idx+1).trim();
+                        qualifiersMaps[i].put(name, val);
                         //FieldHandler fh= (FieldHandler) fieldHandlers.get(name);
                         //fh.parse( val, context, timeWidth );
                         switch (name) {
@@ -1331,12 +1336,23 @@ public class URITemplate {
 
         }
   
-        //TODO: phasestart
         if ( this.phasestart!=null ) {
             if ( timeWidth==null ) {
                 logger.warning("phasestart cannot be used for month or year resolution");
             } else {
-                stopTime= TimeUtil.add( startTime, this.timeWidth );
+                if ( timeWidth[1]>0 ) {
+                    startTime[1]= ( ( startTime[1] - this.phasestart[1] ) / timeWidth[1] ) * timeWidth[1] + this.phasestart[1];
+                } else if ( timeWidth[0]>0 ) {
+                    startTime[0]= ( ( startTime[0] - this.phasestart[0] ) / timeWidth[0] ) * timeWidth[0] + this.phasestart[0];
+                } else if ( timeWidth[2]>1 ) {
+                    int phaseStartJulian= TimeUtil.julianDay( phasestart[0], phasestart[1], phasestart[2] );
+                    int ndays= TimeUtil.julianDay( startTime[0], startTime[1], startTime[2] ) - phaseStartJulian;
+                    int ncycles= Math.floorDiv( ndays, timeWidth[2] );
+                    startTime= TimeUtil.fromJulianDay( phaseStartJulian + ncycles * timeWidth[2] );
+                } else {
+                    logger.warning("phasestart can only be used when step size is integer number of days");
+                }
+                stopTime= TimeUtil.add( startTime, this.timeWidth );                                    
             }
         } else {
             if ( stopTimeDigit==AFTERSTOP_INIT ) {
@@ -1395,6 +1411,9 @@ public class URITemplate {
         String sptr= TimeUtil.isoTimeFromArray( TimeUtil.isoTimeToArray(startTimeStr) );
         int[] stopDigits= TimeUtil.isoTimeToArray(stopTimeStr);
         String stop= TimeUtil.isoTimeFromArray( stopDigits );
+        if ( sptr.compareTo(stop)>0 ) {
+            throw new IllegalArgumentException("start time must be before or equal to stop time.");
+        }
         int i=0;
         int externalContext= ut.getExternalContext();
         if ( externalContext>0 ) {
@@ -1402,11 +1421,17 @@ public class URITemplate {
             System.arraycopy(stopDigits, 0, context, 0, externalContext);
             ut.setContext(context);
         }
-
+        
+        boolean firstLoop= true;
         while ( sptr.compareTo(stop)<0 ) {
             String sptr0= sptr;
-            s1= ut.format( sptr, sptr );
-            int [] tta= ut.parse(s1);
+            s1= ut.format( sptr, sptr, Collections.EMPTY_MAP );
+            int [] tta= ut.parse( s1,Collections.EMPTY_MAP );
+            if ( firstLoop ) {
+                sptr= TimeUtil.isoTimeFromArray( Arrays.copyOfRange(tta,0,7) );
+                s1= ut.format( sptr, sptr );
+                firstLoop= false;
+            }
             if ( Arrays.equals( Arrays.copyOfRange(tta,0,7), Arrays.copyOfRange(tta,7,14) ) ) {
                 result.add( ut.format( startTimeStr, stopTimeStr ) );
                 break;
@@ -1477,14 +1502,17 @@ public class URITemplate {
 
             }
             if (handlers[idigit] < 10) {
-                String qual= qualifiers[idigit];
+                Map<String,String> qualm= qualifiersMaps[idigit];
                 int digit;
-                int span=1;
-                if ( qual!=null ) {
-                    Pattern p= Pattern.compile("span=(\\d+)"); // TODO: multiple qualifiers
-                    Matcher m= p.matcher(qual);
-                    if ( m.matches() ) {
-                        span= Integer.parseInt(m.group(1));
+                int delta=1;
+                if ( qualm!=null ) {
+                    String ddelta= qualm.get("span");
+                    if ( ddelta!=null ) {
+                        delta= Integer.parseInt(ddelta);
+                    }
+                    ddelta= qualm.get("delta");
+                    if ( ddelta!=null ) {
+                        delta= Integer.parseInt(ddelta);
                     }
                 }
                 switch (handlers[idigit]) {
@@ -1521,11 +1549,26 @@ public class URITemplate {
                     default:
                         throw new RuntimeException("shouldn't get here");
                 }
-                if ( span>1 ) {
-                    if ( handlers[idigit]>0 && handlers[idigit]<5 ) {
-                        logger.fine("uh-oh, span used on ordinal like month, day.  Just leave it alone.");
+                if ( delta>1 ) {
+                    int h= handlers[idigit];
+                    if ( h==2 || h==3 ) { // $j, $m all start with 1.
+                        digit= ( ( ( digit-1) / delta ) * delta ) + 1;
+                    } else if ( h==4 ) {
+                        if ( phasestart!=null ) {
+                            int phaseStartJulian= TimeUtil.julianDay( phasestart[0], phasestart[1], phasestart[2] );
+                            int ndays= TimeUtil.julianDay(  timel[0], timel[1], timel[2] ) - phaseStartJulian;
+                            int ncycles= Math.floorDiv( ndays, timeWidth[2] );
+                            
+                            int[] tnew= TimeUtil.fromJulianDay(phaseStartJulian+ncycles*delta);
+                            timel[0]= tnew[0];
+                            timel[1]= tnew[1];
+                            timel[2]= tnew[2];
+
+                        } else {
+                            throw new IllegalArgumentException("phaseshart not set for delta days");
+                        }
                     } else {
-                        digit= ( digit / span ) * span;
+                        digit= ( digit / delta ) * delta;
                     }
                 }
                 if ( shift[idigit]!=0 ) {
@@ -1539,7 +1582,7 @@ public class URITemplate {
                 } else {
                     if ( this.qualifiersMaps[idigit]!=null ) {
                         // TODO: suboptimal
-                        String pad= this.qualifiersMaps[digit].get("pad");
+                        String pad= this.qualifiersMaps[idigit].get("pad");
                         if ( pad==null || pad.equals("zero") ) { 
                             result.insert(offs, nf[len].format(digit));
                         } else {
