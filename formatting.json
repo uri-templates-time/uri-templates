@@ -275,7 +275,8 @@
             "2013-09-04.dat",
             "2013-09-05.dat"
         ]
-    }
+    },
+    
     {
         "whatTests": ["shift","units"],
         "template": 
