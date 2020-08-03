@@ -276,20 +276,17 @@
             "2013-09-05.dat"
         ]
     },
-    
+
     {
-        "whatTests": ["shift","units"],
+        "whatTests": ["shift"],
         "template": 
         [
-            "$Y-$m-$d_$(Y,end)-$m-$(d;phasestart=2020-08-02;delta=7;shift=1).dat"
+            "data_$Y$j_$(Y;end)($j;shift=1).txt"
         ],
-        "timeRange": "2020-08-04/2020-08-27",
-        "comment": "Shift is used for inclusive stop day, calendar weeks",
+        "timeRange": "2005-132/2005-146",
+        "comment": "Shift is used for inclusive stop day, see https://github.com/hapi-server/uri-templates/wiki/Specification#full-list-of-field-codes the at end of the section.",
         "output": [
-            "2020-08-02_2020-08-08.dat",
-            "2020-08-09_2020-08-15.dat",
-            "2020-08-16_2020-08-22.dat",
-            "2020-08-24_2020-08-29.dat"
+            " data_2005132_2005145.txt"
         ]
     }
 ]
