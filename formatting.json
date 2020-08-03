@@ -270,10 +270,10 @@
         "timeRange": "2013-09-01/2013-09-05",
         "comment": "Basic example of shift. Example use case is where file name corresponds to when the file was written and file contains measurements made on the day before.",
         "output": [
+            "2013-08-31.dat",
+            "2013-09-01.dat",
             "2013-09-02.dat",
-            "2013-09-03.dat",
-            "2013-09-04.dat",
-            "2013-09-05.dat"
+            "2013-09-03.dat"
         ]
     },
 
