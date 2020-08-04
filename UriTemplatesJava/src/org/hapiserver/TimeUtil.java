@@ -96,12 +96,13 @@ public class TimeUtil {
 
     /**
      * return the month number for the English month name, such as "Jan" (1) or
-     * "December" (12). The first three letters are used to look up the number.
-     *
+     * "December" (12). The first three letters are used to look up the number,
+     * and must be one of: "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+     * "Jul", "Aug", "Sep", "Oct", "Nov", or "Dec" (case insensitive).
      * @param s the name (case-insensitive, only the first three letters are
      * used.
      * @return the number, for example 1 for "January"
-     * @throws ParseException
+     * @throws ParseException when month name is not recognized.
      */
     public static int monthNumber(String s) throws ParseException {
         if (s.length() < 3) {
@@ -485,8 +486,8 @@ public class TimeUtil {
      * <li>handle day=32 by incrementing month.
      * <li>handle negative components by borrowing from the next significant.
      * </ul>
-     *
-     * @param time
+     * Note that [Y,1,dayOfYear,...] is accepted, but the result will be Y,m,d.
+     * @param time the seven-component time Y,m,d,H,M,S,nanoseconds
      */
     public static void normalizeTime(int[] time) {
         while (time[3] >= 24) {
@@ -565,9 +566,10 @@ public class TimeUtil {
      * </ul>
      * TODO: there exists more complete code elsewhere.
      *
-     * @param stringIn
+     * @param stringIn theISO8601 duration.
      * @return 7-element array with [year,mon,day,hour,min,sec,nanos]
      * @throws ParseException if the string does not appear to be valid.
+     * @see #iso8601duration
      *
      */
     public static int[] parseISO8601Duration(String stringIn) throws ParseException {
@@ -594,11 +596,11 @@ public class TimeUtil {
      * http://en.wikipedia.org/wiki/Julian_day. Both calculations have 20
      * operations.
      *
-     * @see julianToGregorian
      * @param year calendar year greater than 1582.
-     * @param month
+     * @param month the month number 1 through 12.
      * @param day day of month. For day of year, use month=1 and doy for day.
      * @return the Julian day
+     * @see #fromJulianDay(int) 
      */
     public static int julianDay(int year, int month, int day) {
         if (year <= 1582) {
@@ -615,7 +617,7 @@ public class TimeUtil {
      * http://en.wikipedia.org/wiki/Julian_day (GNU Public License), and was
      * introduced when toTimeStruct failed when the year was 1886.
      *
-     * @see julianDay( int year, int mon, int day )
+     * @see #julianDay( int year, int mon, int day )
      * @param julian the (integer) number of days that have elapsed since the
      * initial epoch at noon Universal Time (UT) Monday, January 1, 4713 BC
      * @return a TimeStruct with the month, day and year fields set.

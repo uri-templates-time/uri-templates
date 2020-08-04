@@ -126,12 +126,12 @@ public class URITemplate {
          * exception should be thrown because there is an error that the 
          * developer is going to have to deal with.
          * 
-         * @param startTime
-         * @param timeWidth
+         * @param startTime the startTime in [ Y, m, d, H, M, S, nanoseconds ]
+         * @param timeWidth the width in [ Y, m, d, H, M, S, nanoseconds ]
          * @param length, -1 or the length of the field.
          * @param extra extra data, such as version numbers, are passed in here.
          * @return the string representing the time range specified.
-         * @throws IllegalArgumentException
+         * @throws IllegalArgumentException when the arguments passed in are not sufficient.
          */
         public String format( int[] startTime, 
                 int[] timeWidth, 
@@ -341,8 +341,7 @@ public class URITemplate {
     }
     
     /**
-     * "$Y$m$d-$(enum;values=a,b,c,d;id=sc)", "20130202-a", "2013-02-02/2013-02-03" 
-     * @see https://github.com/hapi-server/uri-templates/wiki/Specification#enum
+     * Field is one of a set of enumerated values.
      */
     public static class EnumFieldHandler implements FieldHandler {
 
@@ -1255,9 +1254,10 @@ public class URITemplate {
      * return the timeString, parsed into start time and stop time.  
      * The result is a 14-element array, with the first 7 the start time
      * and the last 7 the stop time.
-     * @param timeString
-     * @return 14 element array
-     * @throws ParseException 
+     * @param timeString the template string to be parsed.
+     * @return 14 element array [ Y, m, d, H, M, S, nano, Y, m, d, H, M, S, nano ]
+     * @throws ParseException when a number is expected, or patterned not matched.
+     * @see #parse(java.lang.String, java.util.Map) 
      */
     public int[] parse( String timeString ) throws ParseException {
         return parse( timeString, new HashMap<>() );
@@ -1271,8 +1271,9 @@ public class URITemplate {
      * @param timeString string in the format described by the template.
      * @param extra extension results, like $(x,name=sc) appear here.
      * @return 14 element array [ Y, m, d, H, M, S, nano, Y, m, d, H, M, S, nano ]
-     * @throws ParseException 
+     * @throws ParseException when a number is expected, or patterned not matched.
      * @see TimeUtil#dayOfYear(int, int, int) if day-of-year is needed.
+     * @see #parse(java.lang.String) which can be used when extra arguments are not needed.
      */
     public int[] parse( String timeString, Map<String,String> extra ) throws ParseException {
         logger.log(Level.FINER, "parse {0}", timeString);
@@ -1504,7 +1505,7 @@ public class URITemplate {
     /**
      * set the context time.  The number of digits copied from 
      * externalContextTime is determined by the state of externalContext.
-     * @param externalContextTime
+     * @param externalContextTime the context in [ Y, m, d, H, M, S, nanos ]
      */
     public void setContext( int[] externalContextTime ) {
         System.arraycopy(externalContextTime, 0, context, 0, externalContext);
@@ -1519,7 +1520,7 @@ public class URITemplate {
      * @param startTimeStr the beginning of the interval to cover
      * @param stopTimeStr the end of the interval to cover
      * @return the formatted times which cover the span.
-     * @throws ParseException 
+     * @throws ParseException when a number is expected, or patterned not matched.
      */
     public static String[] formatRange( String template, String startTimeStr, String stopTimeStr ) throws ParseException {
         return formatRange( template, startTimeStr, stopTimeStr, Collections.EMPTY_MAP );
@@ -1529,13 +1530,14 @@ public class URITemplate {
      * For convenience, add API to match that suggested by 
      * https://github.com/hapi-server/uri-templates/blob/master/formatting.json
      * Note if start and end appear in the template, then just one formatted
-     * range is returned.
+     * range is returned.  This works by formatting and parsing the time ranges,
+     * stepping through the sequence.
      * @param template the template
      * @param startTimeStr the beginning of the interval to cover
      * @param stopTimeStr the end of the interval to cover
      * @param extra extra named parameters
      * @return the formatted times which cover the span.
-     * @throws ParseException 
+     * @throws ParseException when the initial parsing cannot be done.
      */
     public static String[] formatRange( String template, 
             String startTimeStr, 
