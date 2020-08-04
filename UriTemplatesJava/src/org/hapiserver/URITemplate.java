@@ -241,8 +241,8 @@ public class URITemplate {
     }
     
     /**
-     * regular intervals are numbered.
-     * $(periodic;offset=0;start=2000-001;period=P1D)", "0",  "2000-001"
+     * regular intervals are numbered:
+     * $(periodic;offset=0;start=2000-001;period=P1D) "0" &rarr; "2000-001"
      */
     public static class PeriodicFieldHandler implements FieldHandler {
 
@@ -341,7 +341,7 @@ public class URITemplate {
     }
     
     /**
-     * Field is one of a set of enumerated values.
+     * $(enum,values=a,b,c)
      */
     public static class EnumFieldHandler implements FieldHandler {
 
@@ -418,7 +418,7 @@ public class URITemplate {
     }
     
     /**
-     * Just skip the field.  This is the default for $v.
+     * $(x,name=sc,regex=[a|b])
      */
     public static class IgnoreFieldHandler implements FieldHandler {
 
