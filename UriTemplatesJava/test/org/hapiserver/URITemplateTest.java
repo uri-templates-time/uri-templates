@@ -79,8 +79,8 @@ public class URITemplateTest {
         
         int[] res;
         
-        try {
-            res= ut.parse( test );
+        try {       
+            res= ut.parse( test, new HashMap<>() );
         } catch ( ParseException ex ) {
             fail(ex.getMessage());
             return;
@@ -129,7 +129,7 @@ public class URITemplateTest {
         testTimeParser1( "$Y $m $d $H $M", "2012 03 30 16 20", "2012-03-30T16:20/2012-03-30T16:21" );
         testTimeParser1( "$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03" );
         testTimeParser1( "$Y$m$d-$(Y;end)$m$d", "20130202-20140303", "2013-02-02/2014-03-03" );
-        testTimeParser1( "$Y$m$d-$(Y;end)$m$(d;shift=1)", "20130202-20140303", "2013-02-02/2014-03-04" );
+        testTimeParser1( "$Y$m$d-$(Y;end)$m$(d;shift=1)", "20200101-20200107", "2020-01-01/2020-01-08" );
         testTimeParser1( "$Y$m$d-$(d;end)", "20130202-13", "2013-02-02/2013-02-13" );
         testTimeParser1( "$(periodic;offset=0;start=2000-001;period=P1D)", "0",  "2000-001/P1D");
         testTimeParser1( "$(periodic;offset=0;start=2000-001;period=P1D)", "20", "2000-021/P1D");        
@@ -151,7 +151,14 @@ public class URITemplateTest {
         testTimeParser1( "$(j,Y=2012)",   "017",      "2012-01-17T00:00/2012-01-18T00:00");
         testTimeParser1( "ace_mag_$Y_$j_to_$(Y;end)_$j.cdf",   "ace_mag_2005_001_to_2005_003.cdf",      "2005-001T00:00/2005-003T00:00");    
     }
-
+    
+    /**
+     * Use the spec, format the test time and verify that we get norm.
+     * @param spec
+     * @param test
+     * @param norm
+     * @throws Exception 
+     */
     private static void testTimeFormat1( String spec, String test, String norm ) throws Exception {
         URITemplate ut;
         try {
@@ -169,7 +176,7 @@ public class URITemplateTest {
         }
         String res;
         try {
-            res= ut.format( nn[0], nn[1] );
+            res= ut.format( nn[0], nn[1], Collections.EMPTY_MAP );
         } catch ( RuntimeException ex ) {
             System.out.println( "### " + ex.getMessage() );
             return;
@@ -194,7 +201,9 @@ public class URITemplateTest {
         System.out.println("format");
         //testTimeParser1( "$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03" );
         testTimeFormat1( "$Y$m$d-$(Y;end)$m$d", "20130202-20140303", "2013-02-02/2014-03-03" );
-        testTimeFormat1( "$Y$m$d-$(Y;end)$m$(d;shift=1)", "20130202-20140303", "2013-02-02/2014-03-04" );
+        testTimeFormat1( "_$Y$m$(d)_$(Y;end)$m$(d)",                 "_20130202_20130203", "2013-02-02/2013-02-03" );
+        testTimeFormat1( "_$Y$m$(d;shift=1)_$(Y;end)$m$(d;shift=1)", "_20130201_20130202", "2013-02-02/2013-02-03" );
+        testTimeFormat1( "$Y$m$d-$(Y;end)$m$(d;shift=1)",            "20200101-20200107",  "2020-01-01T00:00Z/2020-01-08T00:00Z" );
         testTimeFormat1( "$Y$m$d-$(d;end)", "20130202-13", "2013-02-02/2013-02-13" );
         testTimeFormat1( "$(periodic;offset=0;start=2000-001;period=P1D)", "0",  "2000-001/P1D");
         testTimeFormat1( "$(periodic;offset=0;start=2000-001;period=P1D)", "20", "2000-021/P1D");        
@@ -218,7 +227,7 @@ public class URITemplateTest {
     }
     
     private static String readJSONToString( URL url ) {
-        InputStream ins= null;
+        InputStream ins=null;
         try {
             ins = url.openStream();
             StringBuilder sb= new StringBuilder();
@@ -234,7 +243,7 @@ public class URITemplateTest {
         
         } finally {
             try {
-                ins.close();
+                if ( ins!=null ) ins.close();
             } catch (IOException ex) {
                 Logger.getLogger(URITemplateTest.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -244,7 +253,9 @@ public class URITemplateTest {
     private void testFormatHapiServerSiteOne( 
             JSONArray outputs, String t, String startTime, String stopTime )
             throws ParseException, JSONException {
+        
         String[] testOutputs= URITemplate.formatRange( t, startTime, stopTime );
+        
         if ( testOutputs.length!=outputs.length() ) {
             fail("bad number of results in formatRange: "+t);
         }
@@ -264,6 +275,7 @@ public class URITemplateTest {
     public void testFormatHapiServerSite() {
         try {
             String ss= readJSONToString( new URL( "https://raw.githubusercontent.com/hapi-server/uri-templates/master/formatting.json" ) );
+            //String ss= readJSONToString( new URL( "file:/home/jbf/ct/git/uri-templates/formatting.json" ) );
             JSONArray jo= new JSONArray(ss);
             for ( int i=0; i<jo.length(); i++ ) {
                 JSONObject jo1= jo.getJSONObject(i);
