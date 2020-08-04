@@ -276,17 +276,28 @@
             "2013-09-03.dat"
         ]
     },
-
+    {
+        "whatTests": ["end"],
+        "template": 
+        [
+            "data_$Y$m$d_$(Y;end)$m$d.txt"
+        ],
+        "timeRange": "2005-132/2005-146",
+        "comment": "when the start time and end time are available, format range should format the whole interval",
+        "output": [
+            "data_20050512_20050526.txt"
+        ]
+    },
     {
         "whatTests": ["shift"],
         "template": 
         [
-            "data_$Y$j_$(Y;end)($j;shift=1).txt"
+            "data_$Y$j_$(Y;end)$(j;shift=1).txt"
         ],
         "timeRange": "2005-132/2005-146",
         "comment": "Shift is used for inclusive stop day, see https://github.com/hapi-server/uri-templates/wiki/Specification#full-list-of-field-codes the at end of the section.",
         "output": [
-            " data_2005132_2005145.txt"
+            "data_2005132_2005145.txt"
         ]
     }
 ]
