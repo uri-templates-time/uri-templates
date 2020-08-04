@@ -163,6 +163,10 @@ public class TimeUtilTest {
         String expResult = "1999-12-31T23:00:00.000000000Z";
         String result = TimeUtil.isoTimeFromArray(nn);
         assertEquals(expResult, result);
+        nn = new int[] { 2000, 1, 45, 23, 0, 0, 0  };
+        expResult = "1999-02-14T23:00:00.000000000Z";
+        result = TimeUtil.isoTimeFromArray(nn);
+        assertEquals(expResult, result);
     }
 
     /**

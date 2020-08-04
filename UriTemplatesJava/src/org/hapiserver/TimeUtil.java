@@ -323,6 +323,12 @@ public class TimeUtil {
      * @see #isoTimeToArray(java.lang.String)
      */
     public static String isoTimeFromArray(int[] nn) {
+        if ( nn[1]==1 && nn[2]>31 ) {
+            int month= monthForDayOfYear( nn[0], nn[2] );
+            int dom1= dayOfYear( nn[0], month, 1 );
+            nn[2]= nn[2]-dom1+1;
+            nn[1]= month;
+        }
         return String.format("%04d-%02d-%02dT%02d:%02d:%02d.%09dZ",
                 nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6]);
     }
@@ -423,6 +429,27 @@ public class TimeUtil {
         int leap = isLeapYear(year) ? 1 : 0;
         return DAY_OFFSET[leap][month] + day;
     }
+    
+    /**
+     * return "2" (February) for 45 for example.
+     * @param year the year
+     * @param doy the day of year.
+     * @return the month 1-12 of the day.
+     */
+    public static int monthForDayOfYear( int year, int doy ) {
+        int leap = isLeapYear(year) ? 1 : 0;
+        int[] dayOffset= DAY_OFFSET[leap];
+        if ( doy<1 ) throw new IllegalArgumentException("doy must be 1 or more");
+        if ( doy>dayOffset[13] ) {
+            throw new IllegalArgumentException("doy must be less than or equal to "+dayOffset[13]);
+        }        
+        for ( int i=12; i>1; i-- ) {
+            if ( dayOffset[i]<doy ) {
+                return i;
+            }
+        }
+        return 1;
+    }
 
     /**
      * return the time as milliseconds since 1970-01-01T00:00Z. This does not
@@ -448,7 +475,7 @@ public class TimeUtil {
         Date d = Date.from(i);
         return d.getTime();
     }
-
+    
     /**
      * normalize the decomposed time by expressing day of year and month and day
      * of month, and moving hour="24" into the next day. This also handles day
