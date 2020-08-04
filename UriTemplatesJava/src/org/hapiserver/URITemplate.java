@@ -1513,7 +1513,7 @@ public class URITemplate {
     
     /**
      * For convenience, add API to match that suggested by 
-     * https://github.com/hapi-server/uri-templates/blob/master/formatting.json
+     * https://github.com/hapi-server/uri-templates/blob/master/formatting.json .
      * Note if start and end appear in the template, then just one formatted
      * range is returned.
      * @param template the template
@@ -1528,7 +1528,8 @@ public class URITemplate {
         
     /**
      * For convenience, add API to match that suggested by 
-     * https://github.com/hapi-server/uri-templates/blob/master/formatting.json
+     * https://github.com/hapi-server/uri-templates/blob/master/formatting.json,
+     * and allowing for extra named fields to be passed in.
      * Note if start and end appear in the template, then just one formatted
      * range is returned.  This works by formatting and parsing the time ranges,
      * stepping through the sequence.
