@@ -237,6 +237,12 @@ public class TimeUtilTest {
         int result = TimeUtil.julianDay(year, month, day);
         assertEquals(expResult, result);
     }
+    
+    @Test
+    public void testMonthForDayOfYear() {
+        System.out.println("monthForDayOfYear");
+        assertEquals(TimeUtil.monthForDayOfYear(2000,45),2);
+    }
 
     /**
      * Test of fromJulianDay method, of class TimeUtil.
