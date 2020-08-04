@@ -72,11 +72,11 @@ public class URITemplate {
      */
     private int externalContext;
     
-    private String[] valid_formatCodes = new String[]{"Y", "y", "j", "m", "d", "H", "M", "S", "milli", "micro", "p", "z", "ignore", "b", "X", "x" };
+    private String[] valid_formatCodes = new String[]{"Y", "y", "j", "m", "d", "H", "M", "S", "milli", "micro", "p", "z", "ignore", "b" };
     private String[] formatName = new String[]{"Year", "2-digit-year", "day-of-year", "month", "day", "Hour", "Minute", "Second", "millisecond", "microsecond",
-        "am/pm", "RFC-822 numeric time zone", "ignore", "3-char-month-name", "ignore", "ignore" };
-    private int[] formatCode_lengths = new int[]{4, 2, 3, 2, 2, 2, 2, 2, 3, 3, 2, 5, -1, 3, -1, -1 };
-    private int[] precision =          new int[]{0, 0, 2, 1, 2, 3, 4, 5, 6, 7,-1,-1, -1, 1, -1, -1 };
+        "am/pm", "RFC-822 numeric time zone", "ignore", "3-char-month-name" };
+    private int[] formatCode_lengths = new int[]{4, 2, 3, 2, 2, 2, 2, 2, 3, 3, 2, 5, -1, 3 };
+    private int[] precision =          new int[]{0, 0, 2, 1, 2, 3, 4, 5, 6, 7,-1,-1, -1, 1 };
     private char startTimeOnly;
     private int[] phasestart;
     private int startLsd;
@@ -1409,8 +1409,15 @@ public class URITemplate {
                         extra.put( "X", timeString.substring(offs, offs + len) );
                     }
                 } else if (handlers[idigit] == 15) { // "x"
+                    String name;
+                    Map<String,String> qual= this.qualifiersMaps[idigit];
+                    if ( qual!=null ) {
+                        name= qual.containsKey("name") ? qual.get("name") : "x";
+                    } else {
+                        name= "x";
+                    }
                     if ( len>=0 ) {
-                        extra.put( "x", timeString.substring(offs, offs + len) );
+                        extra.put( name, timeString.substring(offs, offs + len) );
                     }
                 }
             } catch ( NumberFormatException ex ) {
@@ -1515,6 +1522,25 @@ public class URITemplate {
      * @throws ParseException 
      */
     public static String[] formatRange( String template, String startTimeStr, String stopTimeStr ) throws ParseException {
+        return formatRange( template, startTimeStr, stopTimeStr, Collections.EMPTY_MAP );
+    }
+        
+    /**
+     * For convenience, add API to match that suggested by 
+     * https://github.com/hapi-server/uri-templates/blob/master/formatting.json
+     * Note if start and end appear in the template, then just one formatted
+     * range is returned.
+     * @param template the template
+     * @param startTimeStr the beginning of the interval to cover
+     * @param stopTimeStr the end of the interval to cover
+     * @param extra extra named parameters
+     * @return the formatted times which cover the span.
+     * @throws ParseException 
+     */
+    public static String[] formatRange( String template, 
+            String startTimeStr, 
+            String stopTimeStr, 
+            Map<String,String> extra ) throws ParseException {        
         URITemplate ut= new URITemplate(template);
         ArrayList<String> result= new ArrayList<>();
         String s1;
@@ -1535,11 +1561,11 @@ public class URITemplate {
         boolean firstLoop= true;
         while ( sptr.compareTo(stop)<0 ) {
             String sptr0= sptr;
-            s1= ut.format( sptr, sptr, Collections.EMPTY_MAP );
+            s1= ut.format( sptr, sptr, extra );
             int [] tta= ut.parse( s1, new HashMap<>() );
             if ( firstLoop ) {
                 sptr= TimeUtil.isoTimeFromArray( Arrays.copyOfRange(tta,0,7) );
-                s1= ut.format( sptr, sptr, Collections.EMPTY_MAP  );
+                s1= ut.format( sptr, sptr, extra );
                 firstLoop= false;
             }
             //test for special case where start and stop are in the template, so there is no looping.
@@ -1747,7 +1773,7 @@ public class URITemplate {
 
             } else if (handlers[idigit] == 100) {
                 if ( fc[idigit].equals("v") ) { // kludge for version.  TODO: This can probably use the code below now.
-                    String ins= "00";
+                    String ins= extra.containsKey("v") ? extra.get("v") : "00";
                     if ( len>-1 ) {
                         if ( len>20 ) throw new IllegalArgumentException("version lengths>20 not supported");
                         ins= "00000000000000000000".substring(0,len);
@@ -1784,7 +1810,8 @@ public class URITemplate {
 
             } else if (handlers[idigit] == 11) {
                 throw new RuntimeException("Time Zones not supported");
-            } //TODO: $x?
+            }
+            
         }
         result.insert(offs, this.delims[ndigits - 1]);
         return result.toString().trim();
