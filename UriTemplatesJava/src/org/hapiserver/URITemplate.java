@@ -15,11 +15,11 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
+ * URITemplate implements a URI_Template, as described in 
+ * https://github.com/hapi-server/uri-templates/wiki/Specification
  * @author jbf
  */
 public class URITemplate {
@@ -39,7 +39,22 @@ public class URITemplate {
     int[] handlers;
     int[] offsets;
     int[] lengths;
+    
+    /**
+     * shift found in each digit--going away
+     */
     int[] shift; 
+    
+    /**
+     * int[7] shift for each component for the start time.
+     */
+    int[] startShift=null;
+    
+    /**
+     * int[7] shift for each component for the stop time.
+     */
+    int[] stopShift=null;
+    
     String[] fc;
     
     /**
@@ -713,6 +728,47 @@ public class URITemplate {
     }
     
     /**
+     * create the array if it hasn't been created already.
+     * @param digits
+     * @return 
+     */
+    private static int[] maybeInitialize( int[] digits ) {
+        if ( digits==null ) {
+            return new int[7];
+        } else {
+            return digits;
+        }
+    }
+    
+    /**
+     * return the digit used to store the number associated with
+     * the code.  For example, Y is the year, so it is stored in the 0th
+     * position, H is hour and is stored in the 3rd position.
+     * @param code one of YmjdHMS.
+     * @return the digit 0-6, or -1 for none.
+     */
+    private static int digitForCode( char code ) {
+        switch (code) {
+            case 'Y':
+                return 0;
+            case 'm':
+                return 1;
+            case 'j':
+                return 2;
+            case 'd':
+                return 2;
+            case 'H':
+                return 3;
+            case 'M':
+                return 4;
+            case 'S':
+                return 5;
+            default:
+                return -1;
+        }
+    }
+    
+    /**
      * create a new URITemplate for parsing and formatting.
      * @param formatString URI template spec as in /tmp/data.$Y$m$d.txt
      */
@@ -762,7 +818,9 @@ public class URITemplate {
             lengths[i] = -1; // -1 indicates not known, but we'll figure out as many as we can.
         }
         
-        shift= new int[ndigits];
+        startShift= null;
+        stopShift= null;
+        
         this.qualifiersMaps= new HashMap[ndigits];
         
         this.phasestart= null;
@@ -895,7 +953,7 @@ public class URITemplate {
             if ( qualifiers[i]!=null ) {
                 String[] ss2= qualifiers[i].split(";");
                 qualifiersMaps[i]= new HashMap<>();
-                for ( String ss21 : ss2 ) {
+                for ( String ss21 : ss2 ) { //TODO: handle end before shift.
                     boolean okay=false;
                     String qual = ss21.trim();
                     if ( qual.equals("startTimeOnly") ) {
@@ -1010,7 +1068,23 @@ public class URITemplate {
                                 }
                                 break;
                             case "shift":
-                                shift[i]= Integer.parseInt(val);
+                                //TODO: handle end before shift.
+                                if ( val.length()==0 ) throw new IllegalArgumentException("shift is empty");
+                                char possibleUnit= val.charAt(val.length()-1);
+                                int digit;
+                                if ( Character.isAlphabetic(possibleUnit) ) {
+                                    digit= digitForCode(possibleUnit);
+                                    val= val.substring(0,val.length()-1);
+                                } else {
+                                    digit= digitForCode(fc[i].charAt(0));
+                                }
+                                if ( i<stopTimeDigit ) {
+                                    startShift=maybeInitialize(startShift);
+                                    startShift[digit]= Integer.parseInt(val);
+                                } else {
+                                    stopShift=maybeInitialize(stopShift);
+                                    stopShift[digit]= Integer.parseInt(val);
+                                }
                                 break;
                             case "pad":
                             case "fmt":
@@ -1165,6 +1239,13 @@ public class URITemplate {
             logger.log( Level.FINE, "Canonical: {0}", canonical.toString());
         }
         
+        // if the stop time is not in the spec, then both start and stop are shifted.
+        if ( this.stopTimeDigit==AFTERSTOP_INIT ) {
+            if ( this.startShift!=null ) {
+                this.stopShift= this.startShift;
+            }
+        }
+        
         this.delims = delim;
         this.regex = regex1.toString();
 
@@ -1185,11 +1266,13 @@ public class URITemplate {
     /**
      * return the timeString, parsed into start time and stop time.  
      * The result is a 14-element array, with the first 7 the start time
-     * and the last 7 the stop time.
-     * @param timeString
+     * and the last 7 the stop time.  The output will be decomposed into
+     * year, month, and day even if year, day-of-year are in the time string.
+     * @param timeString string in the format described by the template.
      * @param extra extension results, like $(x,name=sc) appear here.
-     * @return 14 element array
+     * @return 14 element array [ Y, m, d, H, M, S, nano, Y, m, d, H, M, S, nano ]
      * @throws ParseException 
+     * @see TimeUtil#dayOfYear(int, int, int) if day-of-year is needed.
      */
     public int[] parse( String timeString, Map<String,String> extra ) throws ParseException {
         logger.log(Level.FINER, "parse {0}", timeString);
@@ -1256,7 +1339,7 @@ public class URITemplate {
 
                 if (handlers[idigit] < 10) {
                     int digit;
-                    digit= Integer.parseInt(field) + shift[idigit];
+                    digit= Integer.parseInt(field);
                     switch (handlers[idigit]) {
                         case 0:
                             time[YEAR] = digit;
@@ -1363,12 +1446,37 @@ public class URITemplate {
         int [] result= new int[NUM_TIME_DIGITS*2];
         
         int i;
-        for ( i=0; i<NUM_TIME_DIGITS; i++ ) {
-            result[i]= startTime[i];
+        boolean noShift;
+        noShift = this.startShift==null;
+        if ( noShift ) { 
+            for ( i=0; i<NUM_TIME_DIGITS; i++ ) {
+                result[i]= startTime[i];
+            }
+            TimeUtil.normalizeTime(result);
+        } else {
+            for ( i=0; i<NUM_TIME_DIGITS; i++ ) {
+                result[i]= startTime[i] + this.startShift[i];
+            }
+            TimeUtil.normalizeTime(result);
         }
-        for ( i= NUM_TIME_DIGITS; i<NUM_TIME_DIGITS*2; i++ ) {
-            result[i]= stopTime[i-NUM_TIME_DIGITS];
+        
+        noShift = this.stopShift==null;
+        if ( noShift ) {        
+            for ( i= 0; i<NUM_TIME_DIGITS; i++ ) {
+                result[i+NUM_TIME_DIGITS]= stopTime[i];
+            }
+            TimeUtil.normalizeTime(result);
+        } else {
+            int[] result1= new int[NUM_TIME_DIGITS];
+            for ( i= 0; i<NUM_TIME_DIGITS; i++ ) {
+                result1[i]= stopTime[i] + this.stopShift[i];
+            }
+            TimeUtil.normalizeTime(result1);
+            for ( i= 0; i<NUM_TIME_DIGITS; i++ ) {
+                result[i+NUM_TIME_DIGITS]= result1[i];
+            }
         }
+        
         return result;
         
     }
@@ -1396,12 +1504,14 @@ public class URITemplate {
     }
     
     /**
-     * for convenience, add API to match that suggested by 
+     * For convenience, add API to match that suggested by 
      * https://github.com/hapi-server/uri-templates/blob/master/formatting.json
-     * @param template
-     * @param startTimeStr
-     * @param stopTimeStr
-     * @return
+     * Note if start and end appear in the template, then just one formatted
+     * range is returned.
+     * @param template the template
+     * @param startTimeStr the beginning of the interval to cover
+     * @param stopTimeStr the end of the interval to cover
+     * @return the formatted times which cover the span.
      * @throws ParseException 
      */
     public static String[] formatRange( String template, String startTimeStr, String stopTimeStr ) throws ParseException {
@@ -1426,12 +1536,13 @@ public class URITemplate {
         while ( sptr.compareTo(stop)<0 ) {
             String sptr0= sptr;
             s1= ut.format( sptr, sptr, Collections.EMPTY_MAP );
-            int [] tta= ut.parse( s1,Collections.EMPTY_MAP );
+            int [] tta= ut.parse( s1, new HashMap<>() );
             if ( firstLoop ) {
                 sptr= TimeUtil.isoTimeFromArray( Arrays.copyOfRange(tta,0,7) );
-                s1= ut.format( sptr, sptr );
+                s1= ut.format( sptr, sptr, Collections.EMPTY_MAP  );
                 firstLoop= false;
             }
+            //test for special case where start and stop are in the template, so there is no looping.
             if ( Arrays.equals( Arrays.copyOfRange(tta,0,7), Arrays.copyOfRange(tta,7,14) ) ) {
                 result.add( ut.format( startTimeStr, stopTimeStr ) );
                 break;
@@ -1469,9 +1580,18 @@ public class URITemplate {
     public String format( String startTimeStr, String stopTimeStr, 
             Map<String,String> extra ) {
              
-        int[] timel= TimeUtil.isoTimeToArray( startTimeStr );
-        int[] stopTimel= TimeUtil.isoTimeToArray( stopTimeStr );
-        int[] timeWidthl= TimeUtil.subtract( stopTimel, timel );
+        int[] startTime= TimeUtil.isoTimeToArray( startTimeStr );
+        int[] stopTime= TimeUtil.isoTimeToArray( stopTimeStr );        
+        int[] timeWidthl= TimeUtil.subtract( stopTime, startTime );
+        
+        if ( startShift!=null ) {
+            startTime= TimeUtil.subtract( startTime, startShift );
+        }
+        if ( stopShift!=null ) {
+            stopTime= TimeUtil.subtract( stopTime, stopShift );
+        }
+        
+        int[] timel= startTime;
         
         StringBuilder result = new StringBuilder(100);
 
@@ -1485,7 +1605,7 @@ public class URITemplate {
 
         for (int idigit = 1; idigit < ndigits; idigit++) {
             if ( idigit==stopTimeDigit ) {
-                timel= stopTimel;
+                timel= stopTime;
             }
             
             result.insert(offs, this.delims[idigit - 1]);
@@ -1571,10 +1691,6 @@ public class URITemplate {
                         digit= ( digit / delta ) * delta;
                     }
                 }
-                if ( shift[idigit]!=0 ) {
-                    logger.finer("applying shift to digit");
-                    digit= digit-shift[idigit];
-                }
                 if ( len<0 ) {
                     String ss= String.valueOf(digit);
                     result.insert(offs, ss);
@@ -1585,6 +1701,7 @@ public class URITemplate {
                         String pad= this.qualifiersMaps[idigit].get("pad");
                         if ( pad==null || pad.equals("zero") ) { 
                             result.insert(offs, nf[len].format(digit));
+                            offs+= len;
                         } else {
                             if ( digit<10 ) {
                                 switch (pad) {
@@ -1605,7 +1722,7 @@ public class URITemplate {
                                         break;
                                     default:
                                         result.insert(offs, nf[len].format(digit));
-                                        offs+= 2;
+                                        offs+= len;
                                         break;
                                 }
                                 
@@ -1639,7 +1756,7 @@ public class URITemplate {
                     offs+= ins.length();
                 } else {
                     FieldHandler fh1= fieldHandlers.get(fc[idigit]);
-                    int[] timeEnd = stopTimel;
+                    int[] timeEnd = stopTime;
                     String ins= fh1.format( timel, TimeUtil.subtract(timeEnd, timel), len, extra );
                     int[] startTimeTest= new int[NUM_TIME_DIGITS];
                     System.arraycopy(timel, 0, startTimeTest, 0, NUM_TIME_DIGITS);
@@ -1650,7 +1767,7 @@ public class URITemplate {
                         fh1.parse( ins, startTimeTest, timeWidthTest, extra );
                         System.arraycopy(startTimeTest, 0, timel, 0, NUM_TIME_DIGITS);
                         System.arraycopy(timeWidthTest, 0, timeWidthl, 0, NUM_TIME_DIGITS);
-                        System.arraycopy(TimeUtil.add( timel, timeWidthl ), 0, stopTimel, 0, NUM_TIME_DIGITS);
+                        System.arraycopy(TimeUtil.add( timel, timeWidthl ), 0, stopTime, 0, NUM_TIME_DIGITS);
                         
                     } catch (ParseException ex) {
                         logger.log(Level.SEVERE, null, ex);
