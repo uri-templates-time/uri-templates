@@ -332,7 +332,14 @@ public class URITemplateTest {
             if ( ss.length!=4 ) {
                 fail(t);
             }
-                        
+
+            t= "http://emfisis.physics.uiowa.edu/Flight/rbsp-$(x,name=sc,enum=a|b)/L4/$Y/$m/$d/rbsp-$(x,name=sc,enum=a|b)_density_emfisis-L4_$Y$m$d_v$(v,sep).cdf";
+            Map<String,String> extra= new HashMap<>();
+            extra.put("SC","A");
+            extra.put("sc","a");
+            extra.put("v","1.5.15");
+            ss = URITemplate.formatRange( t, "2017-07-01", "2017-07-04", extra );
+                                    
 //            t = "data_$Y_$(Y,end).dat";
 //            ss = URITemplate.formatRange( t, "2001-03-22", "2004-08-18" );
 //            if ( ss.length!=1 ) {
