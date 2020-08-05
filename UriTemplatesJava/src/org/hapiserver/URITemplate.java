@@ -1861,47 +1861,96 @@ public class URITemplate {
                 System.err.println("need --timeRange parameter");
                 System.exit(-3);
             }
-            int[] itimeRange;
-            try {
-                itimeRange= TimeUtil.parseISO8601TimeRange(timeRange);
-                String[] result= URITemplate.formatRange( template, 
-                    TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 0, 7 ) ), 
-                    TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 7, 14 ) ) );
-                for ( String s: result ) {
-                    System.out.println(s);
+            if ( timeRange.equals("-") ) {
+                String tr1=null;
+                try ( BufferedReader r= new BufferedReader( new InputStreamReader(System.in) ) ) {
+                    tr1= r.readLine();
+                    while ( tr1!=null ) {
+                        int[] itimeRange;
+                        itimeRange= TimeUtil.parseISO8601TimeRange(tr1);
+                        String[] result= URITemplate.formatRange( template, 
+                            TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 0, 7 ) ), 
+                            TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 7, 14 ) ) );
+                        for ( String s: result ) {
+                            System.out.println(s);
+                        }
+                        tr1= r.readLine();
+                    } 
+                } catch (ParseException ex) {
+                    printUsage();
+                    System.err.println("timeRange is misformatted: "+tr1);
+                    System.exit(-3);
+                } catch ( IOException ex ) {
+                    System.err.println("IOException");
+                    System.exit(-4);
                 }
-            } catch (ParseException ex) {
-                printUsage();
-                System.err.println("timeRange is misformatted");
-                System.exit(-3);
+
+            } else {
+                int[] itimeRange;
+                try {
+                    itimeRange= TimeUtil.parseISO8601TimeRange(timeRange);
+                    String[] result= URITemplate.formatRange( template, 
+                        TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 0, 7 ) ), 
+                        TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 7, 14 ) ) );
+                    for ( String s: result ) {
+                        System.out.println(s);
+                    }
+                } catch (ParseException ex) {
+                    printUsage();
+                    System.err.println("timeRange is misformatted");
+                    System.exit(-3);
+                }
             }
 
         } else if ( argsm.containsKey("--parse" ) ) {
-            try {
-                argsm.remove("--parse");
-                String template= argsm.remove("--template");
-                if ( template==null ) {
+            argsm.remove("--parse");
+            String template= argsm.remove("--template");
+            if ( template==null ) {
+                printUsage();
+                System.err.println("need --template parameter");
+                System.exit(-2);
+            }
+            String filen= argsm.remove("--name");
+            if ( filen==null ) {
+                printUsage();
+                System.err.println("need --name parameter");
+                System.exit(-3);
+            }
+            if ( filen.equals("-") ) {
+                String filen1=null;
+                try ( BufferedReader r= new BufferedReader( new InputStreamReader(System.in) ) ) {
+                    filen1= r.readLine();
+                    while ( filen1!=null ) {
+                        URITemplate ut= new URITemplate(template);
+                        int[] itimeRange= ut.parse( filen1, argsm );
+                        System.out.print( TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 0, 7 ) ) );
+                        System.out.print( "/" );
+                        System.out.println( TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 7, 14 ) ) );                            
+                        filen1= r.readLine();
+                    }
+
+                } catch ( IOException ex ) {
+
+                } catch ( ParseException ex ) {
                     printUsage();
-                    System.err.println("need --template parameter");
-                    System.exit(-2);
-                }
-                String filen= argsm.remove("--name");
-                if ( filen==null ) {
-                    printUsage();
-                    System.err.println("need --name parameter");
+                    System.err.println("parseException from "+filen1);
                     System.exit(-3);
                 }
-                URITemplate ut= new URITemplate(template);
-                int[] itimeRange= ut.parse( filen, argsm );
-                System.out.print( TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 0, 7 ) ) );
-                System.out.print( "/" );
-                System.out.println( TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 7, 14 ) ) );
-                
-            } catch (ParseException ex) {
-                printUsage();
-                System.err.println("parseException from ?");
-                System.exit(-3);
-            }            
+
+            } else {
+                try {
+                    URITemplate ut= new URITemplate(template);
+                    int[] itimeRange= ut.parse( filen, argsm );
+                    System.out.print( TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 0, 7 ) ) );
+                    System.out.print( "/" );
+                    System.out.println( TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 7, 14 ) ) );                    
+                } catch ( ParseException ex ) {
+                    printUsage();
+                    System.err.println("parseException from ?");
+                    System.exit(-3);
+                }
+            }
+
         }
     }
 }
