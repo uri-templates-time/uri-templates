@@ -591,6 +591,41 @@ public class TimeUtil {
     }
 
     /**
+     * parse the ISO8601 time range, like "1998-01-02/1998-01-17", into
+     * start and stop times, returned in a 14 element array of ints.
+     * @param stringIn
+     * @return the time start and stop [ Y,m,d,H,M,S,nano, Y,m,d,H,M,S,nano ]
+     * @throws ParseException 
+     */
+    public static int[] parseISO8601TimeRange(String stringIn) throws ParseException {
+        String[] ss = stringIn.split("/");
+        int[] result= new int[14];
+        if ( ss[0].startsWith("P") ) {
+            int[] duration= parseISO8601Duration(ss[0]);
+            int[] time= isoTimeToArray(ss[1]);
+            for ( int i=0; i<7; i++ ) {
+                result[i]= time[i]-duration[i];
+            }
+            System.arraycopy(time, 0, result, 7, 7);
+            return result;
+        } else if ( ss[1].startsWith("P") ) {
+            int[] time= isoTimeToArray(ss[0]);
+            int[] duration= parseISO8601Duration(ss[1]);
+            System.arraycopy(time, 0, result, 0, 7);
+            for ( int i=0; i<7; i++ ) {
+                result[i+7]= time[i]+duration[i];
+            }
+            return result;
+        } else {
+            int[] starttime= isoTimeToArray(ss[0]);
+            int[] stoptime=  isoTimeToArray(ss[1]);
+            System.arraycopy(starttime, 0, result, 0, 7);
+            System.arraycopy(stoptime, 0, result, 7, 7);
+            return result;
+        }
+    }
+    
+    /**
      * return the julianDay for the year month and day. This was verified
      * against another calculation (julianDayWP, commented out above) from
      * http://en.wikipedia.org/wiki/Julian_day. Both calculations have 20
