@@ -9,3 +9,10 @@ git clone git@github.com:hapi-server/uri-templates.git
 cd uri-templates/UriTemplatesJava
 ant jar
 ~~~~~
+The jar file will be created in dist/UriTemplatesJava.jar
+
+This can be verified using (not implemented, but will be shortly):
+
+~~~~~
+java -jar dist/UriTemplatesJava.jar --formatRange --timeRange='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'
+~~~~~
