@@ -164,7 +164,7 @@ public class TimeUtilTest {
         String result = TimeUtil.isoTimeFromArray(nn);
         assertEquals(expResult, result);
         nn = new int[] { 2000, 1, 45, 23, 0, 0, 0  };
-        expResult = "1999-02-14T23:00:00.000000000Z";
+        expResult = "2000-02-14T23:00:00.000000000Z";
         result = TimeUtil.isoTimeFromArray(nn);
         assertEquals(expResult, result);
     }
@@ -184,6 +184,9 @@ public class TimeUtilTest {
         TimeUtil.isoTimeToArray("2020-033Z");
         TimeUtil.isoTimeToArray("2020-033");
         TimeUtil.isoTimeToArray("2020-033T00:00Z");
+        TimeUtil.isoTimeToArray("now");
+        TimeUtil.isoTimeToArray("lastday+PT1H");
+        TimeUtil.isoTimeToArray("lastminute+PT1M");
     }
 
     /**

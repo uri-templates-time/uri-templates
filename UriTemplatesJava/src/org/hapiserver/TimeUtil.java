@@ -358,6 +358,17 @@ public class TimeUtil {
      * preserving the day of year notation if this was used. See the class
      * documentation for allowed time formats, which are a subset of ISO8601
      * times.  This also supports "now", "now-P1D", and other simple extensions.
+     * The following are valid inputs:<ul>
+     * <li>2021
+     * <li>2020-01-01
+     * <li>2020-01-01Z
+     * <li>2020-01-01T00Z
+     * <li>2020-01-01T00:00Z
+     * <li>now
+     * <li>now-P1D
+     * <li>lastday-P1D
+     * <li>lasthour-PT1H
+     * </ul>
      *
      * @param time isoTime to decompose
      * @return the decomposed time
@@ -368,9 +379,53 @@ public class TimeUtil {
         int[] result;
         if (time.length() == 4) {
             result = new int[]{Integer.parseInt(time), 1, 1, 0, 0, 0, 0};
-        } else if ( time.startsWith("now") ) {
-            String r= time.substring(3);
-            int[] n= now();
+        } else if ( time.startsWith("now") || time.startsWith("last") ) {
+            int[] n;
+            String remainder;
+            if ( time.startsWith("now") ) {
+                n= now();
+                remainder= time.substring(3);
+            } else {
+                Pattern p= Pattern.compile("last([a-z]+)([\\+|\\-]P.*)?");
+                Matcher m= p.matcher(time);
+                if ( m.matches() ) {
+                    n= now();
+                    String unit= m.group(1);
+                    remainder= m.group(2);
+                    int idigit;
+                    switch (unit) {
+                        case "year":
+                            idigit= 1;
+                            break;
+                        case "month":
+                            idigit= 2;
+                            break;
+                        case "day":
+                            idigit= 3;
+                            break;
+                        case "hour":
+                            idigit= 4;
+                            break;
+                        case "minute":
+                            idigit= 5;
+                            break;
+                        case "second":
+                            idigit= 6;
+                            break;
+                        default:
+                            throw new IllegalArgumentException("unsupported unit: "+unit);
+                    }
+                    for ( int id=Math.max(1,idigit); id<3; id++ ) {
+                        n[id]= 1;
+                    }
+                    for ( int id=Math.max(3,idigit); id<7; id++ ) {
+                        n[id]= 0;
+                    }
+                } else {
+                    throw new IllegalArgumentException("expected lastday+P1D, etc");
+                }
+            }
+            String r= remainder;
             if ( r.length()==0 ) {
                 return n;
             } else if ( r.charAt(0)=='-' ) {
