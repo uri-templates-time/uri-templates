@@ -24,3 +24,17 @@ This can be verified using (not implemented, but will be shortly):
 ~~~~~
 java -jar dist/UriTemplatesJava.jar --formatRange --range='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'
 ~~~~~
+
+## Building with javac
+
+It's assumed that typically `ant` would be used to build the library, but in cases where it is not available, `javac` can be used.
+~~~~~
+git clone git@github.com:hapi-server/uri-templates.git
+cd uri-templates/UriTemplatesJava
+mkdir build  # compiled classes will go here
+mkdir dist   # jar file will go here
+javac -sourcepath src/ -d build `find src -name *.java`
+cd build
+jar cvf ../dist/UriTemplatesJava.jar `find . -name '*.class'`
+~~~~~
+This will create dist/UriTemplatesJava.jar.
