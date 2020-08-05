@@ -425,18 +425,17 @@ public class TimeUtil {
                     throw new IllegalArgumentException("expected lastday+P1D, etc");
                 }
             }
-            String r= remainder;
-            if ( r.length()==0 ) {
+            if ( remainder==null || remainder.length()==0 ) {
                 return n;
-            } else if ( r.charAt(0)=='-' ) {
+            } else if ( remainder.charAt(0)=='-' ) {
                 try {
-                    return subtract( n, parseISO8601Duration(r.substring(1)) );
+                    return subtract( n, parseISO8601Duration(remainder.substring(1)) );
                 } catch (ParseException ex) {
                     throw new IllegalArgumentException(ex);
                 }
-            } else if ( r.charAt(0)=='+' ) {
+            } else if ( remainder.charAt(0)=='+' ) {
                 try {
-                    return add( n, parseISO8601Duration(r.substring(1)) );
+                    return add( n, parseISO8601Duration(remainder.substring(1)) );
                 } catch (ParseException ex) {
                     throw new IllegalArgumentException(ex);
                 }

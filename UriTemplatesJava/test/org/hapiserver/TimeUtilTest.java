@@ -185,6 +185,7 @@ public class TimeUtilTest {
         TimeUtil.isoTimeToArray("2020-033");
         TimeUtil.isoTimeToArray("2020-033T00:00Z");
         TimeUtil.isoTimeToArray("now");
+        TimeUtil.isoTimeToArray("lastday");
         TimeUtil.isoTimeToArray("lastday+PT1H");
         TimeUtil.isoTimeToArray("lastminute+PT1M");
     }
