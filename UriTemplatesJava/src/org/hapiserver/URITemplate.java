@@ -1825,12 +1825,15 @@ public class URITemplate {
     }
     
     private static void printUsage() {
-        System.err.println("Usage: java -jar dist/UriTemplatesJava.jar --formatRange --timeRange='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'");
-        System.err.println("   --timeRange is an iso8601 range, or - for ranges from stdin");
+        System.err.println("Usage: ");
+        System.err.println("java -jar dist/UriTemplatesJava.jar --formatRange --range='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'");
+        System.err.println("java -jar dist/UriTemplatesJava.jar --parse --template='data_$(d;pad=none).dat' 'data_4,Y=2015,m=2'");
+        System.err.println("   --range is an iso8601 range, or - for ranges from stdin");
+        System.err.println("   --name is has been formatted by the template, or - for names from stdin");
     }
     
     /**
-     * Usage: java -jar dist/UriTemplatesJava.jar --formatRange --timeRange='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'
+     * Usage: java -jar dist/UriTemplatesJava.jar --formatRange --range='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'
      * @param args the command line arguments.
      */
     public static void main( String[] args ) {
@@ -1855,10 +1858,10 @@ public class URITemplate {
                 System.err.println("need --template parameter");
                 System.exit(-2);
             }
-            String timeRange= argsm.remove("--timeRange");
+            String timeRange= argsm.remove("--range");
             if ( timeRange==null ) {
                 printUsage();
-                System.err.println("need --timeRange parameter");
+                System.err.println("need --range parameter");
                 System.exit(-3);
             }
             if ( timeRange.equals("-") ) {
@@ -1878,7 +1881,7 @@ public class URITemplate {
                     } 
                 } catch (ParseException ex) {
                     printUsage();
-                    System.err.println("timeRange is misformatted: "+tr1);
+                    System.err.println("range is misformatted: "+tr1);
                     System.exit(-3);
                 } catch ( IOException ex ) {
                     System.err.println("IOException");
@@ -1897,7 +1900,7 @@ public class URITemplate {
                     }
                 } catch (ParseException ex) {
                     printUsage();
-                    System.err.println("timeRange is misformatted");
+                    System.err.println("range is misformatted");
                     System.exit(-3);
                 }
             }
@@ -1910,13 +1913,13 @@ public class URITemplate {
                 System.err.println("need --template parameter");
                 System.exit(-2);
             }
-            String filen= argsm.remove("--name");
-            if ( filen==null ) {
+            String name= argsm.remove("--name");
+            if ( name==null ) {
                 printUsage();
                 System.err.println("need --name parameter");
                 System.exit(-3);
             }
-            if ( filen.equals("-") ) {
+            if ( name.equals("-") ) {
                 String filen1=null;
                 try ( BufferedReader r= new BufferedReader( new InputStreamReader(System.in) ) ) {
                     filen1= r.readLine();
@@ -1940,7 +1943,7 @@ public class URITemplate {
             } else {
                 try {
                     URITemplate ut= new URITemplate(template);
-                    int[] itimeRange= ut.parse( filen, argsm );
+                    int[] itimeRange= ut.parse( name, argsm );
                     System.out.print( TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 0, 7 ) ) );
                     System.out.print( "/" );
                     System.out.println( TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 7, 14 ) ) );                    
