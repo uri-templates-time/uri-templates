@@ -1,11 +1,15 @@
 package org.hapiserver;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -335,10 +339,25 @@ public class TimeUtil {
     }
 
     /**
+     * return the current time, to the millisecond.
+     * @return the current time, to the millisecond.
+     */
+    public static int[] now() {
+        long ctm= System.currentTimeMillis();
+        Date d= new Date(ctm);
+        TimeZone timeZone= TimeZone.getTimeZone("UTC");
+        Calendar c= Calendar.getInstance(timeZone);
+        c.setTime(d);
+        return new int[] { c.get( Calendar.YEAR ), 1+c.get( Calendar.MONTH ), c.get( Calendar.DAY_OF_MONTH ),
+            c.get( Calendar.HOUR_OF_DAY ), c.get( Calendar.MINUTE ), c.get( Calendar.SECOND ), 
+            1000000 * c.get( Calendar.MILLISECOND ) };
+    }
+    
+    /**
      * return array [ year, months, days, hours, minutes, seconds, nanoseconds ]
      * preserving the day of year notation if this was used. See the class
      * documentation for allowed time formats, which are a subset of ISO8601
-     * times.
+     * times.  This also supports "now", "now-P1D", and other simple extensions.
      *
      * @param time isoTime to decompose
      * @return the decomposed time
@@ -349,6 +368,26 @@ public class TimeUtil {
         int[] result;
         if (time.length() == 4) {
             result = new int[]{Integer.parseInt(time), 1, 1, 0, 0, 0, 0};
+        } else if ( time.startsWith("now") ) {
+            String r= time.substring(3);
+            int[] n= now();
+            if ( r.length()==0 ) {
+                return n;
+            } else if ( r.charAt(0)=='-' ) {
+                try {
+                    return subtract( n, parseISO8601Duration(r.substring(1)) );
+                } catch (ParseException ex) {
+                    throw new IllegalArgumentException(ex);
+                }
+            } else if ( r.charAt(0)=='+' ) {
+                try {
+                    return add( n, parseISO8601Duration(r.substring(1)) );
+                } catch (ParseException ex) {
+                    throw new IllegalArgumentException(ex);
+                }
+            }
+            return now();
+            
         } else {
             if (time.length() < 7) {
                 throw new IllegalArgumentException("time must have 4 or greater than 7 elements");
@@ -602,10 +641,10 @@ public class TimeUtil {
         if ( ss.length!=2 ) {
             throw new IllegalArgumentException("expected one slash (/) splitting start and stop times.");
         }
-        if ( ss[0].length()==0 || ( ! Character.isDigit(ss[0].charAt(0)) || ss[0].charAt(0)=='P' ) ) {
+        if ( ss[0].length()==0 || ! ( Character.isDigit(ss[0].charAt(0)) || ss[0].charAt(0)=='P' || ss[0].startsWith("now") ) ) {
             throw new IllegalArgumentException("first time/duration is misformatted.  Should be ISO8601 time or duration like P1D.");
         }
-        if ( ss[1].length()==0 || ( ! Character.isDigit(ss[1].charAt(0)) || ss[1].charAt(0)=='P' ) ) {
+        if ( ss[1].length()==0 || ! ( Character.isDigit(ss[1].charAt(0)) || ss[1].charAt(0)=='P' || ss[1].startsWith("now") ) ) {
             throw new IllegalArgumentException("second time/duration is misformatted.  Should be ISO8601 time or duration like P1D.");
         }
         int[] result= new int[14];
