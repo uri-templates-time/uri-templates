@@ -599,6 +599,15 @@ public class TimeUtil {
      */
     public static int[] parseISO8601TimeRange(String stringIn) throws ParseException {
         String[] ss = stringIn.split("/");
+        if ( ss.length!=2 ) {
+            throw new IllegalArgumentException("expected one slash (/) splitting start and stop times.");
+        }
+        if ( ss[0].length()==0 || ( ! Character.isDigit(ss[0].charAt(0)) || ss[0].charAt(0)=='P' ) ) {
+            throw new IllegalArgumentException("first time/duration is misformatted.  Should be ISO8601 time or duration like P1D.");
+        }
+        if ( ss[0].length()==0 || ( ! Character.isDigit(ss[0].charAt(0)) || ss[0].charAt(0)=='P' ) ) {
+            throw new IllegalArgumentException("second time/duration is misformatted.  Should be ISO8601 time or duration like P1D.");
+        }
         int[] result= new int[14];
         if ( ss[0].startsWith("P") ) {
             int[] duration= parseISO8601Duration(ss[0]);
