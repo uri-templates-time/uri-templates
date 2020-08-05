@@ -605,7 +605,7 @@ public class TimeUtil {
         if ( ss[0].length()==0 || ( ! Character.isDigit(ss[0].charAt(0)) || ss[0].charAt(0)=='P' ) ) {
             throw new IllegalArgumentException("first time/duration is misformatted.  Should be ISO8601 time or duration like P1D.");
         }
-        if ( ss[0].length()==0 || ( ! Character.isDigit(ss[0].charAt(0)) || ss[0].charAt(0)=='P' ) ) {
+        if ( ss[1].length()==0 || ( ! Character.isDigit(ss[1].charAt(0)) || ss[1].charAt(0)=='P' ) ) {
             throw new IllegalArgumentException("second time/duration is misformatted.  Should be ISO8601 time or duration like P1D.");
         }
         int[] result= new int[14];
