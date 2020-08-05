@@ -4,7 +4,7 @@ This is the Java code for parsing and formatting using URI Templates.  This uses
 You can simply download the pre-built jar file, and use it within your codes or from the command line like so:
 ~~~~~
 wget -N https://github.com/hapi-server/uri-templates/raw/master/UriTemplatesJava/store/UriTemplatesJava.jar
-java -jar UriTemplatesJava.jar --formatRange --timeRange='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'
+java -jar UriTemplatesJava.jar --formatRange --range='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'
 java -jar UriTemplatesJava.jar --parse --template='http://example.com/data_$(d;pad=none;Y=1999; m=5).dat' --name='http://example.com/data_1.dat'
 ~~~~~
 
@@ -22,5 +22,5 @@ The jar file will be created in dist/UriTemplatesJava.jar
 This can be verified using (not implemented, but will be shortly):
 
 ~~~~~
-java -jar dist/UriTemplatesJava.jar --formatRange --timeRange='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'
+java -jar dist/UriTemplatesJava.jar --formatRange --range='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'
 ~~~~~
