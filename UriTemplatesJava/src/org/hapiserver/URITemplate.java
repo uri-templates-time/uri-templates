@@ -1,6 +1,9 @@
 
 package org.hapiserver;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -1823,6 +1826,7 @@ public class URITemplate {
     
     private static void printUsage() {
         System.err.println("Usage: java -jar dist/UriTemplatesJava.jar --formatRange --timeRange='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'");
+        System.err.println("   --timeRange is an iso8601 range, or - for ranges from stdin");
     }
     
     /**
@@ -1844,13 +1848,14 @@ public class URITemplate {
             }
         }
         if ( argsm.containsKey("--formatRange") ) {
-            String template= argsm.get("--template");
+            argsm.remove("--formatRange");
+            String template= argsm.remove("--template");
             if ( template==null ) {
                 printUsage();
                 System.err.println("need --template parameter");
                 System.exit(-2);
             }
-            String timeRange= argsm.get("--timeRange");
+            String timeRange= argsm.remove("--timeRange");
             if ( timeRange==null ) {
                 printUsage();
                 System.err.println("need --timeRange parameter");
@@ -1871,6 +1876,32 @@ public class URITemplate {
                 System.exit(-3);
             }
 
+        } else if ( argsm.containsKey("--parse" ) ) {
+            try {
+                argsm.remove("--parse");
+                String template= argsm.remove("--template");
+                if ( template==null ) {
+                    printUsage();
+                    System.err.println("need --template parameter");
+                    System.exit(-2);
+                }
+                String filen= argsm.remove("--name");
+                if ( filen==null ) {
+                    printUsage();
+                    System.err.println("need --name parameter");
+                    System.exit(-3);
+                }
+                URITemplate ut= new URITemplate(template);
+                int[] itimeRange= ut.parse( filen, argsm );
+                System.out.print( TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 0, 7 ) ) );
+                System.out.print( "/" );
+                System.out.println( TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 7, 14 ) ) );
+                
+            } catch (ParseException ex) {
+                printUsage();
+                System.err.println("parseException from ?");
+                System.exit(-3);
+            }            
         }
     }
 }
