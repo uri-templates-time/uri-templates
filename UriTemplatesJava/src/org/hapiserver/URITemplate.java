@@ -1820,4 +1820,57 @@ public class URITemplate {
         return result.toString().trim();
 
     }
+    
+    private static void printUsage() {
+        System.err.println("Usage: java -jar dist/UriTemplatesJava.jar --formatRange --timeRange='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'");
+    }
+    
+    /**
+     * Usage: java -jar dist/UriTemplatesJava.jar --formatRange --timeRange='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'
+     * @param args the command line arguments.
+     */
+    public static void main( String[] args ) {
+        if ( args.length==0 || args[1].equals("--help") ) {
+            printUsage();
+            System.exit(-1);
+        }
+        Map<String,String> argsm= new LinkedHashMap<>();
+        for (String a : args) {
+            String[] aa= a.split("=",2);
+            if ( aa.length==1 ) {
+                argsm.put( aa[0], "" );
+            } else {
+                argsm.put( aa[0], aa[1] );
+            }
+        }
+        if ( argsm.containsKey("--formatRange") ) {
+            String template= argsm.get("--template");
+            if ( template==null ) {
+                printUsage();
+                System.err.println("need --template parameter");
+                System.exit(-2);
+            }
+            String timeRange= argsm.get("--timeRange");
+            if ( timeRange==null ) {
+                printUsage();
+                System.err.println("need --timeRange parameter");
+                System.exit(-3);
+            }
+            int[] itimeRange;
+            try {
+                itimeRange= TimeUtil.parseISO8601TimeRange(timeRange);
+                String[] result= URITemplate.formatRange( template, 
+                    TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 0, 7 ) ), 
+                    TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 7, 14 ) ) );
+                for ( String s: result ) {
+                    System.out.println(s);
+                }
+            } catch (ParseException ex) {
+                printUsage();
+                System.err.println("timeRange is misformatted");
+                System.exit(-3);
+            }
+
+        }
+    }
 }
