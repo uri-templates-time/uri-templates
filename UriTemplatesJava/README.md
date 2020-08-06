@@ -34,8 +34,9 @@ cd uri-templates/UriTemplatesJava
 mkdir build  # compiled classes will go here
 mkdir dist   # jar file will go here
 javac -sourcepath src/ -d build `find src -name *.java`
+printf "Manifest-Version: 1.0\nMain-Class: org.hapiserver.URITemplate\n" > build/manifest.mf
 cd build
-jar cvf ../dist/UriTemplatesJava.jar `find . -name '*.class'`
+jar cvmf manifest.mf ../dist/UriTemplatesJava.jar `find . -name '*.class'`
 ~~~~~
 This will create dist/UriTemplatesJava.jar.
 
