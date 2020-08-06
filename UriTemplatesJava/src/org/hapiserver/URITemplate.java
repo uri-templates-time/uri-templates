@@ -1826,8 +1826,11 @@ public class URITemplate {
     
     private static void printUsage() {
         System.err.println("Usage: ");
-        System.err.println("java -jar dist/UriTemplatesJava.jar --formatRange --range='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'");
-        System.err.println("java -jar dist/UriTemplatesJava.jar --parse --template='data_$(d;pad=none).dat' 'data_4,Y=2015,m=2'");
+        System.err.println("java -jar UriTemplatesJava.jar [--formatRange|--parse] [--range=<ISO8601 range>] --template=<URI template> [--name=<name>]");
+        System.err.println("java -jar UriTemplatesJava.jar --formatRange --range=1999-01-01/1999-01-03 --template='http://example.com/data_$(d;pad=none).dat'");
+        System.err.println("java -jar UriTemplatesJava.jar --parse --template='data_$(d;pad=none;Y=1999; m=5).dat' --name=data_1.dat");
+        System.err.println("   --formatRange time ranges will be formatted into names");
+        System.err.println("   --parse names will be parsed into time ranges");
         System.err.println("   --range is an iso8601 range, or - for ranges from stdin");
         System.err.println("   --name is has been formatted by the template, or - for names from stdin");
     }
