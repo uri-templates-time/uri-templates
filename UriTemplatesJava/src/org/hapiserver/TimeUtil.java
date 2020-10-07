@@ -671,10 +671,10 @@ public class TimeUtil {
             time[0]= time[0] + 1;
             time[1]= time[1] - 12;
         }
-        if (time[1] == 12 && time[2] == 32) {
+        if (time[1] == 12 && time[2]>31 && time[2]<62 ) {
             time[0] = time[0] + 1;
             time[1] = 1;
-            time[2] = 1;
+            time[2] = time[2]-31;
             return;
         }
         int leap = isLeapYear(time[0]) ? 1 : 0;

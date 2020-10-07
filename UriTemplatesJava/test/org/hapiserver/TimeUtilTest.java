@@ -155,6 +155,16 @@ public class TimeUtilTest {
         expResult = new int[] { 1999, 12, 31, 23, 0, 0, 0 };
         TimeUtil.normalizeTime(time);
         assertArrayEquals( expResult, time );
+        
+        time = new int[] { 1979, 13, 6, 0, 0, 0, 0 };
+        expResult = new int[] { 1980, 1, 6, 0, 0, 0, 0 };
+        TimeUtil.normalizeTime(time);
+        assertArrayEquals( expResult, time );        
+        
+        time = new int[] { 1979, 12, 37, 0, 0, 0, 0 };
+        expResult = new int[] { 1980, 1, 6, 0, 0, 0, 0 };
+        TimeUtil.normalizeTime(time);
+        assertArrayEquals( expResult, time );            
     }
     
     /**
