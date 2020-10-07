@@ -1,5 +1,6 @@
 [
     {
+            "id": "fieldstest1",
             "whatTests": ["fields"],
             "template": [
                 "http://example.com/data_$Y.dat",
@@ -20,6 +21,7 @@
     },
 
         {
+            "id": "fieldstest2",
             "whatTests": ["fields"],
             "template": [
                 "http://example.com/data_$Y-$m.dat",
@@ -49,6 +51,7 @@
     },
 
     {
+            "id": "escape1",
             "whatTests": ["escape"],
             "template": [
                 "http://example.com/$$$Y$$.dat"
@@ -64,6 +67,7 @@
     },
 
     {
+            "id": "pad1",
             "whatTests": ["pad"],
             "template": [
                 "http://example.com/data_$(j;pad=none).dat"                            
@@ -136,6 +140,7 @@
     },
 
     {
+            "id": "pad2",
             "whatTests": ["pad"],
             "template": [
                 "http://example.com/data_$(m;pad=none).dat"                         
@@ -151,6 +156,7 @@
     },
 
     {
+            "id": "pad3",
             "whatTests": ["pad"],        
             "template": [
                 "http://example.com/data_$(d;pad=none).dat"             
@@ -166,6 +172,7 @@
     },
 
     {
+            "id": "pad4",
             "whatTests": ["pad"],
             "template": [
                 "http://example.com/data_$(H;pad=none).dat"
@@ -182,6 +189,7 @@
     },
 
     {
+            "id": "pad5",
             "whatTests": ["pad"],
             "template": [
                 "http://example.com/data_$(M;pad=none).dat"
@@ -198,6 +206,7 @@
     },
 
     {
+            "id": "pad6",        
             "whatTests": ["pad"],
             "template": [
                 "http://example.com/data_$(S;pad=none).dat"
@@ -214,6 +223,7 @@
     },
 
     {
+        "id": "deltaUnits1",        
         "whatTests": ["delta","units"],
         "template": 
         [
@@ -230,6 +240,7 @@
     },
 
     {
+        "id": "deltaUnits2",
         "whatTests": ["delta","units"],
         "template": 
         [
@@ -247,6 +258,7 @@
     },
 
     {
+        "id": "deltaUnits3",        
         "whatTests": ["delta","units"],
         "template": 
         [
@@ -261,6 +273,7 @@
     },
 
     {
+        "id": "shiftUnits1",
         "whatTests": ["shift","units"],
         "template": 
         [
@@ -277,6 +290,7 @@
         ]
     },
     {
+        "id": "end1",
         "whatTests": ["end"],
         "template": 
         [
@@ -289,6 +303,7 @@
         ]
     },
     {
+        "id": "shift1",
         "whatTests": ["shift"],
         "template": 
         [
@@ -301,6 +316,7 @@
         ]
     },
     {
+        "id": "deltaPhaseStartEnd1",
         "whatTests": ["delta","phasestart","end"],
         "template": 
         [
