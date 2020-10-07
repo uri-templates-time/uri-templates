@@ -334,7 +334,7 @@
         "whatTests": ["subsec"],
         "template": 
         [
-            "$Y$m$d_$H$M$S.$(secsec;places=2)"
+            "$Y$m$d_$H$M$S.$(subsec;places=2)"
         ],
         "timeRange": "2008-01-01T01:00:00.030/2008-01-01T01:00:00.060",
         "comment": "should step by .01 second increments.",
