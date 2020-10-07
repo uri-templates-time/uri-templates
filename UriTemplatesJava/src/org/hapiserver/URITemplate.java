@@ -39,8 +39,20 @@ public class URITemplate {
     
     Map<String,FieldHandler> fieldHandlers;
     Map<String,FieldHandler> fieldHandlersById;
+
+    /**
+     * one element for each field, it is the handler (or type) of each field.
+     */
     int[] handlers;
+
+    /**
+     * one element for each field, it is the offset to each field.
+     */
     int[] offsets;
+    
+    /**
+     * one element for each field, it is number of digits in each field.
+     */
     int[] lengths;
     
     /**
@@ -67,6 +79,12 @@ public class URITemplate {
     
     private int lsd;
     private int[] timeWidth;
+    
+    /**
+     * the template explicitly defines the width, with delta or other specifiers.
+     */
+    private boolean timeWidthIsExplicit= false;
+    
     private final String regex;
     private final int[] context;
     
@@ -726,7 +744,11 @@ public class URITemplate {
                 expectSemi= false;
             }
         }
-        return new String(result);
+        String rr= new String(result);
+        if ( !result.equals(qualifiers) ) {
+            logger.log(Level.FINE, "qualifiers are made canonical: {0}->{1}", new Object[]{qualifiers, rr});
+        }
+        return rr;
     }
     
     /**
@@ -768,6 +790,25 @@ public class URITemplate {
             default:
                 return -1;
         }
+    }
+    
+    /**
+     * set the explicit width
+     * @param spec specification like "4" or "4H" for four hours.
+     */
+    private void handleWidth( String fc, String spec ) {
+        int span;
+        int n= spec.length()-1;
+        if ( Character.isDigit( spec.charAt(n) ) ) {
+            span= Integer.parseInt(spec);
+            int digit= digitForCode(fc.charAt(0));
+            this.timeWidth[digit]= span;
+        } else {
+            span= Integer.parseInt( spec.substring(0,n) );
+            int digit= digitForCode(spec.charAt(n));
+            this.timeWidth[digit]= span;
+        }
+        timeWidthIsExplicit= true;
     }
     
     /**
@@ -874,7 +915,9 @@ public class URITemplate {
         context= new int[NUM_TIME_DIGITS];
         System.arraycopy( startTime, 0, context, 0, NUM_TIME_DIGITS );
         externalContext= NUM_TIME_DIGITS;  // this will lower and will typically be 0.
-        
+
+        timeWidth = new int[NUM_TIME_DIGITS];
+
         boolean haveHour= false;
         
         for (int i = 1; i < ndigits; i++) {
@@ -1001,15 +1044,23 @@ public class URITemplate {
                                 break;
                             case "cadence":
                                 span= Integer.parseInt(val);
+                                handleWidth(fc[i],val);
+                                timeWidthIsExplicit= true;
                                 break;
                             case "span":
                                 span= Integer.parseInt(val); // not part of uri_templates
+                                handleWidth(fc[i],val);
+                                timeWidthIsExplicit= true;
                                 break;
                             case "delta":
                                 span= Integer.parseInt(val); // see http://tsds.org/uri_templates
+                                handleWidth(fc[i],val);
+                                timeWidthIsExplicit= true;
                                 break;
                             case "resolution":
                                 span= Integer.parseInt(val);
+                                handleWidth(fc[i],val);
+                                timeWidthIsExplicit= true;
                                 break;
                             case "period":
                                 if ( val.startsWith("P") ) {
@@ -1210,7 +1261,6 @@ public class URITemplate {
 
         }
 
-        timeWidth = new int[NUM_TIME_DIGITS];
         switch (lsd) { // see https://sourceforge.net/p/autoplot/bugs/1506/
             case 0:
             case 1:
@@ -1219,7 +1269,9 @@ public class URITemplate {
             case 4:
             case 5:
             case 6:
-                timeWidth[lsd] = lsdMult;        
+                if ( !timeWidthIsExplicit ) {
+                    timeWidth[lsd] = lsdMult;        
+                }
                 break;
             case -1:
                 timeWidth[0]= 8000;
@@ -1615,9 +1667,15 @@ public class URITemplate {
             Map<String,String> extra ) {
              
         int[] startTime= TimeUtil.isoTimeToArray( startTimeStr );
-        int[] stopTime= TimeUtil.isoTimeToArray( stopTimeStr );        
-        int[] timeWidthl= TimeUtil.subtract( stopTime, startTime );
-        
+        int[] stopTime;        
+        int[] timeWidthl;
+        if ( timeWidthIsExplicit && startTimeStr.equals(stopTimeStr) ) {
+            timeWidthl = timeWidth;
+            stopTime = TimeUtil.add( startTime, timeWidth );
+        } else {
+            stopTime = TimeUtil.isoTimeToArray( stopTimeStr );
+            timeWidthl = TimeUtil.subtract( stopTime, startTime );
+        }
         if ( startShift!=null ) {
             startTime= TimeUtil.subtract( startTime, startShift );
         }
