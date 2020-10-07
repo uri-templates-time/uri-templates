@@ -279,7 +279,8 @@ public class URITemplateTest {
             JSONArray jo= new JSONArray(ss);
             for ( int i=0; i<jo.length(); i++ ) {
                 JSONObject jo1= jo.getJSONObject(i);
-                System.out.println( String.format("# %2d: %s", i, jo1.get("whatTests") ) );
+                String id= jo1.getString("id");
+                System.out.println( String.format("# %2d: %s %s", i, id, jo1.get("whatTests") ) );
                 if ( i<3 ) {
                     System.out.println( "###  Skipping test "+i );
                     continue;
@@ -301,7 +302,7 @@ public class URITemplateTest {
                         String[] timeStartStop= timeRange.split("/",-2);
                         try {
                             testFormatHapiServerSiteOne( outputs, t, timeStartStop[0], timeStartStop[1] );
-                        } catch (ParseException ex) {
+                        } catch (ParseException | AssertionError ex) {
                             try {
                                 testFormatHapiServerSiteOne( outputs, t, timeStartStop[0], timeStartStop[1] );
                             } catch (ParseException ex1) {
