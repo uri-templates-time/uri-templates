@@ -350,6 +350,13 @@ public class URITemplateTest {
             for ( String s: ss ) {
                 System.out.println(s);
             }
+            
+            String[] ff= URITemplate.formatRange( "$Y$m$(d,delta=10,phasestart=1979-01-01)", 
+                    "1979-01-01", "1980-01-01" );
+            for ( String f : ff ) {
+                System.out.println(f);
+            }
+            
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
