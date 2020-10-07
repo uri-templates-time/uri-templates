@@ -328,6 +328,8 @@ public class URITemplateTest {
             String t;            
             String[] ss;
 
+            System.err.println( URITemplate.VERSION );
+            
             t = "data_$Y.dat";
             ss = URITemplate.formatRange( t, "2001-03-22", "2004-08-18" );
             if ( ss.length!=4 ) {
