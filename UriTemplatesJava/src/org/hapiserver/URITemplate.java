@@ -29,6 +29,8 @@ public class URITemplate {
        
     private static final Logger logger= Logger.getLogger("hapiserver.uritemplates");
     
+    public static String VERSION= "20201007a";
+    
     String spec;
     int ndigits; // one for each field
     String[] digits;
