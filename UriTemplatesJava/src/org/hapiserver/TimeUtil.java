@@ -362,7 +362,7 @@ public class TimeUtil {
             } else if ( nanoseconds%1000000==0 ) {
                 sb.append(String.format("%.3f",seconds + nanoseconds/1e9) );
             } else if ( nanoseconds%1000==0 ) {
-                sb.append(String.format("%.6f",seconds+nanoseconds/1e9) );
+                sb.append(String.format("%.6f",seconds + nanoseconds/1e9) );
             } else {
                 sb.append(String.format("%.9f",seconds + nanoseconds/1e9) ); 
             }
