@@ -292,6 +292,12 @@ public class TimeUtilTest {
         int[] expResult = new int[] { 2020, 7, 9, 1, 0, 0, 0 };
         int[] result = TimeUtil.add(base, offset);
         assertArrayEquals(expResult, result);
+        
+        base= new int[] { 1979, 12, 27, 0, 0, 0, 0 };
+        offset= new int[] { 0, 0, 10, 0, 0, 0, 0 };
+        expResult = new int[] { 1980, 1, 6, 0, 0, 0, 0 };
+        result = TimeUtil.add(base, offset);
+        assertArrayEquals(expResult, result);
     }
 
     /**
