@@ -117,6 +117,15 @@ public class URITemplateTest {
         
     }
     
+    private void testParse3() throws ParseException {
+        URITemplate ut= new URITemplate("$Y$m$(d;delta=10;phasestart=1979-01-01)");
+        Map<String,String> extra= new HashMap<>();
+        int[] digits= ut.parse("19791227",extra);
+        assertEquals(1980,digits[7]);
+        assertEquals(1,digits[8]);
+        assertEquals(6,digits[9]);
+    }
+    
     /**
      * Test of parse method, of class URITemplate.
      * @throws java.lang.Exception
@@ -126,6 +135,7 @@ public class URITemplateTest {
         System.out.println("parse");
         testParse1();
         testParse2();
+        testParse3();
         testTimeParser1( "$Y $m $d $H $M", "2012 03 30 16 20", "2012-03-30T16:20/2012-03-30T16:21" );
         testTimeParser1( "$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03" );
         testTimeParser1( "$Y$m$d-$(Y;end)$m$d", "20130202-20140303", "2013-02-02/2014-03-03" );
