@@ -5,8 +5,12 @@
  */
 package org.hapiserver;
 
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.BeforeClass;
 
 /**
  *
@@ -287,6 +291,44 @@ public class TimeUtilTest {
         int[] offset = new int[] { 0, 0, 0, 2, 0, 0, 0 };
         int[] expResult = new int[] { 2020, 7, 9, 1, 0, 0, 0 };
         int[] result = TimeUtil.add(base, offset);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of formatIso8601Duration method, of class TimeUtil.
+     */
+    @Test
+    public void testFormatIso8601Duration() {
+        System.out.println("formatIso8601Duration");
+        int[] nn = new int[] { 0, 0, 7, 0, 0, 6 };
+        String expResult = "P7DT6S";
+        String result = TimeUtil.formatIso8601Duration(nn);
+        assertEquals(expResult, result);
+        nn = new int[] { 0, 0, 0, 0, 0, 0, 200000 };
+        expResult = "PT0.000200S";
+        result = TimeUtil.formatIso8601Duration(nn);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of now method, of class TimeUtil.
+     */
+    @Test
+    public void testNow() {
+        System.out.println("now");
+        TimeUtil.now();
+    }
+
+    /**
+     * Test of parseISO8601TimeRange method, of class TimeUtil.
+     * @throws java.lang.Exception
+     */
+    @Test
+    public void testParseISO8601TimeRange() throws Exception {
+        System.out.println("parseISO8601TimeRange");
+        String stringIn = "1998-01-02/1998-01-17";
+        int[] expResult = new int[] { 1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0 };
+        int[] result = TimeUtil.parseISO8601TimeRange(stringIn);
         assertArrayEquals(expResult, result);
     }
     

@@ -1,7 +1,6 @@
 package org.hapiserver;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
@@ -9,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -338,6 +336,29 @@ public class TimeUtil {
                 nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6]);
     }
 
+    /**
+     * format the duration into human-readable time.
+     * @param nn array of [ Y m d H M S nanos ]
+     * @return ISO8601 duration
+     */
+    public static String formatIso8601Duration(int[] nn) {
+        char[] units= new char[] { 'Y','M','D','H','M','S' };
+        
+        if ( nn.length>7 ) throw new IllegalArgumentException("decomposed time can have at most 7 digits");
+        StringBuilder sb= new StringBuilder("P");
+        for ( int i=0; i<nn.length; i++ ) {
+            if ( i==3 ) sb.append("T");
+            if ( nn[i]>0 ) {
+                if ( i<6 ) {
+                    sb.append(nn[i]).append(units[i]);
+                } else {
+                    sb.append(String.format("%f",nn[i]/1e9)).append('S');
+                }
+            }
+        }
+        return sb.toString();
+    }
+    
     /**
      * return the current time, to the millisecond.
      * @return the current time, to the millisecond.
