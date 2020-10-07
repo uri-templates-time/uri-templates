@@ -345,16 +345,26 @@ public class TimeUtil {
         char[] units= new char[] { 'Y','M','D','H','M','S' };
         
         if ( nn.length>7 ) throw new IllegalArgumentException("decomposed time can have at most 7 digits");
+        
         StringBuilder sb= new StringBuilder("P");
         int n= ( nn.length < 5 ) ? nn.length : 5;
+
+        boolean needT= false;
         for ( int i=0; i<n; i++ ) {
-            if ( i==3 ) sb.append("T");
+            if ( i==3 ) needT= true;
             if ( nn[i]>0 ) {
+                if ( needT ) {
+                    sb.append("T");
+                    needT= false;
+                }
                 sb.append(nn[i]).append(units[i]);
             }
         }
         
-        if ( nn.length>5 ) {
+        if ( nn.length>5 && nn[5]>0 || nn.length>6 && nn[6]>0 || sb.length()==2 ) {
+            if ( needT ) {
+                sb.append("T");
+            }
             int seconds= nn[5];
             int nanoseconds= nn.length==7 ? nn[6] : 0;
             if ( nanoseconds==0 ) {
@@ -368,6 +378,15 @@ public class TimeUtil {
             }
             sb.append("S");
         }
+        
+        if ( sb.length()==1 ) {
+            if ( nn.length>3 ) {
+                sb.append( "T0S" );
+            } else {
+                sb.append("0D");
+            }
+        }
+        
         return sb.toString();
     }
     
