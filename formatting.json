@@ -320,7 +320,7 @@
         "whatTests": ["delta","phasestart","end"],
         "template": 
         [
-            "$Y$m$(d,delta=10,phasestart=1979-01-01)_$(Y,end)$m$d"
+            "$Y$m$(d;delta=10;phasestart=1979-01-01)_$(Y,end)$m$d"
         ],
         "timeRange": "1979-01-01/1979-01-18",
         "comment": "should step by ten day increments.",
@@ -328,5 +328,21 @@
             "19790101_19790111",
             "19790111_19790121"
         ]
+    },
+    {
+        "id": "subsec1",
+        "whatTests": ["subsec"],
+        "template": 
+        [
+            "$Y$m$d_$H$M$S.$(secsec;places=2)"
+        ],
+        "timeRange": "2008-01-01T01:00:00.030/2008-01-01T01:00:00.060",
+        "comment": "should step by .01 second increments.",
+        "output": [
+            "20080101_010000.03",
+            "20080101_010000.04",
+            "20080101_010000.05"
+        ]
     }
+
 ]
