@@ -299,5 +299,18 @@
         "output": [
             "data_2005132_2005145.txt"
         ]
+    },
+    {
+        "whatTests": ["delta","phasestart","end"],
+        "template": 
+        [
+            "$Y$m$(d,delta=10,phasestart=1979-01-01)_$(Y,end)$m$d"
+        ],
+        "timeRange": "1979-01-01/1979-01-18",
+        "comment": "should step by ten day increments.",
+        "output": [
+            "19790101_19790111",
+            "19790111_19790121"
+        ]
     }
 ]
