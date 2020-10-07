@@ -304,8 +304,24 @@ public class TimeUtilTest {
         String expResult = "P7DT6S";
         String result = TimeUtil.formatIso8601Duration(nn);
         assertEquals(expResult, result);
+        
         nn = new int[] { 0, 0, 0, 0, 0, 0, 200000 };
         expResult = "PT0.000200S";
+        result = TimeUtil.formatIso8601Duration(nn);
+        assertEquals(expResult, result);
+
+        nn = new int[] { 0, 0, 0, 0, 0, 0, 200000000 };
+        expResult = "PT0.200S";
+        result = TimeUtil.formatIso8601Duration(nn);
+        assertEquals(expResult, result);
+
+        nn = new int[] { 0, 0, 0, 0, 0, 0, 200 };
+        expResult = "PT0.000000200S";
+        result = TimeUtil.formatIso8601Duration(nn);
+        assertEquals(expResult, result);        
+
+        nn = new int[] { 0, 0, 0, 0, 0, 2, 200000 };
+        expResult = "PT2.000200S";
         result = TimeUtil.formatIso8601Duration(nn);
         assertEquals(expResult, result);
     }
