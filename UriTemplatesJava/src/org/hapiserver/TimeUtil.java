@@ -635,6 +635,7 @@ public class TimeUtil {
      * @param time the seven-component time Y,m,d,H,M,S,nanoseconds
      */
     public static void normalizeTime(int[] time) {
+        logger.entering( "TimeUtil", "normalizeTime" );
         while (time[3] >= 24) {
             time[2] += 1;
             time[3] -= 24;
@@ -675,6 +676,7 @@ public class TimeUtil {
             time[0] = time[0] + 1;
             time[1] = 1;
             time[2] = time[2]-31;
+            logger.exiting( "TimeUtil", "normalizeTime" );
             return;
         }
         int leap = isLeapYear(time[0]) ? 1 : 0;
@@ -695,6 +697,7 @@ public class TimeUtil {
                 throw new IllegalArgumentException("time[2] is too big");
             }
         }
+        logger.exiting( "TimeUtil", "normalizeTime" );
     }
 
     private static final String simpleFloat = "\\d?\\.?\\d+";

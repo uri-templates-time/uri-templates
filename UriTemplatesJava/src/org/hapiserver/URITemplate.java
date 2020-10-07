@@ -31,6 +31,10 @@ public class URITemplate {
     
     public static String VERSION= "20201007a";
     
+    public static String getVersion() {
+        return VERSION;
+    }
+    
     String spec;
     int ndigits; // one for each field
     String[] digits;
