@@ -1444,7 +1444,9 @@ public class URITemplate {
                     int ncycles= Math.floorDiv( ndays, timeWidth[2] );
                     startTime= TimeUtil.fromJulianDay( phaseStartJulian + ncycles * timeWidth[2] );
                 } else {
-                    logger.warning("phasestart can only be used when step size is integer number of days");
+                    logger.log(Level.WARNING, 
+                            "phasestart can only be used when step size is integer number of days greater than 1: {0}", 
+                            TimeUtil.formatIso8601Duration(timeWidth));
                 }
                 stopTime= TimeUtil.add( startTime, this.timeWidth );                                    
             }
