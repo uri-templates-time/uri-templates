@@ -353,7 +353,7 @@
         "timeRange": "1979-01-02/1979-01-03",
         "comment": "should be 10 days long",
         "output": [
-            "vg1pws_lr_19790101_19790110_v5.10.png"
+            "vg1pws_lr_19790101_19790111_v5.10.png"
         ]
     }
 ]
