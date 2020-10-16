@@ -349,7 +349,7 @@
         "whatTests": ["delta"],
         "template": [
              "vg1pws_lr_$Y$m$(d;delta=10;phasestart=1979-01-01)_$(Y;end)$m$(d)_v5.10.png"
-        ]
+        ],
         "timeRange": "1979-01-02/1979-01-03",
         "comment": "should be 10 days long",
         "output": [
