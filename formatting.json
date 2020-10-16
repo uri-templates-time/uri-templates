@@ -343,6 +343,17 @@
             "20080101_010000.04",
             "20080101_010000.05"
         ]
+    },
+    {
+        "id": "delta1",
+        "whatTests": ["delta"],
+        "template": [
+             "vg1pws_lr_$Y$m$(d;delta=10;phasestart=1979-01-01)_$(Y;end)$m$(d)_v5.10.png"
+        ]
+        "timeRange": "1979-01-02/1979-01-03",
+        "comment": "should be 10 days long",
+        "output": [
+            "vg1pws_lr_19790101_19790110_v5.10.png"
+        ]
     }
-
 ]
