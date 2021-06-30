@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package org.hapiserver;
 
 import org.junit.After;
@@ -13,7 +9,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 /**
- *
+ * Tests of the useful TimeUtil.java code.
  * @author jbf
  */
 public class TimeUtilTest {
