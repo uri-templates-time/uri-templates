@@ -19,7 +19,7 @@ ant jar
 ~~~~~
 The jar file will be created in dist/UriTemplatesJava.jar
 
-This can be verified using (not implemented, but will be shortly):
+This can be verified using:
 
 ~~~~~
 java -jar dist/UriTemplatesJava.jar --formatRange --range='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'
