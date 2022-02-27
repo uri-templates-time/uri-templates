@@ -29,6 +29,15 @@ public class TimeUtil {
     private static final Logger logger = Logger.getLogger("hapiserver.timeutil");
 
     /**
+     * Number of time digits: year, month, day, hour, minute, second, nanosecond
+     */
+    public static final int TIME_DIGITS = 7;
+    
+    /**
+     * Number of digits in time representation: year, month, day
+     */
+    public static final int DATE_DIGITS = 3;
+    /**
      * Rewrite the time using the format of the example time. For example,
      * <pre>
      * {@code
@@ -406,7 +415,7 @@ public class TimeUtil {
     }
     
     /**
-     * return array [ year, months, days, hours, minutes, seconds, nanoseconds ]
+     * return seven-element array [ year, months, days, hours, minutes, seconds, nanoseconds ]
      * preserving the day of year notation if this was used. See the class
      * documentation for allowed time formats, which are a subset of ISO8601
      * times.  This also supports "now", "now-P1D", and other simple extensions.
@@ -416,6 +425,7 @@ public class TimeUtil {
      * <li>2020-01-01Z
      * <li>2020-01-01T00Z
      * <li>2020-01-01T00:00Z
+     * <li>2022-W08
      * <li>now
      * <li>now-P1D
      * <li>lastday-P1D
@@ -467,10 +477,10 @@ public class TimeUtil {
                         default:
                             throw new IllegalArgumentException("unsupported unit: "+unit);
                     }
-                    for ( int id=Math.max(1,idigit); id<3; id++ ) {
+                    for ( int id=Math.max(1,idigit); id<DATE_DIGITS; id++ ) {
                         n[id]= 1;
                     }
-                    for ( int id=Math.max(3,idigit); id<7; id++ ) {
+                    for ( int id=Math.max(DATE_DIGITS,idigit); id<TIME_DIGITS; id++ ) {
                         n[id]= 0;
                     }
                 } else {
@@ -500,13 +510,29 @@ public class TimeUtil {
             }
             // first, parse YMD part, and leave remaining components in time.
             if ( time.length()==7 ) {
-                result = new int[]{ parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), 1, // days
-                    0, 0, 0, 0 };
-                time = "";
+                if ( time.charAt(4)=='W' ) { // 2022W08
+                    int year= parseInt(time.substring(0, 4));
+                    int week= parseInt(time.substring(5));
+                    result= new int[] { year, 0, 0, 0, 0, 0, 0 };
+                    fromWeekOfYear( year, week, result );
+                    time= "";
+                } else {
+                    result = new int[]{ parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), 1, // days
+                        0, 0, 0, 0 };
+                    time = "";
+                }
             } else if (time.length() == 8) {
-                result = new int[]{parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), // days
-                    0, 0, 0, 0};
-                time = "";
+                if ( time.charAt(5)=='W' ) { // 2022-W08
+                    int year= parseInt(time.substring(0, 4));
+                    int week= parseInt(time.substring(6));
+                    result= new int[] { year, 0, 0, 0, 0, 0, 0 };
+                    fromWeekOfYear( year, week, result );
+                    time= "";
+                } else {
+                    result = new int[]{parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), // days
+                        0, 0, 0, 0};
+                    time = "";
+                }
             } else if (time.charAt(8) == 'T') {
                 result = new int[]{parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), // days
                     0, 0, 0, 0};
@@ -516,7 +542,8 @@ public class TimeUtil {
                     0, 0, 0, 0};
                 time = time.substring(9);
             } else {
-                result = new int[]{parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), parseInt(time.substring(8, 10)), 0, 0, 0, 0};
+                result = new int[]{
+                    parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), parseInt(time.substring(8, 10)), 0, 0, 0, 0};
                 if (time.length() == 10) {
                     time = "";
                 } else {
@@ -545,7 +572,7 @@ public class TimeUtil {
     }
 
     /**
-     * return the doy of year of the month and day for the year. For example, in
+     * return the day of year for the given year, month, and day. For example, in
      * Jython:
      * <pre>
      * {@code
@@ -699,6 +726,47 @@ public class TimeUtil {
         }
         logger.exiting( "TimeUtil", "normalizeTime" );
     }
+    
+    /**
+     * calculate the day of week, where 0 means Monday, 1 means Tuesday, etc.
+     * @param year
+     * @param month
+     * @param day
+     * @return the day of the week.
+     */
+    public static int dayOfWeek( int year, int month, int day ) {
+        int jd= julianDay( year, month, day );
+        int daysSince2022= jd - julianDay( 2022, 1, 1 );
+        int mod7= ( daysSince2022 - 2 ) % 7; 
+        if ( mod7<0 ) mod7= mod7 + 7;
+        return mod7;
+    }
+    
+    /**
+     * calculate the week of year, inserting the month into time[1] and day into time[2]
+     * for the Monday which is the first day of that week.
+     * 
+     * @param year
+     * @param weekOfYear
+     * @param time 
+     */
+    public static void fromWeekOfYear( int year, int weekOfYear, int[] time ) {
+        time[0]= year;
+        int day= dayOfWeek( year, 1, 1 );
+        int doy;
+        if ( day<4 ) {
+            doy= ( weekOfYear * 7 - 7 - day ) + 1 ;
+            if ( doy<1 ) {
+                time[0]= time[0] - 1;
+                doy= doy + ( isLeapYear(time[0]) ? 366 : 365 );
+            }
+        } else {
+            doy= weekOfYear * 7 - day + 1;
+        }
+        time[1]= 1;
+        time[2]= doy;
+        normalizeTime(time);
+    }
 
     private static final String simpleFloat = "\\d?\\.?\\d+";
     public static final String iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((" + simpleFloat + ")S)?)?";
@@ -718,6 +786,7 @@ public class TimeUtil {
      * @return 7-element array with [year,mon,day,hour,min,sec,nanos]
      * @throws ParseException if the string does not appear to be valid.
      * @see #iso8601duration
+     * @see #TIME_DIGITS
      *
      */
     public static int[] parseISO8601Duration(String stringIn) throws ParseException {
@@ -738,6 +807,16 @@ public class TimeUtil {
         }
     }
 
+    /**
+     * use consistent naming so that the parser is easier to find.
+     * @param string
+     * @return seven-element decomposed time [ Y, m, d, H, M, S, N ]
+     * @throws ParseException 
+     */
+    public static int[] parseISO8601Time( String string ) throws ParseException {
+        return isoTimeToArray( string );
+    }
+    
     /**
      * parse the ISO8601 time range, like "1998-01-02/1998-01-17", into
      * start and stop times, returned in a 14 element array of ints.
@@ -760,24 +839,24 @@ public class TimeUtil {
         if ( ss[0].startsWith("P") ) {
             int[] duration= parseISO8601Duration(ss[0]);
             int[] time= isoTimeToArray(ss[1]);
-            for ( int i=0; i<7; i++ ) {
+            for ( int i=0; i<TIME_DIGITS; i++ ) {
                 result[i]= time[i]-duration[i];
             }
-            System.arraycopy(time, 0, result, 7, 7);
+            System.arraycopy(time, 0, result, TIME_DIGITS, TIME_DIGITS);
             return result;
         } else if ( ss[1].startsWith("P") ) {
             int[] time= isoTimeToArray(ss[0]);
             int[] duration= parseISO8601Duration(ss[1]);
-            System.arraycopy(time, 0, result, 0, 7);
-            for ( int i=0; i<7; i++ ) {
-                result[i+7]= time[i]+duration[i];
+            System.arraycopy(time, 0, result, 0, TIME_DIGITS);
+            for ( int i=0; i<TIME_DIGITS; i++ ) {
+                result[i+TIME_DIGITS]= time[i]+duration[i];
             }
             return result;
         } else {
             int[] starttime= isoTimeToArray(ss[0]);
             int[] stoptime=  isoTimeToArray(ss[1]);
-            System.arraycopy(starttime, 0, result, 0, 7);
-            System.arraycopy(stoptime, 0, result, 7, 7);
+            System.arraycopy(starttime, 0, result, 0, TIME_DIGITS);
+            System.arraycopy(stoptime, 0, result, TIME_DIGITS, TIME_DIGITS);
             return result;
         }
     }
@@ -830,7 +909,7 @@ public class TimeUtil {
         int Y = y - 4800 + (m + 2) / 12;
         int M = (m + 2) % 12 + 1;
         int D = d + 1;
-        int[] result = new int[7];
+        int[] result = new int[TIME_DIGITS];
         result[0] = Y;
         result[1] = M;
         result[2] = D;
@@ -845,8 +924,8 @@ public class TimeUtil {
      * @return a time
      */
     public static int[] subtract(int[] base, int[] offset) {
-        int[] result = new int[7];
-        for (int i = 0; i < 7; i++) {
+        int[] result = new int[TIME_DIGITS];
+        for (int i = 0; i < TIME_DIGITS; i++) {
             result[i] = base[i] - offset[i];
         }
         if (result[0] > 400) {
@@ -864,8 +943,8 @@ public class TimeUtil {
      * @return a time
      */
     public static int[] add(int[] base, int[] offset) {
-        int[] result = new int[7];
-        for (int i = 0; i < 7; i++) {
+        int[] result = new int[TIME_DIGITS];
+        for (int i = 0; i < TIME_DIGITS; i++) {
             result[i] = base[i] + offset[i];
         }
         normalizeTime(result);
