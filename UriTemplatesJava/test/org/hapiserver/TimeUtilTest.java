@@ -374,6 +374,17 @@ public class TimeUtilTest {
         int[] expResult = new int[] { 1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0 };
         int[] result = TimeUtil.parseISO8601TimeRange(stringIn);
         assertArrayEquals(expResult, result);
+
+        stringIn = "2022-W13/P7D";
+        expResult = new int[] { 2022, 3, 28, 0, 0, 0, 0, 2022, 4, 4, 0, 0, 0, 0 };
+        result = TimeUtil.parseISO8601TimeRange(stringIn);
+        assertArrayEquals(expResult, result);
+
+        stringIn = "P7D/2022-01-02";
+        expResult = new int[] { 2021, 12, 26, 0, 0, 0, 0, 2022, 1, 2, 0, 0, 0, 0 };
+        result = TimeUtil.parseISO8601TimeRange(stringIn);
+        assertArrayEquals(expResult, result);
+        
     }
     
 }
