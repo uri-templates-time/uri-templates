@@ -650,7 +650,7 @@ public class TimeUtil {
     }
     
     /**
-     * normalize the decomposed time by expressing day of year and month and day
+     * normalize the decomposed (seven digit) time by expressing day of year and month and day
      * of month, and moving hour="24" into the next day. This also handles day
      * increment or decrements, by:<ul>
      * <li>handle day=0 by decrementing month and adding the days in the new
@@ -842,15 +842,19 @@ public class TimeUtil {
             for ( int i=0; i<TIME_DIGITS; i++ ) {
                 result[i]= time[i]-duration[i];
             }
+            normalizeTime( result );
             System.arraycopy(time, 0, result, TIME_DIGITS, TIME_DIGITS);
             return result;
         } else if ( ss[1].startsWith("P") ) {
             int[] time= isoTimeToArray(ss[0]);
             int[] duration= parseISO8601Duration(ss[1]);
             System.arraycopy(time, 0, result, 0, TIME_DIGITS);
+            int[] stoptime= new int[TIME_DIGITS];
             for ( int i=0; i<TIME_DIGITS; i++ ) {
-                result[i+TIME_DIGITS]= time[i]+duration[i];
+                stoptime[i]= time[i]+duration[i];
             }
+            normalizeTime( stoptime );
+            System.arraycopy( stoptime, 0, result, TIME_DIGITS, TIME_DIGITS);
             return result;
         } else {
             int[] starttime= isoTimeToArray(ss[0]);
