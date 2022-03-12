@@ -64,3 +64,15 @@ spot7> ls -1 *.csv | java -jar ~/tmp/UriTemplatesJava.jar --parse --template='re
 2020-02-26T00:00:00.000000000Z/2020-05-27T00:00:00.000000000Z
 
 ~~~~~
+
+# Java Documentation and use within Autoplot scripts.
+A copy of the javadoc can be found at https://jfaden.net/~jbf/javadoc/uri-templates/.
+
+This can be loaded into Autoplot scripts using the following code:
+~~~~~
+lib= 'https://github.com/hapi-server/uri-templates/raw/master/UriTemplatesJava/store/UriTemplatesJava.jar'
+doc= 'https://jfaden.net/~jbf/javadoc/uri-templates/'
+
+import sys
+addToSearchPath( sys.path,lib,doc,monitor )  # caution: this only loads once!!!!!
+~~~~~
