@@ -110,8 +110,7 @@ public class TimeUtil {
      * "December" (12). The first three letters are used to look up the number,
      * and must be one of: "Jan", "Feb", "Mar", "Apr", "May", "Jun",
      * "Jul", "Aug", "Sep", "Oct", "Nov", or "Dec" (case insensitive).
-     * @param s the name (case-insensitive, only the first three letters are
-     * used.
+     * @param s the name (case-insensitive, only the first three letters are used.)
      * @return the number, for example 1 for "January"
      * @throws ParseException when month name is not recognized.
      */
