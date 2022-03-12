@@ -798,10 +798,11 @@ public class TimeUtil {
     }
     
     /**
-     * calculate the day of week, where 0 means Monday, 1 means Tuesday, etc.
-     * @param year
-     * @param month
-     * @param day
+     * calculate the day of week, where 0 means Monday, 1 means Tuesday, etc.  For example,
+     * 2022-03-12 is a Saturday, so 5 is returned.
+     * @param year the year
+     * @param month the month
+     * @param day the day of the month
      * @return the day of the week.
      */
     public static int dayOfWeek( int year, int month, int day ) {
@@ -816,12 +817,12 @@ public class TimeUtil {
      * calculate the week of year, inserting the month into time[1] and day into time[2]
      * for the Monday which is the first day of that week.  Note week 0 is excluded from
      * ISO8601, but since the Linux date command returns this in some cases, it is allowed to
-     * mean the same as week 52 of the previous year.
+     * mean the same as week 52 of the previous year.  See 
+     * <a href='https://en.wikipedia.org/wiki/ISO_8601#Week_dates' target='_blank'>wikipedia</a>
      * 
      * @param year the year of the week.
      * @param weekOfYear the week of the year, where week 01 is starting with the Monday in the period 29 December - 4 January.
      * @param time the result is placed in here, where time[0] is the year provided, and the month and day are calculated.
-     * @see https://en.wikipedia.org/wiki/ISO_8601#Week_dates
      */
     public static void fromWeekOfYear( int year, int weekOfYear, int[] time ) {
         time[0]= year;
@@ -888,7 +889,7 @@ public class TimeUtil {
      * use consistent naming so that the parser is easier to find.
      * @param string iso8601 time like "2022-03-12T11:17" (Z is assumed).
      * @return seven-element decomposed time [ Y, m, d, H, M, S, N ]
-     * @throws ParseException 
+     * @throws ParseException when the string cannot be parsed.
      * @see #isoTimeToArray(java.lang.String) 
      */
     public static int[] parseISO8601Time( String string ) throws ParseException {
@@ -900,7 +901,7 @@ public class TimeUtil {
      * start and stop times, returned in a 14 element array of ints.
      * @param stringIn string to parse, like "1998-01-02/1998-01-17"
      * @return the time start and stop [ Y,m,d,H,M,S,nano, Y,m,d,H,M,S,nano ]
-     * @throws ParseException 
+     * @throws ParseException when the string cannot be used
      */
     public static int[] parseISO8601TimeRange(String stringIn) throws ParseException {
         String[] ss = stringIn.split("/");
