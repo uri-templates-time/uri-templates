@@ -818,7 +818,7 @@ public class TimeUtil {
      * for the Monday which is the first day of that week.  Note week 0 is excluded from
      * ISO8601, but since the Linux date command returns this in some cases, it is allowed to
      * mean the same as week 52 of the previous year.  See 
-     * <a href='https://en.wikipedia.org/wiki/ISO_8601#Week_dates' target='_blank'>wikipedia</a>
+     * <a href='https://en.wikipedia.org/wiki/ISO_8601#Week_dates' target='_blank'>Wikipedia ISO8601#Week_dates</a>.
      * 
      * @param year the year of the week.
      * @param weekOfYear the week of the year, where week 01 is starting with the Monday in the period 29 December - 4 January.
