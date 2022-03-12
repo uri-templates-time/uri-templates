@@ -346,8 +346,66 @@ public class TimeUtil {
     }
 
     /**
+     * format the time range components into iso8601 time range.  
+     * @param nn 14-element time range
+     * @return efficient representation of the time range
+     */
+    public static String formatIso8601TimeRange( int[] nn ) {
+        String ss1= formatIso8601Time(nn);
+        String ss2= formatIso8601Time(nn, TIME_DIGITS);
+        int firstNonZeroDigit=7;
+        while ( firstNonZeroDigit>3 && nn[firstNonZeroDigit-1]==0 && nn[firstNonZeroDigit+TIME_DIGITS-1]==0 ) {
+            firstNonZeroDigit--;
+        }
+        switch (firstNonZeroDigit) {
+            case 2:
+                return ss1.substring(0,10) + "/" + ss2.substring(0,10);
+            case 3:
+                return ss1.substring(0,10) + "/" + ss2.substring(0,10);
+            case 4:
+                return ss1.substring(0,16) + "Z/" + ss2.substring(0,16) + "Z";
+            case 5:
+                return ss1.substring(0,16) + "Z/" + ss2.substring(0,16) + "Z";
+            case 6:
+                return ss1.substring(0,19) + "Z/" + ss2.substring(0,19) + "Z";
+            default:
+                return ss1 + "/" + ss2;
+        }
+    }
+    
+    /**
+     * return the string as a formatted string.
+     * @param nn fourteen-element array of [ Y m d H M S nanos Y m d H M S nanos ]
+     * @param offset 0 or 7 
+     * @return formatted time "1999-12-31T23:00:00.000000000Z"
+     * @see #isoTimeFromArray(int[]) 
+     */
+    public static String formatIso8601Time( int[] nn, int offset ) {
+        switch (offset) {
+            case 0:
+                return isoTimeFromArray( nn );
+            case 7:
+                int[] copy= new int[7];
+                System.arraycopy( nn, offset, copy, 0, 7 );
+                return isoTimeFromArray( copy );
+            default:
+                throw new IllegalArgumentException( "offset must be 0 or 7");
+        }
+    }
+    
+    /**
+     * return the string as a formatted string.
+     * @param nn seven-element array of [ Y m d H M S nanos ]
+     * @return formatted time "1999-12-31T23:00:00.000000000Z"
+     * @see #isoTimeFromArray(int[]) 
+     */
+    public static String formatIso8601Time( int[] nn ) {
+        return isoTimeFromArray( nn );
+    }
+    
+    /**
      * format the duration into human-readable time.
-     * @param nn array of [ Y m d H M S nanos ]
+     * @param nn seven-element array of [ Y m d H M S nanos ]
      * @return ISO8601 duration
      */
     public static String formatIso8601Duration(int[] nn) {

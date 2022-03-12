@@ -386,5 +386,98 @@ public class TimeUtilTest {
         assertArrayEquals(expResult, result);
         
     }
+
+    /**
+     * Test of formatIso8601TimeRange method, of class TimeUtil.
+     */
+    @Test
+    public void testFormatIso8601TimeRange() {
+        System.out.println("formatIso8601TimeRange");
+        int[] nn =  new int[] { 1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0 };
+        String expResult = "1998-01-02/1998-01-17";
+        String result = TimeUtil.formatIso8601TimeRange(nn);
+        assertEquals(expResult, result);
+
+        nn =  new int[] { 1998, 1, 2, 0, 3, 0, 0, 1998, 1, 17, 0, 3, 0, 0 };
+        expResult = "1998-01-02T00:03Z/1998-01-17T00:03Z";
+        result = TimeUtil.formatIso8601TimeRange(nn);
+        assertEquals(expResult, result);
+
+        nn =  new int[] { 1998, 1, 2, 0, 0, 2, 0, 1998, 1, 17, 0, 0, 6, 0 };
+        expResult = "1998-01-02T00:00:02Z/1998-01-17T00:00:06Z";
+        result = TimeUtil.formatIso8601TimeRange(nn);
+        assertEquals(expResult, result);
+        
+        nn =  new int[] { 1998, 1, 2, 0, 0, 0, 300, 1998, 1, 2, 0, 0, 0, 500 };
+        expResult = "1998-01-02T00:00:00.000000300Z/1998-01-02T00:00:00.000000500Z";
+        result = TimeUtil.formatIso8601TimeRange(nn);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of formatIso8601Time method, of class TimeUtil.
+     */
+    @Test
+    public void testFormatIso8601Time_intArr_int() {
+        System.out.println("formatIso8601Time");
+        int[] nn = new int[] { 1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0 };
+        int offset = 7;
+        String expResult = "1998-01-17T00:00:00.000000000Z";
+        String result = TimeUtil.formatIso8601Time(nn, offset);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of formatIso8601Time method, of class TimeUtil.
+     */
+    @Test
+    public void testFormatIso8601Time_intArr() {
+        System.out.println("formatIso8601Time");
+        int[] nn = new int[] { 1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0 };
+        String expResult = "1998-01-02T00:00:00.000000000Z";
+        String result = TimeUtil.formatIso8601Time(nn);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of dayOfWeek method, of class TimeUtil.
+     */
+    @Test
+    public void testDayOfWeek() {
+        System.out.println("dayOfWeek");
+        int year = 2022;
+        int month = 3;
+        int day = 12;
+        int expResult = 5;
+        int result = TimeUtil.dayOfWeek(year, month, day);
+        assertEquals(expResult, result);
+
+    }
+
+    /**
+     * Test of fromWeekOfYear method, of class TimeUtil.
+     */
+    @Test
+    public void testFromWeekOfYear() {
+        System.out.println("fromWeekOfYear");
+        int year = 2022;
+        int weekOfYear = 13;
+        int[] result = new int[7];
+        TimeUtil.fromWeekOfYear(year, weekOfYear, result);
+        int[] expResult = new int[] { 2022, 3, 28, 0, 0, 0, 0 };
+        assertArrayEquals(expResult, result);        
+    }
+
+    /**
+     * Test of parseISO8601Time method, of class TimeUtil.
+     */
+    @Test
+    public void testParseISO8601Time() throws Exception {
+        System.out.println("parseISO8601Time");
+        String string = "2020-033T00:00";
+        int[] expResult = new int[] { 2020, 2, 2, 0, 0, 0, 0 };
+        int[] result = TimeUtil.parseISO8601Time(string);
+        assertArrayEquals(expResult, result);
+    }
     
 }
