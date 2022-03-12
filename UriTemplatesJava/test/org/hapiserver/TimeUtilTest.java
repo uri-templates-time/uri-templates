@@ -466,6 +466,14 @@ public class TimeUtilTest {
         TimeUtil.fromWeekOfYear(year, weekOfYear, result);
         int[] expResult = new int[] { 2022, 3, 28, 0, 0, 0, 0 };
         assertArrayEquals(expResult, result);        
+
+        year = 2022;
+        weekOfYear = 0;
+        result = new int[7];
+        TimeUtil.fromWeekOfYear(year, weekOfYear, result);
+        expResult = new int[] { 2021, 12, 27, 0, 0, 0, 0 };
+        assertArrayEquals(expResult, result);        
+
     }
 
     /**

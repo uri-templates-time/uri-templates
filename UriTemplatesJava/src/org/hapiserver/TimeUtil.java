@@ -254,14 +254,22 @@ public class TimeUtil {
     }
 
     /**
-     * fast parser requires that each character of string is a digit.
+     * fast parser requires that each character of string is a digit.  Note this 
+     * does not check the the numbers are digits!
      *
-     * @param s
-     * @return
+     * @param s string containing an integer
+     * @return the integer
      */
     private static int parseInt(String s) {
         int result;
-        switch (s.length()) {
+        int len= s.length();
+        for (int i = 0; i < len; i++) {
+            char c = s.charAt(i);
+            if (c < 48 || c >= 58) {
+                throw new IllegalArgumentException("only digits are allowed in string");
+            }
+        }
+        switch (len) {
             case 2:
                 result = 10 * (s.charAt(0) - 48) + (s.charAt(1) - 48);
                 return result;
@@ -374,7 +382,8 @@ public class TimeUtil {
     }
     
     /**
-     * return the string as a formatted string.
+     * return the string as a formatted string, which can be at an offset of seven positions 
+     * to format the end date.
      * @param nn fourteen-element array of [ Y m d H M S nanos Y m d H M S nanos ]
      * @param offset 0 or 7 
      * @return formatted time "1999-12-31T23:00:00.000000000Z"
@@ -404,7 +413,8 @@ public class TimeUtil {
     }
     
     /**
-     * format the duration into human-readable time.
+     * format the duration into human-readable time, for example
+     * [ 0, 0, 7, 0, 0, 6 ] is formatted into "P7DT6S"
      * @param nn seven-element array of [ Y m d H M S nanos ]
      * @return ISO8601 duration
      */
@@ -476,7 +486,8 @@ public class TimeUtil {
      * return seven-element array [ year, months, days, hours, minutes, seconds, nanoseconds ]
      * preserving the day of year notation if this was used. See the class
      * documentation for allowed time formats, which are a subset of ISO8601
-     * times.  This also supports "now", "now-P1D", and other simple extensions.
+     * times.  This also supports "now", "now-P1D", and other simple extensions.  Note
+     * ISO8601-1:2019 disallows 24:00 to be used for the time, but this is still allowed here.
      * The following are valid inputs:<ul>
      * <li>2021
      * <li>2020-01-01
@@ -494,6 +505,7 @@ public class TimeUtil {
      * @return the decomposed time
      * @throws IllegalArgumentException when the time cannot be parsed.
      * @see #isoTimeFromArray(int[])
+     * @see #parseISO8601Time(java.lang.String) 
      */
     public static int[] isoTimeToArray(String time) {
         int[] result;
@@ -802,11 +814,14 @@ public class TimeUtil {
     
     /**
      * calculate the week of year, inserting the month into time[1] and day into time[2]
-     * for the Monday which is the first day of that week.
+     * for the Monday which is the first day of that week.  Note week 0 is excluded from
+     * ISO8601, but since the Linux date command returns this in some cases, it is allowed to
+     * mean the same as week 52 of the previous year.
      * 
-     * @param year
-     * @param weekOfYear
-     * @param time 
+     * @param year the year of the week.
+     * @param weekOfYear the week of the year, where week 01 is starting with the Monday in the period 29 December - 4 January.
+     * @param time the result is placed in here, where time[0] is the year provided, and the month and day are calculated.
+     * @see https://en.wikipedia.org/wiki/ISO_8601#Week_dates
      */
     public static void fromWeekOfYear( int year, int weekOfYear, int[] time ) {
         time[0]= year;
@@ -828,6 +843,10 @@ public class TimeUtil {
 
     private static final String simpleFloat = "\\d?\\.?\\d+";
     public static final String iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((" + simpleFloat + ")S)?)?";
+    
+    /**
+     * Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
+     */
     public static final Pattern iso8601DurationPattern = Pattern.compile(iso8601duration);
 
     /**
@@ -867,9 +886,10 @@ public class TimeUtil {
 
     /**
      * use consistent naming so that the parser is easier to find.
-     * @param string
+     * @param string iso8601 time like "2022-03-12T11:17" (Z is assumed).
      * @return seven-element decomposed time [ Y, m, d, H, M, S, N ]
      * @throws ParseException 
+     * @see #isoTimeToArray(java.lang.String) 
      */
     public static int[] parseISO8601Time( String string ) throws ParseException {
         return isoTimeToArray( string );
@@ -878,7 +898,7 @@ public class TimeUtil {
     /**
      * parse the ISO8601 time range, like "1998-01-02/1998-01-17", into
      * start and stop times, returned in a 14 element array of ints.
-     * @param stringIn
+     * @param stringIn string to parse, like "1998-01-02/1998-01-17"
      * @return the time start and stop [ Y,m,d,H,M,S,nano, Y,m,d,H,M,S,nano ]
      * @throws ParseException 
      */
