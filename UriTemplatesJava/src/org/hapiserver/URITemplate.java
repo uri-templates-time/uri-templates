@@ -23,6 +23,18 @@ import java.util.regex.Pattern;
 /**
  * URITemplate implements a URI_Template, as described in 
  * https://github.com/hapi-server/uri-templates/wiki/Specification
+ * The main method shows how the library can be used to format
+ * and parse codes, but briefly parsing is done using the parse
+ * method:<pre>
+ *   URITemplate ut= new URITemplate("/tmp/$Y$m$d_$(v,name=sc).dat");
+ *   String filen1= "/tmp/20220314_3.dat";
+ *   int[] itimeRange= ut.parse( filen1, new HashMap<>() );
+ * </pre>
+ * Formatting is done with the format method:</pre>
+ *   URITemplate ut= new URITemplate("/tmp/$Y$m$d_$(v,name=sc).dat");
+ *   ut.format( new int[] { 2022, 3, 14, 0, 0, 0, 0 }, new int[] { 2022, 3, 15, 0, 0, 0, 0 }, Collections.singletonMap( "sc", "3" ) );
+ * </pre>
+ 
  * @author jbf
  */
 public class URITemplate {
