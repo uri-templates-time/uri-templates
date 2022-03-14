@@ -14,4 +14,4 @@ and its use is shown in unit tests at https://github.com/hapi-server/uri-templat
 | Name<br>Notes | Language | URL |
 | ------------- | -------- | --- |
 | URI_Templates Java<br>reference implementation | Java     | https://github.com/hapi-server/uri-templates/tree/master/UriTemplatesJava |
-
+| Autoplot Aggregation<br>nearly complete for spec | Java  | https://autoplot.org/ |
