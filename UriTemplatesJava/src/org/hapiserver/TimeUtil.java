@@ -37,14 +37,20 @@ public class TimeUtil {
      * Number of digits in time representation: year, month, day
      */
     public static final int DATE_DIGITS = 3;
+    
     /**
-     * Rewrite the time using the format of the example time. For example,
+     * Rewrite the time using the format of the example time, which must start with
+     * $Y-$jT, $Y-$jZ, or $Y-$m-$d. For example,
      * <pre>
      * {@code
      * from org.hapiserver.TimeUtil import *
      * print rewriteIsoTime( '2020-01-01T00:00Z', '2020-112Z' ) # ->  '2020-04-21T00:00Z'
      * }
-     * </pre> This allows direct comparisons of times for sorting. TODO: there's
+     * </pre> This allows direct comparisons of times for sorting. 
+     * This works by looking at the character in the 8th position (starting with zero) of the 
+     * exampleForm to see if a T or Z is present (YYYY-jjjTxxx).
+     *
+     TODO: there's
      * an optimization here, where if input and output are both $Y-$j or both
      * $Y-$m-$d, then we need not break apart and recombine the time
      * (isoTimeToArray call can be avoided).
