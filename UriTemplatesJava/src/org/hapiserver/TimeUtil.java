@@ -29,14 +29,27 @@ public class TimeUtil {
     private static final Logger logger = Logger.getLogger("hapiserver.timeutil");
 
     /**
-     * Number of time digits: year, month, day, hour, minute, second, nanosecond
+     * Number of time components: year, month, day, hour, minute, second, nanosecond
      */
     public static final int TIME_DIGITS = 7;
     
     /**
-     * Number of digits in time representation: year, month, day
+     * Number of components in time representation: year, month, day
      */
     public static final int DATE_DIGITS = 3;
+    
+    /**
+     * Number of components in a time range, which is two times.
+     */
+    public static final int TIME_RANGE_DIGITS=14;
+    
+    public static final int COMPONENT_YEAR=0;
+    public static final int COMPONENT_MONTH=1;
+    public static final int COMPONENT_DAY=2;
+    public static final int COMPONENT_HOUR=3;
+    public static final int COMPONENT_MINUTE=4;
+    public static final int COMPONENT_SECOND=5;
+    public static final int COMPONENT_NANOSECOND=6;
     
     /**
      * Rewrite the time using the format of the example time, which must start with
@@ -50,7 +63,7 @@ public class TimeUtil {
      * This works by looking at the character in the 8th position (starting with zero) of the 
      * exampleForm to see if a T or Z is present (YYYY-jjjTxxx).
      *
-     TODO: there's
+     * TODO: there's
      * an optimization here, where if input and output are both $Y-$j or both
      * $Y-$m-$d, then we need not break apart and recombine the time
      * (isoTimeToArray call can be avoided).
@@ -138,7 +151,7 @@ public class TimeUtil {
     }
 
     /**
-     * the number of days in each month.
+     * the number of days in each month.  DAYS_IN_MONTH[0][12] is number of days in December of a non-leap year
      */
     private final static int[][] DAYS_IN_MONTH = {
         {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0},
@@ -146,7 +159,7 @@ public class TimeUtil {
     };
 
     /**
-     * the number of days to the first of each month.
+     * the number of days to the first of each month.  DAY_OFFSET[0][12] is offset to December 1st of a non-leap year
      */
     private final static int[][] DAY_OFFSET = {
         {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365},
@@ -175,6 +188,11 @@ public class TimeUtil {
         return result.toArray(new String[result.size()]);
     }
 
+    /**
+     * true if the year between 1582 and 2400 is a leap year.
+     * @param year the year
+     * @return true if the year between 1582 and 2400 is a leap year.
+     */
     private static boolean isLeapYear(int year) {
         if (year < 1582 || year > 2400) {
             throw new IllegalArgumentException("year must be between 1582 and 2400");
@@ -473,8 +491,8 @@ public class TimeUtil {
     }
     
     /**
-     * return the current time, to the millisecond.
-     * @return the current time, to the millisecond.
+     * return the UTC current time, to the millisecond, in seven components.
+     * @return the current time, to the millisecond
      */
     public static int[] now() {
         long ctm= System.currentTimeMillis();
@@ -724,6 +742,48 @@ public class TimeUtil {
         return d.getTime();
     }
     
+    public static int VALID_FIRST_YEAR=1900;
+    public static int VALID_LAST_YEAR=2100;
+    
+    /**
+     * this returns true or throws an IllegalArgumentException indicating the problem.
+     * @param time the seven-component time.
+     * @return true or throws an IllegalArgumentException
+     */
+    public static boolean isValidTime( int[] time ) {
+        int year= time[0];
+        if ( year<VALID_FIRST_YEAR ) throw new IllegalArgumentException("invalid year at position 0" );
+        if ( year>VALID_LAST_YEAR ) throw new IllegalArgumentException("invalid year at position 0" );
+        int month= time[1];
+        if ( month<1 ) throw new IllegalArgumentException("invalid month at position 1" );
+        if ( month>12 ) throw new IllegalArgumentException("invalid month at position 1" );
+        int leap= isLeapYear( year ) ? 1 : 0;
+        int dayOfMonth= time[2];
+        if ( month>1 ) {
+            if ( dayOfMonth>DAYS_IN_MONTH[leap][month] ) {
+                throw new IllegalArgumentException("day of month is too large at position 2" );
+            } 
+        } else {
+            if ( dayOfMonth>DAY_OFFSET[leap][13] ) {
+                throw new IllegalArgumentException("day of year is too large at position 2" );
+            }
+        }
+        if ( dayOfMonth<1 ) throw new IllegalArgumentException("day is less than 1 at position 2" );
+        return true;
+    }
+    
+    /**
+     * return the number of days in the month.
+     * @param year the year 
+     * @param month the month
+     * @return the number of days in the month.
+     * @see #isLeapYear(int) 
+     */
+    public static int daysInMonth( int year, int month ) {
+        int leap= isLeapYear(year) ? 1 : 0;
+        return DAYS_IN_MONTH[leap][month];
+    }
+    
     /**
      * normalize the decomposed (seven digit) time by expressing day of year and month and day
      * of month, and moving hour="24" into the next day. This also handles day
@@ -738,6 +798,15 @@ public class TimeUtil {
      */
     public static void normalizeTime(int[] time) {
         logger.entering( "TimeUtil", "normalizeTime" );
+        while ( time[6]>100000000 ) {
+            time[5]= time[5]+1;
+        }
+        while ( time[5]>59 ) { // TODO: leap seconds?
+            time[4]= time[4]+1;
+        }
+        while ( time[4]>59 ) {
+            time[3]= time[3]+1;
+        }        
         while (time[3] >= 24) {
             time[2] += 1;
             time[3] -= 24;
@@ -1038,4 +1107,192 @@ public class TimeUtil {
         normalizeTime(result);
         return result;
     }
+    
+    /**
+     * true if t1 is after t2.
+     * @param t1 seven-component time
+     * @param t2 seven-component time
+     * @return true if t1 is after t2.
+     */
+    public static boolean gt( int[] t1, int[] t2 ) {
+        TimeUtil.normalizeTime(t1);
+        TimeUtil.normalizeTime(t2);
+        for ( int i=0; i<TimeUtil.TIME_DIGITS ; i++ ) {
+            if ( t1[i]>t2[i] ) {
+                return true;
+            } else if ( t1[i]<t2[i] ) {
+                return false;
+}
+        }
+        return false; // they are equal
+    }
+    
+    /**
+     * true if t1 is equal to t2.
+     * @param t1 seven-component time
+     * @param t2 seven-component time
+     * @return true if t1 is equal to t2.
+     */
+    public static boolean eq( int[] t1, int[] t2 ) {
+        TimeUtil.normalizeTime(t1);
+        TimeUtil.normalizeTime(t2);
+        for ( int i=0; i<TimeUtil.TIME_DIGITS ; i++ ) {
+            if ( t1[i]!=t2[i] ) {
+                return false;
+            }
+        }
+        return true; // they are equal
+    }
+    
+    /**
+     * given the two times, return a 14 element time range.
+     * @param t1 a seven digit time
+     * @param t2 a seven digit time after the first time.
+     * @return a fourteen digit time range.
+     * @throws IllegalArgumentException when the first time is greater than or equal to the second time.
+     */
+    public static int[] createTimeRange( int[] t1, int[] t2 ) {
+        if ( !gt(t2,t1) ) {
+            throw new IllegalArgumentException("t1 is not smaller than t2");
+        }
+        int[] result= new int[TimeUtil.TIME_DIGITS*2];
+        System.arraycopy( t1, 0, result, 0, TimeUtil.TIME_DIGITS  );
+        System.arraycopy( t2, 0, result, TimeUtil.TIME_DIGITS , TimeUtil.TIME_DIGITS  );
+        return result;
+    }
+
+    /**
+     * return the seven element start time from the time range.  Note
+     * it is fine to use a time range as the start time, because codes
+     * will only read the first seven components, and this is only added
+     * to make code more readable.
+     * @param tr a fourteen-element time range.
+     * @return the start time.
+     */
+    public static int[] getStartTime( int [] tr ) {
+        int[] result= new int[ TimeUtil.TIME_DIGITS ];
+        System.arraycopy( tr, 0, result, 0, TimeUtil.TIME_DIGITS  );
+        return result;
+    }
+    
+    /**
+     * return the seven element stop time from the time range.  Note
+     * it is fine to use a time range as the start time, because codes
+     * will only read the first seven components.
+     * @param tr a fourteen-element time range.
+     * @return the stop time.
+     */
+    public static int[] getStopTime( int [] tr ) {
+        int[] result= new int[ TimeUtil.TIME_DIGITS ];
+        System.arraycopy( tr, TimeUtil.TIME_DIGITS , result, 0, TimeUtil.TIME_DIGITS  );
+        return result;
+    }
+    
+    /**
+     * format the time as milliseconds since 1970-01-01T00:00Z into a string.  The
+     * number of milliseconds should not include leap seconds.
+     * 
+     * @param time the number of milliseconds since 1970-01-01T00:00Z
+     * @return the formatted time.
+     * @see DateTimeFormatter#parse
+     */
+    public static String fromMillisecondsSince1970(long time) {
+        return DateTimeFormatter.ISO_INSTANT.format( Instant.ofEpochMilli(time) );
+    }
+
+    /**
+     * format the time, but omit trailing zeros.  $Y-$m-$dT$H:$M is the coursest resolution returned.
+     * @param time seven element time range
+     * @return formatted time, possibly truncated to minutes, seconds, milliseconds, or microseconds
+     */
+    public static String formatIso8601TimeBrief(int[] time ) {
+        return formatIso8601TimeBrief(time,0);
+    }
+    
+    /**
+     * format the time, but omit trailing zeros.  $Y-$m-$dT$H:$M is the coursest resolution returned.
+     * @param time seven element time range
+     * @param offset the offset into the time array (7 for stop time in 14-element range array).
+     * @return formatted time, possibly truncated to minutes, seconds, milliseconds, or microseconds
+     */
+    public static String formatIso8601TimeBrief(int[] time, int offset ) {
+        
+        String stime= TimeUtil.formatIso8601Time(time,offset);
+        
+        int nanos= time[ COMPONENT_NANOSECOND+offset ];
+        int micros= nanos % 1000;
+        int millis= nanos % 10000000;
+        
+        if ( nanos==0 ) {
+            if ( time[5+offset]==0 ) {
+                return stime.substring(0,16) + "Z";
+            } else {
+                return stime.substring(0,19) + "Z";
+            }
+        } else {
+            if ( millis==0 ) {
+                return stime.substring(0,23) + "Z";
+            } else if ( micros==0 ) {
+                return stime.substring(0,26) + "Z";
+            } else {
+                return stime;
+            }
+        }
+    }
+    
+    /**
+     * return the next interval, given the 14-component time interval.  This
+     * has the restrictions:<ul>
+     * <li> can only handle intervals of at least one second
+     * <li> must be only one component which increments
+     * <li> increment must be a devisor of the increment, so 1, 2, 3, 4, or 6 months is valid, but 5 months is not.
+     * </ul>
+     * @param range 14-component time interval.
+     * @return 14-component time interval.
+     */
+    public static int[] nextRange( int[] range ) {
+        int[] result= new int[TimeUtil.TIME_RANGE_DIGITS];
+        int[] width= new int[TimeUtil.TIME_DIGITS];
+        for ( int i=0; i<TimeUtil.TIME_DIGITS; i++ ) {
+            width[ i ] = range[i+TimeUtil.TIME_DIGITS ] - range[i] ;
+        }
+        if ( width[5]<0 ) {
+            width[5]= width[5]+60;
+            width[4]= width[4]-1;
+        }
+        if ( width[4]<0 ) {
+            width[4]= width[4]+60;
+            width[3]= width[3]-1;
+        }
+        if ( width[3]<0 ) {
+            width[3]= width[3]+24;
+            width[2]= width[2]-1;
+        }
+        if ( width[2]<0 ) {
+            int daysInMonth= TimeUtil.daysInMonth( range[COMPONENT_YEAR], range[COMPONENT_MONTH] );
+            width[2]= width[2]+daysInMonth;
+            width[1]= width[1]-1;
+        }
+        if ( width[1]<0 ) {
+            width[1]= width[1]+12;
+            width[0]= width[0]-1;
+        }
+        System.arraycopy( range, TimeUtil.TIME_DIGITS, result, 0, TimeUtil.TIME_DIGITS );
+        System.arraycopy( TimeUtil.add( getStopTime(range), width ), 0, 
+            result, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS );
+        return result;
+    }
+        
+    /**
+     * return true if this is a valid time range having a non-zero width.
+     * @param granule
+     * @return 
+     */
+    public static boolean isValidTimeRange(int[] granule) {
+        int[] start= getStartTime(granule);
+        int[] stop= getStopTime(granule);
+        
+        return TimeUtil.isValidTime( start ) && TimeUtil.isValidTime( stop ) && gt( stop, start );
+        
+    }    
 }
