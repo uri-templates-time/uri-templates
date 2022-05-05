@@ -117,6 +117,10 @@ public class URITemplate {
     private int[] formatCode_lengths = new int[]{4, 2, 3, 2, 2, 2, 2, 2, 3, 3, 2, 5, -1, 3 };
     private int[] precision =          new int[]{0, 0, 2, 1, 2, 3, 4, 5, 6, 7,-1,-1, -1, 1 };
     private char startTimeOnly;
+    
+    /**
+     * null or the phasestart.
+     */
     private int[] phasestart;
     private int startLsd;
         
@@ -1687,7 +1691,7 @@ public class URITemplate {
         int[] startTime= TimeUtil.isoTimeToArray( startTimeStr );
         int[] stopTime;        
         int[] timeWidthl;
-        if ( timeWidthIsExplicit && startTimeStr.equals(stopTimeStr) ) {
+        if ( timeWidthIsExplicit ) {
             timeWidthl = timeWidth;
             stopTime = TimeUtil.add( startTime, timeWidth );
         } else {
@@ -1699,6 +1703,19 @@ public class URITemplate {
         }
         if ( stopShift!=null ) {
             stopTime= TimeUtil.subtract( stopTime, stopShift );
+        }
+        
+        if ( timeWidthIsExplicit ) {
+            if ( this.phasestart!=null && timeWidth[2]>0 ) {
+                int phaseStartJulian= TimeUtil.julianDay( phasestart[0], phasestart[1], phasestart[2] );
+                int ndays= TimeUtil.julianDay(  startTime[0], startTime[1], startTime[2] ) - phaseStartJulian;
+                int ncycles= Math.floorDiv( ndays, timeWidth[2] );
+                int[] tnew= TimeUtil.fromJulianDay(phaseStartJulian+ncycles*timeWidth[2]);
+                startTime[0]= tnew[0];
+                startTime[1]= tnew[1];
+                startTime[2]= tnew[2];
+                stopTime = TimeUtil.add( startTime, timeWidth );
+            }
         }
         
         int[] timel= startTime;
