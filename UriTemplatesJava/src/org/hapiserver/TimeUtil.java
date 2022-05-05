@@ -799,13 +799,16 @@ public class TimeUtil {
     public static void normalizeTime(int[] time) {
         logger.entering( "TimeUtil", "normalizeTime" );
         while ( time[6]>100000000 ) {
-            time[5]= time[5]+1;
+            time[5] = time[5]+1;
+            time[6] -= 100000000;
         }
         while ( time[5]>59 ) { // TODO: leap seconds?
             time[4]= time[4]+1;
+            time[5]-= 60;
         }
         while ( time[4]>59 ) {
             time[3]= time[3]+1;
+            time[4]-= 60;
         }        
         while (time[3] >= 24) {
             time[2] += 1;
