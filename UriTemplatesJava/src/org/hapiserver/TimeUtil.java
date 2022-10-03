@@ -832,7 +832,16 @@ public class TimeUtil {
         }
         if (time[2] < 1) {
             time[1] -= 1; // take a month
-            int daysInMonth = time[1] == 0 ? 31 : TimeUtil.DAYS_IN_MONTH[isLeapYear(time[0]) ? 1 : 0][time[1]];
+            final int daysInMonth;
+            if ( time[1] == 0 ) { // This was  daysInMonth= TimeUtil.DAYS_IN_MONTH[1 if isLeapYear(time[0]) else 0][time[1]], TODO: review!
+                daysInMonth = 31;
+            } else {
+                if ( isLeapYear(time[0]) ) {
+                    daysInMonth = TimeUtil.DAYS_IN_MONTH[1][time[1]];
+                } else {
+                    daysInMonth = TimeUtil.DAYS_IN_MONTH[0][time[1]];
+                }
+            }
             time[2] += daysInMonth; // add 24 hours
         }
         if (time[1] < 1) {
@@ -909,7 +918,11 @@ public class TimeUtil {
             doy= ( weekOfYear * 7 - 7 - day ) + 1 ;
             if ( doy<1 ) {
                 time[0]= time[0] - 1;
-                doy= doy + ( isLeapYear(time[0]) ? 366 : 365 );
+                if ( isLeapYear(time[0]) ) { // was  doy= doy + ( isLeapYear(time[0]) ? 366 : 365 );  TODO: verify
+                    doy = doy + 366;
+                } else {
+                    doy = doy + 365;
+                }
             }
         } else {
             doy= weekOfYear * 7 - day + 1;
