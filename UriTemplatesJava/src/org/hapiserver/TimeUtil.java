@@ -833,10 +833,10 @@ public class TimeUtil {
         if (time[2] < 1) {
             time[1] -= 1; // take a month
             final int daysInMonth;
-            if ( time[1] == 0 ) { // This was  daysInMonth= TimeUtil.DAYS_IN_MONTH[1 if isLeapYear(time[0]) else 0][time[1]], TODO: review!
+            if ( time[1] == 0 ) { 
                 daysInMonth = 31;
             } else {
-                if ( isLeapYear(time[0]) ) {
+                if ( isLeapYear(time[0]) ) { // This was  TimeUtil.DAYS_IN_MONTH[isLeapYear(time[0]) ? 1 : 0][time[1]] . TODO: review!
                     daysInMonth = TimeUtil.DAYS_IN_MONTH[1][time[1]];
                 } else {
                     daysInMonth = TimeUtil.DAYS_IN_MONTH[0][time[1]];
