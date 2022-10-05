@@ -314,31 +314,11 @@ public class TimeUtil {
      * @param s the number, containing 1 or more digits.
      * @return the int value
      */
-    private static int parseInt(String s, int deft) {
+    private static int parseIntDeft(String s, int deft) {
         if (s == null) {
             return deft;
         }
-        int result;
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (c < 48 || c >= 58) {
-                throw new IllegalArgumentException("only digits are allowed in string");
-            }
-        }
-        switch (s.length()) {
-            case 2:
-                result = 10 * (s.charAt(0) - 48) + (s.charAt(1) - 48);
-                return result;
-            case 3:
-                result = 100 * (s.charAt(0) - 48) + 10 * (s.charAt(1) - 48) + (s.charAt(2) - 48);
-                return result;
-            default:
-                result = 0;
-                for (int i = 0; i < s.length(); i++) {
-                    result = 10 * result + (s.charAt(i) - 48);
-                }
-                return result;
-        }
+        return parseInt( s );
     }
 
     private static double parseDouble(String val, double deft) {
@@ -964,8 +944,8 @@ public class TimeUtil {
             int sec = (int) dsec;
             int nanosec = (int) ((dsec - sec) * 1e9);
             return new int[]{
-                parseInt(m.group(2), 0), parseInt(m.group(4), 0), parseInt(m.group(6), 0),
-                parseInt(m.group(9), 0), parseInt(m.group(11), 0), sec, nanosec};
+                parseIntDeft(m.group(2), 0), parseIntDeft(m.group(4), 0), parseIntDeft(m.group(6), 0),
+                parseIntDeft(m.group(9), 0), parseIntDeft(m.group(11), 0), sec, nanosec};
         } else {
             if (stringIn.contains("P") && stringIn.contains("S") && !stringIn.contains("T")) {
                 throw new ParseException("ISO8601 duration expected but not found.  Was the T missing before S?", 0);
