@@ -1,12 +1,11 @@
 
 package org.hapiserver;
 
-import org.junit.After;
-import org.junit.AfterClass;
+import java.text.ParseException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
 
 /**
  * Tests of the useful TimeUtil.java code.
@@ -229,6 +228,7 @@ public class TimeUtilTest {
 
     /**
      * Test of parseISO8601Duration method, of class TimeUtil.
+     * @throws java.lang.Exception
      */
     @Test
     public void testParseISO8601Duration() throws Exception {
@@ -365,25 +365,39 @@ public class TimeUtilTest {
 
     /**
      * Test of parseISO8601TimeRange method, of class TimeUtil.
-     * @throws java.lang.Exception
      */
     @Test
-    public void testParseISO8601TimeRange() throws Exception {
+    public void testParseISO8601TimeRange() {
         System.out.println("parseISO8601TimeRange");
+        int[] result;
+
         String stringIn = "1998-01-02/1998-01-17";
         int[] expResult = new int[] { 1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0 };
-        int[] result = TimeUtil.parseISO8601TimeRange(stringIn);
-        assertArrayEquals(expResult, result);
-
+        try {
+            result = TimeUtil.parseISO8601TimeRange(stringIn);
+            assertArrayEquals(expResult, result);
+        } catch (ParseException ex) {
+            throw new AssertionError(ex);
+        }
+        
         stringIn = "2022-W13/P7D";
         expResult = new int[] { 2022, 3, 28, 0, 0, 0, 0, 2022, 4, 4, 0, 0, 0, 0 };
-        result = TimeUtil.parseISO8601TimeRange(stringIn);
-        assertArrayEquals(expResult, result);
+        try {
+            result = TimeUtil.parseISO8601TimeRange(stringIn);
+            assertArrayEquals(expResult, result);
+        } catch (ParseException ex) {
+            throw new AssertionError(ex);
+        }
+        
 
         stringIn = "P7D/2022-01-02";
         expResult = new int[] { 2021, 12, 26, 0, 0, 0, 0, 2022, 1, 2, 0, 0, 0, 0 };
-        result = TimeUtil.parseISO8601TimeRange(stringIn);
-        assertArrayEquals(expResult, result);
+        try {
+            result = TimeUtil.parseISO8601TimeRange(stringIn);
+            assertArrayEquals(expResult, result);
+        } catch (ParseException ex) {
+            throw new AssertionError(ex);
+        }
         
     }
 
@@ -480,12 +494,16 @@ public class TimeUtilTest {
      * Test of parseISO8601Time method, of class TimeUtil.
      */
     @Test
-    public void testParseISO8601Time() throws Exception {
+    public void testParseISO8601Time() {
         System.out.println("parseISO8601Time");
         String string = "2020-033T00:00";
         int[] expResult = new int[] { 2020, 2, 2, 0, 0, 0, 0 };
-        int[] result = TimeUtil.parseISO8601Time(string);
-        assertArrayEquals(expResult, result);
+        try {
+            int[] result = TimeUtil.parseISO8601Time(string);
+            assertArrayEquals(expResult, result);
+        } catch ( ParseException ex ) {
+            throw new AssertionError(ex);
+        }
     }
     
 }
