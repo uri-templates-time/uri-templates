@@ -911,7 +911,7 @@ public class TimeUtil {
         normalizeTime(time);
     }
 
-    private static final String simpleFloat = "\\d?\\.?\\d+";
+    private static final String simpleFloat = "\\d?\\.?\\d+"; 
     public static final String iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((" + simpleFloat + ")S)?)?";
     
     
