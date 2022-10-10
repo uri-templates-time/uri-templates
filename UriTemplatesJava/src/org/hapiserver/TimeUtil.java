@@ -362,8 +362,8 @@ public class TimeUtil {
      * @return efficient representation of the time range
      */
     public static String formatIso8601TimeRange( int[] nn ) {
-        String ss1= formatIso8601Time(nn);
-        String ss2= formatIso8601Time(nn, TIME_DIGITS);
+        String ss1= formatIso8601TimeInTimeRange(nn, 0);
+        String ss2= formatIso8601TimeInTimeRange(nn, TIME_DIGITS);
         int firstNonZeroDigit=7;
         while ( firstNonZeroDigit>3 && nn[firstNonZeroDigit-1]==0 && nn[firstNonZeroDigit+TIME_DIGITS-1]==0 ) {
             firstNonZeroDigit--;
@@ -385,6 +385,18 @@ public class TimeUtil {
     }
     
     /**
+     * format the time, but omit trailing zeros.  $Y-$m-$dT$H:$M is the coursest resolution returned.
+     * @param time seven element time range
+     * @param offset the offset into the time array (7 for stop time in 14-element range array).
+     * @return formatted time, possibly truncated to minutes, seconds, milliseconds, or microseconds
+     * @see #formatIso8601TimeBrief(int[]) 
+     * @deprecated see formatIso8601TimeInTimeRangeBrief
+     */
+    public static String formatIso8601Time(int[] time, int offset ) {
+        return formatIso8601TimeInTimeRange(time,offset);
+    }
+    
+    /**
      * return the string as a formatted string, which can be at an offset of seven positions 
      * to format the end date.
      * @param nn fourteen-element array of [ Y m d H M S nanos Y m d H M S nanos ]
@@ -392,7 +404,7 @@ public class TimeUtil {
      * @return formatted time "1999-12-31T23:00:00.000000000Z"
      * @see #isoTimeFromArray(int[]) 
      */
-    public static String formatIso8601Time( int[] nn, int offset ) {
+    public static String formatIso8601TimeInTimeRange( int[] nn, int offset ) {
         switch (offset) {
             case 0:
                 return isoTimeFromArray( nn );
@@ -411,9 +423,9 @@ public class TimeUtil {
      * @see #isoTimeFromArray(int[]) 
      */
     public static String formatIso8601Time( int[] nn ) {
-        return formatIso8601Time( nn,0 );
+        return isoTimeFromArray( nn );
     }
-    
+        
     /**
      * format the duration into human-readable time, for example
      * [ 0, 0, 7, 0, 0, 6 ] is formatted into "P7DT6S"
@@ -1220,9 +1232,22 @@ public class TimeUtil {
      * format the time, but omit trailing zeros.  $Y-$m-$dT$H:$M is the coursest resolution returned.
      * @param time seven element time range
      * @return formatted time, possibly truncated to minutes, seconds, milliseconds, or microseconds
+     * @see #formatIso8601TimeInTimeRangeBrief(int[] time, int offset ) 
      */
     public static String formatIso8601TimeBrief(int[] time ) {
-        return formatIso8601TimeBrief(time,0);
+        return formatIso8601TimeInTimeRangeBrief(time,0);
+    }
+     
+    /**
+     * format the time, but omit trailing zeros.  $Y-$m-$dT$H:$M is the coursest resolution returned.
+     * @param time seven element time range
+     * @param offset the offset into the time array (7 for stop time in 14-element range array).
+     * @return formatted time, possibly truncated to minutes, seconds, milliseconds, or microseconds
+     * @see #formatIso8601TimeBrief(int[]) 
+     * @deprecated see formatIso8601TimeInTimeRangeBrief
+     */
+    public static String formatIso8601TimeBrief(int[] time, int offset ) {
+        return formatIso8601TimeInTimeRangeBrief(time,offset);
     }
     
     /**
@@ -1230,10 +1255,11 @@ public class TimeUtil {
      * @param time seven element time range
      * @param offset the offset into the time array (7 for stop time in 14-element range array).
      * @return formatted time, possibly truncated to minutes, seconds, milliseconds, or microseconds
+     * @see #formatIso8601TimeBrief(int[]) 
      */
-    public static String formatIso8601TimeBrief(int[] time, int offset ) {
+    public static String formatIso8601TimeInTimeRangeBrief(int[] time, int offset ) {
         
-        String stime= TimeUtil.formatIso8601Time(time,offset);
+        String stime= TimeUtil.formatIso8601TimeInTimeRange(time,offset);
         
         int nanos= time[ COMPONENT_NANOSECOND+offset ];
         int micros= nanos % 1000;
