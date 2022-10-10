@@ -432,12 +432,12 @@ public class TimeUtilTest {
      * Test of formatIso8601Time method, of class TimeUtil.
      */
     @Test
-    public void testFormatIso8601Time_intArr_int() {
+    public void testFormatIso8601TimeInTimeRange() {
         System.out.println("formatIso8601Time");
         int[] nn = new int[] { 1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0 };
         int offset = 7;
         String expResult = "1998-01-17T00:00:00.000000000Z";
-        String result = TimeUtil.formatIso8601Time(nn, offset);
+        String result = TimeUtil.formatIso8601TimeInTimeRange(nn, offset);
         assertEquals(expResult, result);
     }
 
@@ -445,7 +445,7 @@ public class TimeUtilTest {
      * Test of formatIso8601Time method, of class TimeUtil.
      */
     @Test
-    public void testFormatIso8601Time_intArr() {
+    public void testFormatIso8601TimeInTime() {
         System.out.println("formatIso8601Time");
         int[] nn = new int[] { 1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0 };
         String expResult = "1998-01-02T00:00:00.000000000Z";
