@@ -911,17 +911,13 @@ public class TimeUtil {
         normalizeTime(time);
     }
 
-    private static final String simpleFloat = "\\d?\\.?\\d+"; 
-    public static final String iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((" + simpleFloat + ")S)?)?";
-    
-    
-    //public static final String iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?";
+    public static final String iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?";
     
     /**
      * Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
      */
-    public static final Pattern iso8601DurationPattern = 
-            Pattern.compile(iso8601duration);
+    public static final Pattern iso8601DurationPattern = // repeated for Java to Jython conversion.
+            Pattern.compile("P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?");
 
     /**
      * returns a 7 element array with [year,mon,day,hour,min,sec,nanos]. Note
