@@ -397,8 +397,7 @@ public class TimeUtil {
             case 0:
                 return isoTimeFromArray( nn );
             case 7:
-                int[] copy= new int[7];
-                System.arraycopy( nn, offset, copy, 0, 7 );
+                int[] copy = getStopTime(nn);
                 return isoTimeFromArray( copy );
             default:
                 throw new IllegalArgumentException( "offset must be 0 or 7");
@@ -912,13 +911,17 @@ public class TimeUtil {
         normalizeTime(time);
     }
 
-    public static final String iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d)S)?)?";
+    private static final String simpleFloat = "\\d?\\.?\\d+";
+    public static final String iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((" + simpleFloat + ")S)?)?";
+    
+    
+    //public static final String iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?";
     
     /**
      * Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
      */
     public static final Pattern iso8601DurationPattern = 
-            Pattern.compile("P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d)S)?)?");
+            Pattern.compile(iso8601duration);
 
     /**
      * returns a 7 element array with [year,mon,day,hour,min,sec,nanos]. Note
@@ -992,24 +995,24 @@ public class TimeUtil {
                 result[i]= time[i]-duration[i];
             }
             normalizeTime( result );
-            System.arraycopy(time, 0, result, TIME_DIGITS, TIME_DIGITS);
+            setStartTime( time,result );
             return result;
         } else if ( ss[1].startsWith("P") ) {
             int[] time= isoTimeToArray(ss[0]);
             int[] duration= parseISO8601Duration(ss[1]);
-            System.arraycopy(time, 0, result, 0, TIME_DIGITS);
+            setStartTime( time, result );
             int[] stoptime= new int[TIME_DIGITS];
             for ( int i=0; i<TIME_DIGITS; i++ ) {
                 stoptime[i]= time[i]+duration[i];
             }
             normalizeTime( stoptime );
-            System.arraycopy( stoptime, 0, result, TIME_DIGITS, TIME_DIGITS);
+            setStopTime( stoptime, result );
             return result;
         } else {
             int[] starttime= isoTimeToArray(ss[0]);
             int[] stoptime=  isoTimeToArray(ss[1]);
-            System.arraycopy(starttime, 0, result, 0, TIME_DIGITS);
-            System.arraycopy(stoptime, 0, result, TIME_DIGITS, TIME_DIGITS);
+            setStartTime( starttime, result );
+            setStopTime( stoptime, result );
             return result;
         }
     }
@@ -1152,8 +1155,8 @@ public class TimeUtil {
             throw new IllegalArgumentException("t1 is not smaller than t2");
         }
         int[] result= new int[TimeUtil.TIME_DIGITS*2];
-        System.arraycopy( t1, 0, result, 0, TimeUtil.TIME_DIGITS  );
-        System.arraycopy( t2, 0, result, TimeUtil.TIME_DIGITS , TimeUtil.TIME_DIGITS  );
+        setStartTime( result, t1 );
+        setStopTime( result, t2 );
         return result;
     }
 
@@ -1162,12 +1165,12 @@ public class TimeUtil {
      * it is fine to use a time range as the start time, because codes
      * will only read the first seven components, and this is only added
      * to make code more readable.
-     * @param tr a fourteen-element time range.
+     * @param range a fourteen-element time range.
      * @return the start time.
      */
-    public static int[] getStartTime( int [] tr ) {
+    public static int[] getStartTime( int [] range ) {
         int[] result= new int[ TimeUtil.TIME_DIGITS ];
-        System.arraycopy( tr, 0, result, 0, TimeUtil.TIME_DIGITS  );
+        System.arraycopy( range, 0, result, 0, TimeUtil.TIME_DIGITS  );
         return result;
     }
     
@@ -1175,13 +1178,34 @@ public class TimeUtil {
      * return the seven element stop time from the time range.  Note
      * it is fine to use a time range as the start time, because codes
      * will only read the first seven components.
-     * @param tr a fourteen-element time range.
+     * @param range a fourteen-element time range.
      * @return the stop time.
      */
-    public static int[] getStopTime( int [] tr ) {
+    public static int[] getStopTime( int [] range ) {
         int[] result= new int[ TimeUtil.TIME_DIGITS ];
-        System.arraycopy( tr, TimeUtil.TIME_DIGITS , result, 0, TimeUtil.TIME_DIGITS  );
+        System.arraycopy( range, TimeUtil.TIME_DIGITS , result, 0, TimeUtil.TIME_DIGITS  );
         return result;
+    }
+    
+    /**
+     * copy the components of time into the start position (indeces 7-14) of the time range.
+     * This one-line method was introduced to clarify code and make conversion to 
+     * other languages (in particular Python) easier.
+     * @param time the seven-element start time
+     * @param range the fourteen-element time range.
+     */
+    public static void setStartTime( int[] time, int[] range ) {
+        System.arraycopy( time, 0, range, 0, TimeUtil.TIME_DIGITS  );
+    }
+    
+    
+    /**
+     * copy the components of time into the stop position (indeces 7-14) of the time range.
+     * @param time the seven-element stop time
+     * @param range the fourteen-element time range.
+     */
+    public static void setStopTime( int[] time, int[] range ) {
+        System.arraycopy( time, 0, range, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS  );
     }
     
     /**
@@ -1273,9 +1297,9 @@ public class TimeUtil {
             width[1]= width[1]+12;
             width[0]= width[0]-1;
         }
-        System.arraycopy( range, TimeUtil.TIME_DIGITS, result, 0, TimeUtil.TIME_DIGITS );
-        System.arraycopy( TimeUtil.add( getStopTime(range), width ), 0, 
-            result, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS );
+        // System.arraycopy( range, TimeUtil.TIME_DIGITS, result, 0, TimeUtil.TIME_DIGITS );
+        setStartTime( getStopTime(range), result ); // This creates an extra array, but let's not worry about that.
+        setStopTime( TimeUtil.add( getStopTime(range), width ), result );
         return result;
     }
         
