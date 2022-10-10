@@ -995,7 +995,7 @@ public class TimeUtil {
                 result[i]= time[i]-duration[i];
             }
             normalizeTime( result );
-            setStartTime( time,result );
+            setStopTime( time,result );
             return result;
         } else if ( ss[1].startsWith("P") ) {
             int[] time= isoTimeToArray(ss[0]);
