@@ -411,7 +411,7 @@ public class TimeUtil {
      * @see #isoTimeFromArray(int[]) 
      */
     public static String formatIso8601Time( int[] nn ) {
-        return isoTimeFromArray( nn );
+        return formatIso8601Time( nn,0 );
     }
     
     /**
