@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
  *   String filen1= "/tmp/20220314_3.dat";
  *   int[] itimeRange= ut.parse( filen1, new HashMap<>() );
  * </pre>
- * Formatting is done with the format method:</pre>
+ * Formatting is done with the format method:<pre>
  *   URITemplate ut= new URITemplate("/tmp/$Y$m$d_$(v,name=sc).dat");
  *   ut.format( new int[] { 2022, 3, 14, 0, 0, 0, 0 }, new int[] { 2022, 3, 15, 0, 0, 0, 0 }, Collections.singletonMap( "sc", "3" ) );
  * </pre>
@@ -48,9 +48,17 @@ public class URITemplate {
     }
     
     String spec;
+    
+    /**
+     * number of digits, or components would be a better name.  For example, $Y/$Y$m$d.dat has four digits.
+     */
     int ndigits; // one for each field
     String[] digits;
-    String[] delims; // non-template stuff between fields (_ in $Y_$m)
+    
+    /**
+     * non-template stuff between fields (_ in $Y_$m) are the "delims"
+     */
+    String[] delims; 
     
     String[] qualifiers;
     Map<String,String>[] qualifiersMaps;
@@ -231,7 +239,11 @@ public class URITemplate {
 
         Map<String,Integer> values;
         Map<Integer,String> revvalues;
-        int mult; // multiply by this to get the start hour
+        
+        /**
+         * multiply by this to get the start hour
+         */
+        int mult; 
         
         @Override
         public String configure(Map<String, String> args) {
