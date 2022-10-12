@@ -7,7 +7,6 @@ import java.time.temporal.TemporalAccessor;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,8 +23,6 @@ import java.util.regex.Pattern;
  * @author jbf
  */
 public class TimeUtil {
-
-    private static final Logger logger = Logger.getLogger("hapiserver.timeutil");
 
     /**
      * Number of time components: year, month, day, hour, minute, second, nanosecond
@@ -802,7 +799,6 @@ public class TimeUtil {
      * @param time the seven-component time Y,m,d,H,M,S,nanoseconds
      */
     public static void normalizeTime(int[] time) {
-        logger.entering( "TimeUtil", "normalizeTime" );
         while ( time[6]>100000000 ) {
             time[5] = time[5]+1;
             time[6] -= 100000000;
@@ -864,7 +860,6 @@ public class TimeUtil {
             time[0] = time[0] + 1;
             time[1] = 1;
             time[2] = time[2]-31;
-            logger.exiting( "TimeUtil", "normalizeTime" );
             return;
         }
         int leap = isLeapYear(time[0]) ? 1 : 0;
@@ -885,7 +880,6 @@ public class TimeUtil {
                 throw new IllegalArgumentException("time[2] is too big");
             }
         }
-        logger.exiting( "TimeUtil", "normalizeTime" );
     }
     
     /**
