@@ -19,3 +19,4 @@ Here is a list of implementations of the specification:
 | Autoplot Aggregation<br>nearly complete for spec | Java  | https://autoplot.org/ |
 | URI_Templates JavaScript | JavaScript | Coming Soon |
 | URI_Templates Python | Python | Coming Fall 2022 |
+
