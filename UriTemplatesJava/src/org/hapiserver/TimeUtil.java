@@ -4,7 +4,6 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
@@ -168,7 +167,8 @@ public class TimeUtil {
 
     /**
      * count off the days between startTime and stopTime, but not including
-     * stopTime.
+     * stopTime.  For example, countOffDays("1999-12-31Z", "2000-01-03Z")
+     * will return [ "1999-12-31Z", "2000-01-01Z", "2000-01-02Z" ].
      *
      * @param startTime an iso time string
      * @param stopTime an iso time string
@@ -178,14 +178,28 @@ public class TimeUtil {
         if (stopTime.length() < 10 || Character.isDigit(stopTime.charAt(10))) {
             throw new IllegalArgumentException("arguments must be $Y-$m-$dZ");
         }
-        ArrayList<String> result = new ArrayList();
-        String time = normalizeTimeString(startTime).substring(0, 10) + 'Z';
-        stopTime = ceil(stopTime).substring(0, 10) + 'Z';
-        while (time.compareTo(stopTime) < 0) {
-            result.add(time.substring(0));
-            time = nextDay(time);
+        int[] t1,t2;
+        try {
+            t1 = parseISO8601Time(startTime);
+            t2 = parseISO8601Time(stopTime);
+        } catch ( ParseException ex ) {
+            throw new IllegalArgumentException(ex);
         }
-        return result.toArray(new String[result.size()]);
+        int j1= julianDay( t1[0], t1[1], t1[2] );
+        int j2= julianDay( t2[0], t2[1], t2[2] );
+        String[] result= new String[j2-j1];
+        String time = normalizeTimeString(startTime).substring(0, 10) + 'Z';
+        stopTime = floor(stopTime).substring(0, 10) + 'Z';
+        int i=0;
+        int[] nn = isoTimeToArray(time);
+        while (time.compareTo(stopTime) < 0) {
+            result[i] = time;
+            nn[2] = nn[2] + 1;
+            if ( nn[2]>28 ) normalizeTime(nn);
+            time =  String.format("%04d-%02d-%02dZ", nn[0], nn[1], nn[2]);
+            i++;
+        }
+        return result;
     }
 
     /**
