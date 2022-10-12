@@ -59,11 +59,20 @@ public class TimeUtilTest {
     @Test
     public void testCountOffDays() {
         System.out.println("countOffDays");
-        String startTime = "1999-12-31Z";
-        String stopTime = "2000-01-03Z";
-        String[] expResult = new String[] { "1999-12-31Z", "2000-01-01Z", "2000-01-02Z" };
-        String[] result = TimeUtil.countOffDays(startTime, stopTime);
+        String startTime, stopTime;
+        String[] expResult, result;
+        startTime = "1999-12-31Z";
+        stopTime = "2000-01-03Z";
+        expResult = new String[] { "1999-12-31Z", "2000-01-01Z", "2000-01-02Z" };
+        result = TimeUtil.countOffDays(startTime, stopTime);
         assertArrayEquals(expResult, result);
+        
+        startTime = "1999-12-31T12:00Z";
+        stopTime = "2000-01-03T12:00Z";
+        expResult = new String[] { "1999-12-31Z", "2000-01-01Z", "2000-01-02Z" };
+        result = TimeUtil.countOffDays(startTime, stopTime);
+        assertArrayEquals(expResult, result);
+        
     }
 
     /**
