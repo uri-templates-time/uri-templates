@@ -1435,7 +1435,11 @@ public class URITemplate {
                             time[YEAR] = digit;
                             break;
                         case 1:
-                            time[YEAR] = digit < 58 ? 2000 + digit : 1900 + digit;
+                            if ( digit<58 ) {
+                                time[YEAR] = 2000 + digit;
+                            } else {
+                                time[YEAR] = 1900 + digit;
+                            }
                             break;
                         case 2:
                             time[MONTH] = 1;
@@ -1502,7 +1506,11 @@ public class URITemplate {
                     String name;
                     Map<String,String> qual= this.qualifiersMaps[idigit];
                     if ( qual!=null ) {
-                        name= qual.containsKey("name") ? qual.get("name") : "x";
+                        if ( qual.containsKey("name") ) {
+                            name = qual.get("name");
+                        } else {
+                            name=  "x";
+                        }
                     } else {
                         name= "x";
                     }
