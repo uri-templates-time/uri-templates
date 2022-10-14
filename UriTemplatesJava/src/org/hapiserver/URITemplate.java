@@ -47,12 +47,53 @@ public class URITemplate {
         return VERSION;
     }
     
+    /**
+     * the earliest valid year, limited because of Julian day calculations.
+     */
+    public static final int MIN_VALID_YEAR= 1582;
+    
+    /**
+     * the last valid year.
+     */
+    public static final int MAX_VALID_YEAR= 9000;
+
+    /**
+     * the number of elements in an int array used to store times.  The
+     * seven elements are: <ul>
+     * <li>0: year, the four digit common era year
+     * <li>1: month, the month number between 1 and 12.
+     * <li>2: day, the day of the month, starting at 1.
+     * <li>3: hour, the hour of the day, starting at 0 and as much as 23.
+     * <li>4: minute, the minute of the hour, starting at 0 and as much as 59.
+     * <li>5: seconds, the second of the minute, starting at 0 and as much as 59, and much as 60 for leap seconds.
+     * <li>6: nanoseconds, the nanoseconds into the second, starting at 0 and as much as 999999999.
+     * </ul>
+     */
+    public static final int NUM_TIME_DIGITS = 7;
+
+    public static final int YEAR=0;
+    public static final int MONTH=1;
+    public static final int DAY=2;
+    public static final int HOUR=3;
+    public static final int MINUTE=4;
+    public static final int SECOND=5;
+    public static final int NANOSECOND=6;
+    
+    /**
+     * initial state of the afterstop field, present when no stop time is found.
+     */
+    private static final int AFTERSTOP_INIT = 999;
+
+    /**
+     * the specification, like $Y$m$d_$(Y;end)$m$d.dat
+     */
     String spec;
     
     /**
      * number of digits, or components would be a better name.  For example, $Y/$Y$m$d.dat has four digits.
      */
-    int ndigits; // one for each field
+    int ndigits;
+    
     String[] digits;
     
     /**
@@ -101,7 +142,7 @@ public class URITemplate {
     /**
      * first digit which is part of the stop time
      */
-    int stopTimeDigit= AFTERSTOP_INIT; 
+    int stopTimeDigit; 
     
     private int lsd;
     private int[] timeWidth;
@@ -656,40 +697,6 @@ public class URITemplate {
     };
     
     /**
-     * the earliest valid year, limited because of Julian day calculations.
-     */
-    public static final int MIN_VALID_YEAR= 1582;
-    
-    /**
-     * the last valid year.
-     */
-    public static final int MAX_VALID_YEAR= 9000;
-
-    /**
-     * the number of elements in an int array used to store times.  The
-     * seven elements are: <ul>
-     * <li>0: year
-     * <li>1: month
-     * <li>2: day
-     * <li>3: hour
-     * <li>4: minute
-     * <li>5: seconds
-     * <li>6: nanoseconds
-     * </ul>
-     */
-    public static final int NUM_TIME_DIGITS = 7;
-
-    public static final int YEAR=0;
-    public static final int MONTH=1;
-    public static final int DAY=2;
-    public static final int HOUR=3;
-    public static final int MINUTE=4;
-    public static final int SECOND=5;
-    public static final int NANOSECOND=6;
-    
-    private static final int AFTERSTOP_INIT = 999;
-    
-    /**
      * convert %() and ${} to standard $(), and support legacy modes in one
      * compact place.  Asterisk (*) is replaced with $x.
      * Note, commas may still appear in qualifier lists, and 
@@ -866,6 +873,8 @@ public class URITemplate {
         startTime[0]= MIN_VALID_YEAR;
         startTime[1]= 1;
         startTime[2]= 1;
+        
+        stopTimeDigit = AFTERSTOP_INIT;
         
         int[] stopTime = new int[NUM_TIME_DIGITS];
         stopTime[0]= MAX_VALID_YEAR;
@@ -1829,15 +1838,15 @@ public class URITemplate {
                             int phaseStartJulian= TimeUtil.julianDay( phasestart[0], phasestart[1], phasestart[2] );
                             int ndays= TimeUtil.julianDay(  timel[0], timel[1], timel[2] ) - phaseStartJulian;
                             int ncycles= Math.floorDiv( ndays, timeWidth[2] );
-                            
+                               
                             int[] tnew= TimeUtil.fromJulianDay(phaseStartJulian+ncycles*delta);
                             timel[0]= tnew[0];
                             timel[1]= tnew[1];
                             timel[2]= tnew[2];
-
+                                
                         } else {
                             throw new IllegalArgumentException("phaseshart not set for delta days");
-                        }
+                        }   
                     } else {
                         digit= ( digit / delta ) * delta;
                     }
