@@ -4,18 +4,16 @@ package org.hapiserver;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -350,7 +348,7 @@ public class URITemplate {
         
         @Override
         public String configure( Map<String, String> args ) {
-            this.args= new LinkedHashMap<>(args);
+            this.args= new HashMap<>(args);
             String s= args.get("start");
             if ( s==null ) return "periodic field needs start";
             start= TimeUtil.isoTimeToArray(s);
@@ -441,12 +439,12 @@ public class URITemplate {
      */
     public static class EnumFieldHandler implements FieldHandler {
 
-        LinkedHashSet<String> values;
+        Set<String> values;
         String id;
         
         @Override
         public String configure( Map<String, String> args ) {
-            values= new LinkedHashSet();
+            values= new HashSet();
             String svalues= args.remove("values");
             String[] ss= svalues.split(",",-2);
             if ( ss.length==1 ) {
@@ -1754,10 +1752,10 @@ public class URITemplate {
         int offs = 0;
         int len;
         
-        NumberFormat[] nf = new NumberFormat[5];
-        nf[2] = new DecimalFormat("00");
-        nf[3] = new DecimalFormat("000");
-        nf[4] = new DecimalFormat("0000");
+        String[] nf = new String[5];
+        nf[2] = "%02d";
+        nf[3] = "%03d";
+        nf[4] = "%04d";
 
         for (int idigit = 1; idigit < ndigits; idigit++) {
             if ( idigit==stopTimeDigit ) {
@@ -1860,7 +1858,7 @@ public class URITemplate {
                         // TODO: suboptimal
                         String pad= this.qualifiersMaps[idigit].get("pad");
                         if ( pad==null || pad.equals("zero") ) { 
-                            result.insert(offs, nf[len].format(digit));
+                            result.insert(offs, String.format(nf[len],digit) );
                             offs+= len;
                         } else {
                             if ( digit<10 ) {
@@ -1881,18 +1879,18 @@ public class URITemplate {
                                         offs+= 1;
                                         break;
                                     default:
-                                        result.insert(offs, nf[len].format(digit));
+                                        result.insert(offs, String.format( nf[len], digit) );
                                         offs+= len;
                                         break;
                                 }
                                 
                             } else {
-                                result.insert(offs, nf[len].format(digit));
+                                result.insert(offs, String.format( nf[len], digit) );
                                 offs+= len;
                             }
                         }
                     } else {
-                        result.insert(offs, nf[len].format(digit));
+                        result.insert(offs, String.format( nf[len], digit) );
                         offs += len;
                     }
                 }
@@ -1972,7 +1970,7 @@ public class URITemplate {
             printUsage();
             System.exit(-1);
         }
-        Map<String,String> argsm= new LinkedHashMap<>();
+        Map<String,String> argsm= new HashMap<>();
         for (String a : args) {
             String[] aa= a.split("=",2);
             if ( aa.length==1 ) {
