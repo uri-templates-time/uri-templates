@@ -799,9 +799,9 @@ public class TimeUtil {
      * @param time the seven-component time Y,m,d,H,M,S,nanoseconds
      */
     public static void normalizeTime(int[] time) {
-        while ( time[6]>100000000 ) {
+        while ( time[6]>=1000000000 ) {
             time[5] = time[5]+1;
-            time[6] -= 100000000;
+            time[6] -= 1000000000;
         }
         while ( time[5]>59 ) { // TODO: leap seconds?
             time[4]= time[4]+1;

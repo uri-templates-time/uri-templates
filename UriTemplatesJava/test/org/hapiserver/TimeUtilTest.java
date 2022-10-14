@@ -197,6 +197,9 @@ public class TimeUtilTest {
         int[] expResult = new int[] { 2020, 2, 3, 6, 7, 8, 10001 };
         int[] result = TimeUtil.isoTimeToArray("2020-034T06:07:08.000010001");
         assertArrayEquals(expResult, result);
+        expResult = new int[] { 2012, 1, 17, 2, 0, 0, 245000000 };
+        result = TimeUtil.isoTimeToArray("2012-01-17T02:00:00.245");
+        assertArrayEquals(expResult, result);
         TimeUtil.isoTimeToArray("2020-033T06:07:08.000010001");
         TimeUtil.isoTimeToArray("2020-03-03Z");
         TimeUtil.isoTimeToArray("2020-033Z");
