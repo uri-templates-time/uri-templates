@@ -1787,7 +1787,11 @@ public class URITemplate {
                         digit = timel[0];
                         break;
                     case 1:
-                        digit = (timel[0] < 2000) ? timel[0] - 1900 : timel[0] - 2000;
+                        if ( timel[0]<2000 ) {
+                            digit = timel[0] - 1900;
+                        } else {
+                            digit = timel[0] - 2000;
+                        }
                         break;
                     case 2:
                         digit = TimeUtil.dayOfYear( timel[0], timel[1], timel[2] );
