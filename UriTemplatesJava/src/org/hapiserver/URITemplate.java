@@ -1750,7 +1750,7 @@ public class URITemplate {
         StringBuilder result = new StringBuilder(100);
 
         int offs = 0;
-        int len;
+        int length;
         
         String[] nf = new String[5];
         nf[2] = "%02d";
@@ -1770,9 +1770,9 @@ public class URITemplate {
                 offs += this.delims[idigit - 1].length();
             }
             if (lengths[idigit] != -1) {
-                len = lengths[idigit];
+                length = lengths[idigit];
             } else {
-                len = -9999;  // the field handler will tell us.
+                length = -9999;  // the field handler will tell us.
 
             }
             if (handlers[idigit] < 10) {
@@ -1849,7 +1849,7 @@ public class URITemplate {
                         digit= ( digit / delta ) * delta;
                     }
                 }
-                if ( len<0 ) {
+                if ( length<0 ) {
                     String ss= String.valueOf(digit);
                     result.insert(offs, ss);
                     offs+= ss.length();
@@ -1858,8 +1858,8 @@ public class URITemplate {
                         // TODO: suboptimal
                         String pad= this.qualifiersMaps[idigit].get("pad");
                         if ( pad==null || pad.equals("zero") ) { 
-                            result.insert(offs, String.format(nf[len],digit) );
-                            offs+= len;
+                            result.insert(offs, String.format(nf[length],digit) );
+                            offs+= length;
                         } else {
                             if ( digit<10 ) {
                                 switch (pad) {
@@ -1879,26 +1879,26 @@ public class URITemplate {
                                         offs+= 1;
                                         break;
                                     default:
-                                        result.insert(offs, String.format( nf[len], digit) );
-                                        offs+= len;
+                                        result.insert(offs, String.format( nf[length], digit) );
+                                        offs+= length;
                                         break;
                                 }
                                 
                             } else {
-                                result.insert(offs, String.format( nf[len], digit) );
-                                offs+= len;
+                                result.insert(offs, String.format( nf[length], digit) );
+                                offs+= length;
                             }
                         }
                     } else {
-                        result.insert(offs, String.format( nf[len], digit) );
-                        offs += len;
+                        result.insert(offs, String.format( nf[length], digit) );
+                        offs += length;
                     }
                 }
 
             } else if (handlers[idigit] == 13) { // month names
 
                 result.insert(offs, TimeUtil.monthNameAbbrev(timel[1]));
-                offs += len;
+                offs += length;
 
             } else if (handlers[idigit] == 12 || handlers[idigit]==14 ) { // ignore
                 throw new RuntimeException("cannot format spec containing ignore");
@@ -1906,16 +1906,16 @@ public class URITemplate {
             } else if (handlers[idigit] == 100) {
                 if ( fc[idigit].equals("v") ) { // kludge for version.  TODO: This can probably use the code below now.
                     String ins= extra.containsKey("v") ? extra.get("v") : "00";
-                    if ( len>-1 ) {
-                        if ( len>20 ) throw new IllegalArgumentException("version lengths>20 not supported");
-                        ins= "00000000000000000000".substring(0,len);
+                    if ( length>-1 ) {
+                        if ( length>20 ) throw new IllegalArgumentException("version lengths>20 not supported");
+                        ins= "00000000000000000000".substring(0,length);
                     }
                     result.insert( offs, ins );
                     offs+= ins.length();
                 } else {
                     FieldHandler fh1= fieldHandlers.get(fc[idigit]);
                     int[] timeEnd = stopTime;
-                    String ins= fh1.format( timel, TimeUtil.subtract(timeEnd, timel), len, extra );
+                    String ins= fh1.format( timel, TimeUtil.subtract(timeEnd, timel), length, extra );
                     int[] startTimeTest= new int[NUM_TIME_DIGITS];
                     System.arraycopy(timel, 0, startTimeTest, 0, NUM_TIME_DIGITS);
                     int[] timeWidthTest= new int[NUM_TIME_DIGITS];
@@ -1930,8 +1930,8 @@ public class URITemplate {
                     } catch (ParseException ex) {
                         logger.log(Level.SEVERE, null, ex);
                     }
-                    if ( len>-1 && ins.length()!=len ) {
-                        throw new IllegalArgumentException("length of fh is incorrect, should be "+len+", got \""+ins+"\"");
+                    if ( length>-1 && ins.length()!=length ) {
+                        throw new IllegalArgumentException("length of fh is incorrect, should be "+length+", got \""+ins+"\"");
                     }
                     result.insert( offs, ins );
                     offs+= ins.length();
