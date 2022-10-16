@@ -1375,7 +1375,7 @@ public class URITemplate {
         logger.log(Level.FINER, "parse {0}", timeString);
         
         int offs = 0;
-        int len = 0;
+        int length = 0;
 
         int[] time;
         
@@ -1400,14 +1400,14 @@ public class URITemplate {
 
                 offs = offsets[idigit];
             } else {
-                offs += len + this.delims[idigit - 1].length();
+                offs += length + this.delims[idigit - 1].length();
             }
             if (lengths[idigit] != -1) {
-                len = lengths[idigit];
+                length = lengths[idigit];
             } else {
                 if (this.delims[idigit].equals("")) {
                     if (idigit == ndigits - 1) {
-                        len = timeString.length() - offs;
+                        length = timeString.length() - offs;
                     } else {
                         throw new IllegalArgumentException("No delimer specified after unknown length field, \"" + formatName[handlers[idigit]] + "\", field number=" + (1 + idigit) + "");
                     }
@@ -1420,15 +1420,15 @@ public class URITemplate {
                     if (i == -1) {
                         throw new ParseException("expected delimiter \"" + this.delims[idigit] + "\"", offs);
                     }
-                    len = i - offs;
+                    length = i - offs;
                 }
             }
 
-            if ( timeString.length()<offs+len ) {
+            if ( timeString.length()<offs+length ) {
                 throw new ParseException( "string is too short: "+timeString, timeString.length() );
             }
 
-            String field= timeString.substring(offs, offs + len).trim();
+            String field= timeString.substring(offs, offs + length).trim();
             
             logger.log(Level.FINEST, "handling {0} with {1}", new Object[]{field, handlers[idigit]});
             
@@ -1475,7 +1475,7 @@ public class URITemplate {
                     }
                 } else if (handlers[idigit] == 100) {
                     FieldHandler handler = (FieldHandler) fieldHandlers.get(fc[idigit]);
-                    handler.parse(timeString.substring(offs, offs + len), time, timeWidth, extra );
+                    handler.parse(timeString.substring(offs, offs + length), time, timeWidth, extra );
                     
                 } else if (handlers[idigit] == 10) { // AM/PM -- code assumes hour has been read already
                     char ch = timeString.charAt(offs);
@@ -1494,20 +1494,20 @@ public class URITemplate {
                     }
                 } else if (handlers[idigit] == 11) { // TimeZone is not supported, see code elsewhere.
                     int offset;
-                    offset= Integer.parseInt(timeString.substring(offs, offs + len));
+                    offset= Integer.parseInt(timeString.substring(offs, offs + length));
                     time[HOUR] -= offset / 100;   // careful!
 
                     time[MINUTE] -= offset % 100;
                 } else if (handlers[idigit] == 12) { // $(ignore)
-                    if ( len>=0 ) {
-                        extra.put( "ignore", timeString.substring(offs, offs + len) );
+                    if ( length>=0 ) {
+                        extra.put( "ignore", timeString.substring(offs, offs + length) );
                     }
                 } else if (handlers[idigit] == 13) { // month name
-                    time[MINUTE] = TimeUtil.monthNumber(timeString.substring(offs, offs + len));
+                    time[MINUTE] = TimeUtil.monthNumber(timeString.substring(offs, offs + length));
 
                 } else if (handlers[idigit] == 14) { // "X"
-                    if ( len>=0 ) {
-                        extra.put( "X", timeString.substring(offs, offs + len) );
+                    if ( length>=0 ) {
+                        extra.put( "X", timeString.substring(offs, offs + length) );
                     }
                 } else if (handlers[idigit] == 15) { // "x"
                     String name;
@@ -1521,8 +1521,8 @@ public class URITemplate {
                     } else {
                         name= "x";
                     }
-                    if ( len>=0 ) {
-                        extra.put( name, timeString.substring(offs, offs + len) );
+                    if ( length>=0 ) {
+                        extra.put( name, timeString.substring(offs, offs + length) );
                     }
                 }
             } catch ( NumberFormatException ex ) {
