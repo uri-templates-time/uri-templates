@@ -349,18 +349,28 @@ public class URITemplate {
         @Override
         public String configure( Map<String, String> args ) {
             this.args= new HashMap<>(args);
-            String s= args.get("start");
-            if ( s==null ) return "periodic field needs start";
+            String s;
+            if ( args.containsKey("start") ) {
+                s = args.get("start");
+            } else {
+                return "periodic field needs start";
+            }
             start= TimeUtil.isoTimeToArray(s);
             julday= TimeUtil.julianDay( start[0], start[1], start[2] );
             start[0]= 0;
             start[1]= 0;
             start[2]= 0;
-            s= args.get("offset");
-            if ( s==null ) return "periodic field needs offset";
+            if ( args.containsKey("offset") ) {
+                s= args.get("offset");
+            } else {
+                return "periodic field needs offset";
+            }
             offset= Integer.parseInt( s );
-            s= args.get("period");
-            if ( s==null ) return "periodic field needs period";
+            if ( args.containsKey("period") ) {
+                s= args.get("period");
+            } else {
+                return "periodic field needs period";
+            }
             if ( !s.startsWith("P") ) {
                 if ( s.endsWith("D") ) {
                     throw new IllegalArgumentException("periodic unit for day is d, not D");
