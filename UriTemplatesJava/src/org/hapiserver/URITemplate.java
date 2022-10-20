@@ -170,7 +170,22 @@ public class URITemplate {
      */
     private int[] phasestart;
     private int startLsd;
-        
+    
+    /**
+     * return the value within the map, or the deft if the argument is not in the map.
+     * @param args a map (or dictionary) of the arguments
+     * @param arg the argument to retrieve
+     * @param deft the default value to return when the argument is not found.
+     * @return the value.
+     */
+    private static String getArg( Map<String,String> args, String arg, String deft ) {
+        if ( args.containsKey(arg) ) {
+            return args.get(arg);
+        } else {
+            return deft;
+        }
+    }
+    
     /**
      * Interface to add custom handlers for strings with unique formats.  For 
      * example, the RPWS group had files with two-hex digits indicating the 
@@ -241,7 +256,7 @@ public class URITemplate {
         
         @Override
         public String configure(Map<String, String> args) {
-            places= Integer.parseInt( args.get("places") );
+            places= Integer.parseInt( getArg( args, "places", null ) );
             if ( places>9 ) throw new IllegalArgumentException("only nine places allowed.");
             nanosecondsFactor= (int)( Math.pow( 10, (9-places) ) ); 
             format= "%0"+places+"d";
@@ -349,10 +364,8 @@ public class URITemplate {
         @Override
         public String configure( Map<String, String> args ) {
             this.args= new HashMap<>(args);
-            String s;
-            if ( args.containsKey("start") ) {
-                s = args.get("start");
-            } else {
+            String s = getArg( args, "start", null );
+            if ( s==null ) {
                 return "periodic field needs start";
             }
             start= TimeUtil.isoTimeToArray(s);
@@ -360,15 +373,13 @@ public class URITemplate {
             start[0]= 0;
             start[1]= 0;
             start[2]= 0;
-            if ( args.containsKey("offset") ) {
-                s= args.get("offset");
-            } else {
+            s= getArg( args, "offset", null );
+            if ( s==null ) {
                 return "periodic field needs offset";
             }
             offset= Integer.parseInt( s );
-            if ( args.containsKey("period") ) {
-                s= args.get("period");
-            } else {
+            s= getArg( args, "period", null );
+            if ( s==null ) {
                 return "periodic field needs period";
             }
             if ( !s.startsWith("P") ) {
@@ -455,7 +466,8 @@ public class URITemplate {
         @Override
         public String configure( Map<String, String> args ) {
             values= new HashSet();
-            String svalues= args.remove("values");
+            String svalues= getArg( args, "values", null );
+            if ( svalues==null ) return "need values";
             String[] ss= svalues.split(",",-2);
             if ( ss.length==1 ) {
                 String[] ss2= svalues.split("|",-2); // support legacy URIs.
@@ -466,13 +478,8 @@ public class URITemplate {
             }
             values.addAll(Arrays.asList(ss));
             
-            String s= args.remove("id");
-            if ( s!=null ) id= s; else id="unindentifiedEnum";
-            
-            if ( args.size()>0 ) {
-                throw new IllegalArgumentException("unrecognized field: "+args);
-            }
-            
+            id= getArg( args, "id", "unindentifiedEnum" );
+                        
             return null;
         }
 
@@ -532,21 +539,17 @@ public class URITemplate {
         
         @Override
         public String configure(Map<String, String> args) {
-            regex= args.get("regex");
+            regex= getArg( args, "regex", null );
             if ( regex!=null ) {
                 pattern= Pattern.compile(regex);
             }
-            if ( args.containsKey("name") ) {
-                name= args.get("name");
-            } else {
-                name= "unnamed";
-            }
+            name= getArg( args, "name", "unnamed" );
             return null;
         }
 
         @Override
         public String getRegex() {
-            return regex;
+            return regex; // note this can be null (None).
         }
 
         @Override
@@ -637,15 +640,15 @@ public class URITemplate {
                 
         @Override
         public String configure( Map<String,String> args ) {
-            String sep= args.get( "sep" );
+            String sep= getArg( args, "sep", null );
             if ( sep==null && args.containsKey("dotnotation")) {
                 sep= "T";
             }
-            String alpha= args.get( "alpha" );
+            String alpha= getArg( args, "alpha", null );
             if ( alpha==null && args.containsKey("alphanumeric") ) {
                 alpha="T";
             }
-            String type= args.get("type");
+            String type= getArg( args, "type", null );
             if ( type!=null ) {
                 if ( type.equals("sep") || type.equals("dotnotation") ) {
                     sep= "T";
@@ -653,17 +656,17 @@ public class URITemplate {
                     alpha="T"; 
                 }
             }
-            if ( args.get("gt")!=null ) {
+            if ( args.containsKey("gt") ) {
                 throw new IllegalArgumentException("gt specified but not supported: must be ge or lt");
             }
-            if ( args.get("le")!=null ) {
+            if ( args.containsKey("le") ) {
                 throw new IllegalArgumentException("le specified but not supported: must be ge or lt");
             }
-            String ge= args.get("ge");
+            String ge= getArg( args, "ge", null );
             if ( ge!=null ) {
                 versionGe= ge;
             }
-            String lt= args.get("lt");
+            String lt= getArg( args, "lt", null );
             if ( lt!=null ) {
                 versionLt= lt;
             }
