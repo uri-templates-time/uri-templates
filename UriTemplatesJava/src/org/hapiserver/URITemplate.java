@@ -614,8 +614,10 @@ public class URITemplate {
                 for ( int i=0; i<n; i++ ) {
                     int d1= Integer.parseInt(ss1[i]);
                     int d2= Integer.parseInt(ss2[i]);
-                    if ( d1!=d2 ) {
-                        return d1 < d2 ? -1 : 1;
+                    if ( d1<d2 ) {
+                        return -1;
+                    } else if (d1>d2) {
+                        return 1;
                     }
                 }
                 return ss1.length - ss2.length;  // the longer version wins (3.2.1 > 3.2)
