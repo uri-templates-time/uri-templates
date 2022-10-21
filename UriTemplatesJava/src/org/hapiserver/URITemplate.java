@@ -616,7 +616,7 @@ public class URITemplate {
                     int d2= Integer.parseInt(ss2[i]);
                     if ( d1<d2 ) {
                         return -1;
-                    } else if (d1>d2) {
+                    } else if ( d1>d2 ) {
                         return 1;
                     }
                 }
