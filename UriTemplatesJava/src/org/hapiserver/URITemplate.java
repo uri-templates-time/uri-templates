@@ -585,43 +585,51 @@ public class URITemplate {
         /**
          * simple floating point numeric comparisons.
          */
-        numeric( (String s1, String s2) -> {
-            Double d1= Double.parseDouble(s1);
-            Double d2= Double.parseDouble(s2);
-            return d1.compareTo(d2);
-        } ), // 4.10 > 4.01
-        
+        numeric( new Comparator<String>() {       // 4.10 > 4.01
+            @Override
+            public int compare(String s1, String s2) {
+                Double d1= Double.parseDouble(s1);
+                Double d2= Double.parseDouble(s2);
+                return d1.compareTo(d2);
+            }
+        } ),
         /**
          * comparison by lexical sort v2013a>v2012b.
          */
-        alphanumeric((String s1, String s2) -> (s1).compareTo(s2) // a001
-        ),
+        alphanumeric(new Comparator<String>() {   // a001
+            @Override
+            public int compare(String s1, String s2) {
+                return (s1.compareTo(s2));
+            }
+        } ),
         /**
          * comparison of numbers split by decimal points and dashes, so 1.20 > 1.3.
          */
-        numericSplit( (String s1, String s2) -> {
-            String[] ss1= s1.split("[\\.-]",-2);
-            String[] ss2= s2.split("[\\.-]",-2);
-            int n= Math.min( ss1.length, ss2.length );
-            for ( int i=0; i<n; i++ ) {
-                int d1= Integer.parseInt(ss1[i]);
-                int d2= Integer.parseInt(ss2[i]);
-                if ( d1<d2 ) {
-                    return -1;
-                } else if ( d1>d2 ) {
-                    return 1;
+        numericSplit( new Comparator<String>() {  // 4.3.23   // 1.1.3-01 for RBSP (rbspice lev-2 isrhelt)
+           @Override
+           public int compare(String s1, String s2) {
+                String[] ss1= s1.split("[\\.-]",-2);
+                String[] ss2= s2.split("[\\.-]",-2);
+                int n= Math.min( ss1.length, ss2.length );
+                for ( int i=0; i<n; i++ ) {
+                    int d1= Integer.parseInt(ss1[i]);
+                    int d2= Integer.parseInt(ss2[i]);
+                    if ( d1<d2 ) {
+                        return -1;
+                    } else if ( d1>d2 ) {
+                        return 1;
+                    }
                 }
-            }
-            return ss1.length - ss2.length;  // the longer version wins (3.2.1 > 3.2)
-        } // 4.3.23   // 1.1.3-01 for RBSP (rbspice lev-2 isrhelt)
-        );
+                return ss1.length - ss2.length;  // the longer version wins (3.2.1 > 3.2)
+            } 
+        });
 
         Comparator<String> comp;
         VersioningType( Comparator<String> comp ) {
             this.comp= comp;
         }
     };
-    
+
 
     /**
      * Version field handler.  Versions are codes with special sort orders.
@@ -1021,7 +1029,7 @@ public class URITemplate {
                         throw new IllegalArgumentException(errm);
                     }
                     
-                    String id= argv.get("id");
+                    String id= getArg( argv, "id", null );
                     if ( id!=null ) {
                         fieldHandlersById.put( id,fh );
                     }
