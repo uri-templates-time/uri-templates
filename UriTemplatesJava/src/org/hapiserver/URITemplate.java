@@ -301,8 +301,8 @@ public class URITemplate {
         
         @Override
         public String configure(Map<String, String> args) {
-            String vs= args.get("values");
-            if ( vs==null ) vs= args.get("names"); // some legacy thing
+            String vs= getArg( args, "values", null );
+            if ( vs==null ) vs= getArg( args, "names", null ); // some legacy thing
             if ( vs==null ) return "values must be specified for hrinterval";
             String[] values1= vs.split(",",-2);
             mult= 24 / values1.length;
@@ -330,8 +330,12 @@ public class URITemplate {
 
         @Override
         public void parse(String fieldContent,  int[] startTime, int[] timeWidth, Map<String, String> extra) throws ParseException {
-            Integer ii= values.get(fieldContent);
-            if ( ii==null ) throw new ParseException( "expected one of "+getRegex(),0 );
+            Integer ii;
+            if ( values.containsKey(fieldContent) ) {
+                ii= values.get(fieldContent);
+            } else {
+                throw new ParseException( "expected one of "+getRegex(),0 );
+            }
             int hour= mult * ii;
             startTime[3]= hour;
             timeWidth[3]= mult;
@@ -342,9 +346,13 @@ public class URITemplate {
 
         @Override
         public String format(  int[] startTime, int[] timeWidth, int length, Map<String, String> extra) throws IllegalArgumentException {
-            String v= revvalues.get(startTime[3]/mult);
-            if ( v==null ) throw new IllegalArgumentException("unable to identify enum for hour "+startTime[3]);
-            return v;
+            Integer key= startTime[3]/mult;
+            if ( revvalues.containsKey(key) ) {
+                String v= revvalues.get(key);
+                return v;
+            } else {
+                throw new IllegalArgumentException("unable to identify enum for hour "+startTime[3]);
+            }
         }
         
     }
@@ -504,7 +512,7 @@ public class URITemplate {
 
         @Override
         public String format( int[] startTime, int[] timeWidth, int length, Map<String, String> extra) throws IllegalArgumentException {
-            String v= extra.get(id);
+            String v= getArg( extra, id, null );
             if ( v==null ) {
                 throw new IllegalArgumentException( "\"" + id + "\" is undefined in extras." );
             }
@@ -566,11 +574,7 @@ public class URITemplate {
 
         @Override
         public String format( int[] startTime, int[] timeWidth, int length, Map<String, String> extra) throws IllegalArgumentException {
-            if ( extra.containsKey(name) ) {
-                return extra.get(name);
-            } else {
-                return "";
-            }
+            return getArg( extra, name, "" );
         }
         
     }
@@ -690,7 +694,7 @@ public class URITemplate {
 
         @Override
         public void parse( String fieldContent, int[] startTime, int[] timeWidth, Map<String,String> extra ) {
-            String v= extra.get("v");
+            String v= getArg( extra, "v", null );
             if ( v!=null ) {
                 versioningType= VersioningType.numericSplit; 
                 fieldContent= v+"."+fieldContent; // Support $v.$v.$v
@@ -705,7 +709,7 @@ public class URITemplate {
 
         @Override
         public String format( int[] startTime, int[] timeWidth, int length, Map<String, String> extra ) {
-            return extra.get("v"); //TODO: length
+            return getArg( extra, "v", null ); //TODO: length
         }
     };
     
@@ -1528,11 +1532,7 @@ public class URITemplate {
                     String name;
                     Map<String,String> qual= this.qualifiersMaps[idigit];
                     if ( qual!=null ) {
-                        if ( qual.containsKey("name") ) {
-                            name = qual.get("name");
-                        } else {
-                            name=  "x";
-                        }
+                        name= getArg( qual, "name", "x" );
                     } else {
                         name= "x";
                     }
@@ -1795,13 +1795,14 @@ public class URITemplate {
                 int digit;
                 int delta=1;
                 if ( qualm!=null ) {
-                    String ddelta= qualm.get("span");
+                    String ddelta= getArg( qualm, "delta", null );
                     if ( ddelta!=null ) {
                         delta= Integer.parseInt(ddelta);
-                    }
-                    ddelta= qualm.get("delta");
-                    if ( ddelta!=null ) {
-                        delta= Integer.parseInt(ddelta);
+                    } else {
+                        ddelta= getArg( qualm, "span", null );
+                        if ( ddelta!=null ) {
+                            delta= Integer.parseInt(ddelta);
+                        }
                     }
                 }
                 switch (handlers[idigit]) {
@@ -1871,7 +1872,7 @@ public class URITemplate {
                 } else {
                     if ( this.qualifiersMaps[idigit]!=null ) {
                         // TODO: suboptimal
-                        String pad= this.qualifiersMaps[idigit].get("pad");
+                        String pad= getArg( this.qualifiersMaps[idigit], "pad", null );
                         if ( pad==null || pad.equals("zero") ) { 
                             result.insert(offs, String.format(nf[length],digit) );
                             offs+= length;
@@ -1920,7 +1921,7 @@ public class URITemplate {
 
             } else if (handlers[idigit] == 100) {
                 if ( fc[idigit].equals("v") ) { // kludge for version.  TODO: This can probably use the code below now.
-                    String ins= extra.containsKey("v") ? extra.get("v") : "00";
+                    String ins= getArg( extra, "v", "00" );
                     if ( length>-1 ) {
                         if ( length>20 ) throw new IllegalArgumentException("version lengths>20 not supported");
                         ins= "00000000000000000000".substring(0,length);
