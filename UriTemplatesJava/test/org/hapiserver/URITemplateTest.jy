@@ -37,8 +37,8 @@ class URITemplateTest:
         assertEquals(expResult,result)
 
     def toStr(res):
-        t1 = TimeUtil.isoTimeFromArray(Arrays.copyOf(res,7))[0:16]
-        t2 = TimeUtil.isoTimeFromArray(res[7:14])[0:16]
+        t1 = TimeUtil.isoTimeFromArray( TimeUtil.getStartTime(res) )[0:16]
+        t2 = TimeUtil.isoTimeFromArray( TimeUtil.getStopTime(res) )[0:16]
         return t1 + '/' + t2
     toStr = staticmethod(toStr)    
 
