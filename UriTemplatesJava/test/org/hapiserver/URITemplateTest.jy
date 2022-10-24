@@ -50,7 +50,7 @@ class URITemplateTest:
             return
 
         nn = norm.split('/')
-        if TimeUtil.iso8601DurationPattern.matcher(nn[1]).matches():
+        if TimeUtil.iso8601DurationPattern.match(nn[1])!=None:
             nn[1] = TimeUtil.isoTimeFromArray(TimeUtil.add(TimeUtil.isoTimeToArray(nn[0]),TimeUtil.parseISO8601Duration(nn[1])))
 
         start = TimeUtil.isoTimeToArray(nn[0])
@@ -191,8 +191,6 @@ class URITemplateTest:
                 bytesRead = ins.read(buffer)
 
             return sb
-        except IOException:
-            raise Exception(ex)
         finally:
             try:
                 if ins != None: ins.close()
