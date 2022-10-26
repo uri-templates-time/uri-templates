@@ -2,6 +2,7 @@
 import sys
 
 from URITemplate import URITemplate
+from TimeUtil import TimeUtil
 
 # cheesy unittest temporary
 def assertEquals(a,b):
@@ -14,7 +15,7 @@ def assertArrayEquals(a,b):
     for b1 in b: print(b1) 
     print(' '+str(len(b))) 
     if ( len(a)==len(b) ): 
-        for i in xrange(len(a)): 
+        for i in range(len(a)):
             if ( a[i]!=b[i] ): raise Exception('a[%d]!=b[%d]'%(i,i))
 
 #
@@ -47,7 +48,8 @@ class URITemplateTest:
     def testTimeParser1(spec, test, norm):
         try:
             ut = URITemplate(spec)
-        except IllegalArgumentException:
+        except Exception as ex:
+            sys.stderr.write(ex)
             sys.stderr.write('### unable to parse spec: ' + spec+'\n')
             return
 
