@@ -50,8 +50,8 @@ public class URITemplateTest {
     }
     
     private static String toStr( int[] res ) {
-        String t1= TimeUtil.isoTimeFromArray( Arrays.copyOf(res, 7) ).substring(0,16);
-        String t2= TimeUtil.isoTimeFromArray( Arrays.copyOfRange(res, 7, 14) ).substring(0,16);
+        String t1= TimeUtil.isoTimeFromArray( TimeUtil.getStartTime(res) ).substring(0,16);
+        String t2= TimeUtil.isoTimeFromArray( TimeUtil.getStopTime(res) ).substring(0,16);
         return t1+"/"+t2;
     }
         
