@@ -1361,7 +1361,7 @@ class URITemplate:
     # @return the formatted times which cover the span.
     # @throws ParseException when a number is expected, or patterned not matched.
     def formatRange(template, startTimeStr, stopTimeStr):
-        return URITemplate.formatRange(template,startTimeStr,stopTimeStr,Collections.EMPTY_MAP)
+        return URITemplate.formatRange(template,startTimeStr,stopTimeStr,{})
     formatRange = staticmethod(formatRange)    
 
     # For convenience, add API to match that suggested by 
