@@ -203,7 +203,7 @@ class URITemplate:
             pass
 
 
-    # $(subsec;places=6)  "36" â "36 microseconds"
+    # $(subsec;places=6)  "36" → "36 microseconds"
     class SubsecFieldHandler(FieldHandler):
         places = 0
 
@@ -240,7 +240,7 @@ class URITemplate:
 
 
 
-    # $(hrinterval;names=a,b,c,d)  "b" â "06:00/12:00"
+    # $(hrinterval;names=a,b,c,d)  "b" → "06:00/12:00"
     class HrintervalFieldHandler(FieldHandler):
         values = None  #J2J added
 
@@ -303,7 +303,7 @@ class URITemplate:
 
 
     # regular intervals are numbered:
-    # $(periodic;offset=0;start=2000-001;period=P1D) "0" â "2000-001"
+    # $(periodic;offset=0;start=2000-001;period=P1D) "0" → "2000-001"
     class PeriodicFieldHandler(FieldHandler):
         offset = 0
 
@@ -631,13 +631,13 @@ class URITemplate:
             formatString = re.sub('\\*','$x',formatString)
 
         i = 1
-        if ord(i < len(formatString)) and formatString[i] == '(':
+        if i < len(formatString) and formatString[i] == '(':
             i = i + 1
 
         while i < len(formatString) and formatString[i].isalpha():
             i = i + 1
 
-        if ord(i < len(formatString)) and formatString[i] == ',':
+        if i < len(formatString) and formatString[i] == ',':
             formatString = re.sub(',',';',formatString,1)
 
         return formatString
