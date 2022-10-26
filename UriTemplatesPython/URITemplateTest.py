@@ -138,7 +138,8 @@ class URITemplateTest:
     def testTimeFormat1(spec, test, norm):
         try:
             ut = URITemplate(spec)
-        except IllegalArgumentException:
+        except Exception as ex:
+            print(str(ex))
             print('### unable to parse spec: ' + spec)
             return
 
