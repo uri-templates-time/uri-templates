@@ -787,11 +787,11 @@ class URITemplate:
                 self.fc[i] = ssi[pp:pp + 1]
                 delim[i] = ssi[pp + 1:]
             elif ssi[pp] == '(':
-                endIndex = ssi.find(')')
+                endIndex = ssi.find(')',pp)
                 if endIndex == -1:
                     raise Exception('opening paren but no closing paren in \"' + ssi + '\"')
 
-                semi = ssi.find(';')
+                semi = ssi.find(';',pp)
                 if semi != -1:
                     self.fc[i] = ssi[pp + 1:semi]
                     self.qualifiers[i] = ssi[semi + 1:endIndex]
@@ -1176,7 +1176,7 @@ class URITemplate:
                     if offs >= len(timeString):
                         raise Exception('expected delimiter \"' + self.delims[idigit] + '\" but reached end of string')
 
-                    i = timeString.find(self.delims[idigit])
+                    i = timeString.find(self.delims[idigit],offs)
                     if i == -1:
                         raise Exception('expected delimiter \"' + self.delims[idigit] + '\"')
 
