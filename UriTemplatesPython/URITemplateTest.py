@@ -49,7 +49,7 @@ class URITemplateTest:
         try:
             ut = URITemplate(spec)
         except Exception as ex:
-            sys.stderr.write(ex)
+            sys.stderr.write(str(ex))
             sys.stderr.write('### unable to parse spec: ' + spec+'\n')
             return
 
@@ -143,13 +143,13 @@ class URITemplateTest:
             return
 
         nn = norm.split('/')
-        if TimeUtil.iso8601DurationPattern.matcher(nn[1]).matches():
+        if TimeUtil.iso8601DurationPattern.match(nn[1])!=None:
             nn[1] = TimeUtil.isoTimeFromArray(TimeUtil.add(TimeUtil.isoTimeToArray(nn[0]),TimeUtil.parseISO8601Duration(nn[1])))
 
         try:
             res = ut.format(nn[0],nn[1],Collections.EMPTY_MAP)
-        except RuntimeException:
-            print('### ' + str(ex.getMessage()))
+        except Exception as ex:
+            print('### ' + str(ex))
             return
 
         arrow = str(8594)
