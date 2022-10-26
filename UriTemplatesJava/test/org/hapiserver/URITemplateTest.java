@@ -133,6 +133,7 @@ public class URITemplateTest {
     @Test
     public void testParse() throws Exception {
         System.out.println("parse");
+        testTimeParser1( "$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
         testParse1();
         testParse2();
         testParse3();

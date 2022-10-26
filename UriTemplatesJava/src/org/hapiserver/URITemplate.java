@@ -1440,6 +1440,9 @@ public class URITemplate {
                         throw new ParseException("expected delimiter \"" + this.delims[idigit] + "\"", offs);
                     }
                     length = i - offs;
+                    if ( length<0 ) {
+                        throw new IllegalArgumentException("bad state, length should never be less than zero.");
+                    }
                 }
             }
 
@@ -1448,6 +1451,8 @@ public class URITemplate {
             }
 
             String field= timeString.substring(offs, offs + length).trim();
+            
+            System.out.println( String.format("field %d: %s %d", idigit, field, length ) );
             
             logger.log(Level.FINEST, "handling {0} with {1}", new Object[]{field, handlers[idigit]});
             
