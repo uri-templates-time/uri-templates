@@ -1,22 +1,7 @@
 import re
 import sys
 
-from java.io import BufferedReader
-from java.io import IOException
-from java.io import InputStreamReader
-from java.text import ParseException
-from java.util import ArrayList
-from java.util import Arrays
-from java.util import Collections
-from java.util import Comparator
-from java.util import HashMap
-from java.util import HashSet
-from java.util import Iterator
-from java.util import Map
-from java.util import Set
-from java.util.logging import Level
-from java.util.logging import Logger
-from java.util.regex import Pattern
+from TimeUtil import TimeUtil
 
 # URITemplate implements a URI_Template, as described in 
 # https://github.com/hapi-server/uri-templates/wiki/Specification
@@ -575,13 +560,13 @@ class URITemplate:
                 if sep != None:
                     return 'alpha with split not supported'
                 else:
-                    self.versioningType = VersioningType.alphanumeric
+                    self.versioningType = URITemplate.VersioningType.alphanumeric
 
             else:
                 if sep != None:
-                    self.versioningType = VersioningType.numericSplit
+                    self.versioningType = URITemplate.VersioningType.numericSplit
                 else:
-                    self.versioningType = VersioningType.numeric
+                    self.versioningType = URITemplate.VersioningType.numeric
 
 
             return None
