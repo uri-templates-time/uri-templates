@@ -1351,7 +1351,7 @@ class URITemplate:
     # @param externalContextTime the context in [ Y, m, d, H, M, S, nanos ]
     def setContext(self, externalContextTime):
         self.context[0:self.externalContext]=externalContextTime[0:self.externalContext]
-  
+    
 
     # For convenience, add API to match that suggested by 
     # https://github.com/hapi-server/uri-templates/blob/master/formatting.json,
@@ -1606,7 +1606,7 @@ class URITemplate:
             idigit = idigit + 1
 
         result = ''.join( ( result[0:offs], self.delims[self.ndigits - 1], result[offs:] ) ) #J2J expr -> assignment
-        return result.trim()
+        return result.strip()
 
     def printUsage():
         sys.stderr.write('Usage: \n')
