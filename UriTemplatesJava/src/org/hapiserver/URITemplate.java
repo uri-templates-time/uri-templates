@@ -1836,7 +1836,7 @@ public class URITemplate {
                     case 6:
                         digit = timel[4];
                         break;
-                    case NUM_TIME_DIGITS:
+                    case 7:
                         digit = timel[5];
                         break;
                     case 8:
