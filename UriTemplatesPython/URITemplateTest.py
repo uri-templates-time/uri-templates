@@ -38,7 +38,7 @@ class URITemplateTest:
 
     # Test of makeCanonical method, of class URITemplate.
     def testMakeCanonical(self):
-        print('makeCanonical')
+        print('# testMakeCanonical')
         formatString = '%{Y,m=02}*.dat'
         expResult = '$(Y;m=02)$x.dat'
         result = URITemplate.makeCanonical(formatString)
@@ -109,7 +109,7 @@ class URITemplateTest:
     # Test of parse method, of class URITemplate.
     # @throws java.lang.Exception
     def testParse(self):
-        print('parse')
+        print('# testParse')
         URITemplateTest.testTimeParser1('$(j;Y=2012).*.*.*.$H','017.x.y.z.02','2012-01-17T02:00:00/2012-01-17T03:00:00')
         self.testParse1()
         self.testParse2()
@@ -168,7 +168,7 @@ class URITemplateTest:
     # Test of format method, of class URITemplate.
     # @throws java.lang.Exception
     def testFormat(self):
-        print('format')
+        print('# testFormat')
         URITemplateTest.testTimeFormat1('$Y$m$d-$(Y;end)$m$d','20130202-20140303','2013-02-02/2014-03-03')
         URITemplateTest.testTimeFormat1('_$Y$m$(d)_$(Y;end)$m$(d)','_20130202_20130203','2013-02-02/2013-02-03')
         URITemplateTest.testTimeFormat1('_$Y$m$(d;shift=1)_$(Y;end)$m$(d;shift=1)','_20130201_20130202','2013-02-02/2013-02-03')
@@ -211,6 +211,7 @@ class URITemplateTest:
     # enumerate the files (formatRange) to see that we get the correct result.
     def testFormatHapiServerSite(self):
         try:
+            print('# testFormatHapiServerSite')
             ss = URITemplateTest.readJSONToString('https://raw.githubusercontent.com/hapi-server/uri-templates/master/formatting.json')
             jo = json.loads(ss)
             i = 0
@@ -261,6 +262,7 @@ class URITemplateTest:
 
     def testFormatRange(self):
         try:
+            print('# testFormatRange')
             sys.stderr.write(URITemplate.VERSION+'\n')
             t = 'data_$Y.dat'
             ss = URITemplate.formatRange(t,'2001-03-22','2004-08-18')
