@@ -1,5 +1,6 @@
 import re
 import sys
+import math
 
 from TimeUtil import TimeUtil
 
@@ -376,7 +377,7 @@ class URITemplate:
             if self.period[1] != 0 or self.period[3] != 0 or self.period[4] != 0 or self.period[5] != 0 or self.period[6] != 0:
                 raise Exception('under implemented, only integer number of days supported for formatting.')
 
-            deltad = int((Math.floor((jd - self.julday) / (self.period[2])))) + self.offset
+            deltad = int((math.floor((jd - self.julday) / (self.period[2])))) + self.offset
             result = "%d" % (deltad )
             if length > 16:
                 raise Exception('length>16 not supported')
