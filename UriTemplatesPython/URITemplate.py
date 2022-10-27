@@ -333,7 +333,7 @@ class URITemplate:
 
             try:
                 self.period = TimeUtil.parseISO8601Duration(s)
-            except ParseException:
+            except Exception as ex: # J2J: exceptions
                 return 'unable to parse period: ' + s + '\n' + str(ex.getMessage())
 
             return None
@@ -951,7 +951,7 @@ class URITemplate:
 
                                         j = j + 1
 
-                                except ParseException:
+                                except Exception as ex: # J2J: exceptions
                                     #J2J (logger) logger.log(Level.SEVERE, null, ex)
                                     pass
 
@@ -984,7 +984,7 @@ class URITemplate:
                         elif name=="phasestart":
                             try:
                                 self.phasestart = TimeUtil.isoTimeToArray(val)
-                            except IllegalArgumentException:
+                            except Exception as ex: # J2J: exceptions
                                 #J2J (logger) logger.log(Level.SEVERE, null, ex)
                                 pass
 
@@ -1265,7 +1265,7 @@ class URITemplate:
                         extra[name] = timeString[offs:offs + length]
 
 
-            except NumberFormatException:
+            except Exception as ex: # J2J: exceptions
                 raise Exception("fail to parse digit number %d: %s" % (idigit,field ))
 
             idigit = idigit + 1
@@ -1588,7 +1588,7 @@ class URITemplate:
                         timel[0:URITemplate.NUM_TIME_DIGITS]=startTimeTest[0:URITemplate.NUM_TIME_DIGITS]
                         timeWidthl[0:URITemplate.NUM_TIME_DIGITS]=timeWidthTest[0:URITemplate.NUM_TIME_DIGITS]
                         stopTime[0:URITemplate.NUM_TIME_DIGITS]=TimeUtil.add(timel,timeWidthl)[0:URITemplate.NUM_TIME_DIGITS]
-                    except ParseException:
+                    except Exception as ex: # J2J: exceptions
                         #J2J (logger) logger.log(Level.SEVERE, null, ex)
                         pass
 
@@ -1662,13 +1662,10 @@ class URITemplate:
 
                         tr1 = r.readLine()
 
-                except ParseException:
+                except Exception as ex: # J2J: exceptions
                     URITemplate.printUsage()
                     sys.stderr.write('range is misformatted: ' + tr1+'\n')
                     sys.exit(-3)
-                except IOException:
-                    sys.stderr.write('IOException\n')
-                    sys.exit(-4)
 
             else:
                 try:
@@ -1677,7 +1674,7 @@ class URITemplate:
                     for s in result:
                         print(s)
 
-                except ParseException:
+                except Exception as ex: # J2J: exceptions
                     URITemplate.printUsage()
                     sys.stderr.write('range is misformatted\n')
                     sys.exit(-3)
@@ -1709,9 +1706,7 @@ class URITemplate:
                         print(TimeUtil.isoTimeFromArray(itimeRange[7:14]))
                         filen1 = r.readLine()
 
-                except IOException:
-                    pass
-                except ParseException:
+                except Exception as ex: # J2J: exceptions
                     URITemplate.printUsage()
                     sys.stderr.write('parseException from ' + filen1+'\n')
                     sys.exit(-3)
@@ -1723,7 +1718,7 @@ class URITemplate:
                     sys.stdout.write(TimeUtil.isoTimeFromArray(itimeRange[0:7]))
                     sys.stdout.write('/')
                     print(TimeUtil.isoTimeFromArray(itimeRange[7:14]))
-                except ParseException:
+                except Exception as ex: # J2J: exceptions
                     URITemplate.printUsage()
                     sys.stderr.write('parseException from ?\n')
                     sys.exit(-3)
