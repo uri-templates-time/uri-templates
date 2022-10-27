@@ -3,6 +3,7 @@ import sys
 
 from TimeUtil import TimeUtil
 
+
 # URITemplate implements a URI_Template, as described in 
 # https://github.com/hapi-server/uri-templates/wiki/Specification
 # The main method shows how the library can be used to format
@@ -221,7 +222,7 @@ class URITemplate:
 
         def format(self, startTime, timeWidth, length, extra):
             nn = startTime[6] // self.nanosecondsFactor
-            return format % (int(Math.round(nn)) )
+            return format % (int(round(nn)) )
 
 
 
