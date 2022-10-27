@@ -1351,19 +1351,7 @@ class URITemplate:
     # @param externalContextTime the context in [ Y, m, d, H, M, S, nanos ]
     def setContext(self, externalContextTime):
         self.context[0:self.externalContext]=externalContextTime[0:self.externalContext]
-
-    # For convenience, add API to match that suggested by 
-    # https://github.com/hapi-server/uri-templates/blob/master/formatting.json .
-    # Note if start and end appear in the template, then just one formatted
-    # range is returned.
-    # @param template the template
-    # @param startTimeStr the beginning of the interval to cover
-    # @param stopTimeStr the end of the interval to cover
-    # @return the formatted times which cover the span.
-    # @throws ParseException when a number is expected, or patterned not matched.
-    def formatRange(template, startTimeStr, stopTimeStr):
-        return URITemplate.formatRange(template,startTimeStr,stopTimeStr,{})
-    formatRange = staticmethod(formatRange)    
+  
 
     # For convenience, add API to match that suggested by 
     # https://github.com/hapi-server/uri-templates/blob/master/formatting.json,
@@ -1377,7 +1365,7 @@ class URITemplate:
     # @param extra extra named parameters
     # @return the formatted times which cover the span.
     # @throws ParseException when the initial parsing cannot be done.
-    def formatRange(template, startTimeStr, stopTimeStr, extra):
+    def formatRange(template, startTimeStr, stopTimeStr, extra={}):
         ut = URITemplate(template)
         result = []
         sptr = TimeUtil.isoTimeFromArray(TimeUtil.isoTimeToArray(startTimeStr))
@@ -1422,17 +1410,9 @@ class URITemplate:
     # time range.
     # @param startTimeStr iso8601 formatted time.
     # @param stopTimeStr iso8601 formatted time.
-    # @return formatted time, often a resolvable URI.
-    def format(self, startTimeStr, stopTimeStr):
-        return self.format(startTimeStr,stopTimeStr,{})
-
-    # return a list of formatted names, using the spec and the given 
-    # time range.
-    # @param startTimeStr iso8601 formatted time.
-    # @param stopTimeStr iso8601 formatted time.
     # @param extra extra parameters
     # @return formatted time, often a resolvable URI.
-    def format(self, startTimeStr, stopTimeStr, extra):
+    def format(self, startTimeStr, stopTimeStr, extra={}):
         startTime = TimeUtil.isoTimeToArray(startTimeStr)
         if self.timeWidthIsExplicit:
             timeWidthl = self.timeWidth
