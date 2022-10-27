@@ -199,7 +199,7 @@ class URITemplate:
         format = None
 
         def configure(self, args):
-            self.places = int(getArg(args, "places", null))
+            self.places = int(URITemplate.getArg(args, "places", null))
             if self.places > 9: raise Exception('only nine places allowed.')
 
             self.nanosecondsFactor = int((10**((9 - self.places))))
@@ -675,7 +675,7 @@ class URITemplate:
 
             i = i - 1
 
-        rr = String(result)
+        rr = ''.join( result)
         if not result==qualifiers:
             #J2J (logger) logger.log(Level.FINE, "qualifiers are made canonical: {0}->{1}", new Object[] { qualifiers, rr })
             pass
