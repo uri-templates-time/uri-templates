@@ -1,5 +1,6 @@
-
 import sys
+import json
+from urllib.request import urlopen
 
 from URITemplate import URITemplate
 from TimeUtil import TimeUtil
@@ -186,28 +187,8 @@ class URITemplateTest:
         URITemplateTest.testTimeFormat1('ace_mag_$Y_$j_to_$(Y;end)_$j.cdf','ace_mag_2005_001_to_2005_003.cdf','2005-001T00:00/2005-003T00:00')
 
     def readJSONToString(url):
-        ins = None
-        try:
-            ins = url.openStream()
-            sb = ""
-            buffer = [0] * 2048
-            bytesRead = ins.read(buffer)
-            while bytesRead != -1:
-                sb+= str(String(buffer,0,bytesRead))
-                bytesRead = ins.read(buffer)
-
-            return sb
-        except IOException:
-            raise Exception(ex)
-        finally:
-            try:
-                if ins != None: ins.close()
-
-            except IOException:
-                #J2J (logger) Logger.getLogger(URITemplateTest.class.getName()).log(Level.SEVERE,None,ex)
-                pass
-
-
+        response = urlopen(url)
+        return response.read()
     readJSONToString = staticmethod(readJSONToString)    
 
     def testFormatHapiServerSiteOne(self, outputs, t, startTime, stopTime):
@@ -228,31 +209,30 @@ class URITemplateTest:
     # enumerate the files (formatRange) to see that we get the correct result.
     def testFormatHapiServerSite(self):
         try:
-            ss = URITemplateTest.readJSONToString(URL('https://raw.githubusercontent.com/hapi-server/uri-templates/master/formatting.json'))
-            jo = JSONArray(ss)
+            ss = URITemplateTest.readJSONToString('https://raw.githubusercontent.com/hapi-server/uri-templates/master/formatting.json')
+            jo = json.loads(ss)
             i = 0
             while i < len(jo):  # J2J for loop
-                jo1 = jo.getJSONObject(i)
-                id = jo1.getString('id')
-                print("# %2d: %s %s" % (i,id,jo1.get('whatTests') ))
+                jo1 = jo[i]
+                id = jo1['id']
+                print("# %2d: %s %s" % (i,id,jo1['whatTests'] ))
                 if i < 3:
                     print('###  Skipping test ' + str(i))
+                    i = i + 1
                     continue
 
-                templates = jo1.getJSONArray('template')
-                outputs = jo1.getJSONArray('output')
-                try:
-                    timeRanges = jo1.getJSONArray('timeRange')
-                except JSONException:
-                    timeRange = jo1.getString('timeRange')
-                    timeRanges = JSONArray(Collections.singletonList(timeRange))
-
+                templates = jo1['template']
+                outputs = jo1['output']
+                timeRanges = jo1['timeRange']  # Note Python loose typing returns
+                if type(timeRanges)==str:
+                    timeRanges = [ timeRanges ]
+ 
                 j = 0
                 while j < len(templates):  # J2J for loop
-                    t = templates.getString(j)
+                    t = templates[j]
                     k = 0
                     while k < len(timeRanges):  # J2J for loop
-                        timeRange = timeRanges.getString(k)
+                        timeRange = timeRanges[k]
                         print('timeRange:' + timeRange)
                         timeStartStop = timeRange.split('/')
                         try:
