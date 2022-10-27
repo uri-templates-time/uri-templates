@@ -5,6 +5,7 @@ from urllib.request import urlopen
 from URITemplate import URITemplate
 from TimeUtil import TimeUtil
 
+
 # cheesy unittest temporary
 def assertEquals(a,b):
     print(a)
@@ -198,8 +199,8 @@ class URITemplateTest:
 
         l = 0
         while l < len(outputs):  # J2J for loop
-            if not testOutputs[l]==outputs.getString(l):
-                fail('result doesn\'t match, got ' + testOutputs[l] + ', should be ' + outputs.getString(l))
+            if not testOutputs[l]==outputs[l]:
+                fail('result doesn\'t match, got ' + testOutputs[l] + ', should be ' + outputs[l])
 
             l = l + 1
 
