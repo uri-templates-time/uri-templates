@@ -1470,7 +1470,7 @@ class URITemplate:
             if idigit == self.stopTimeDigit:
                 timel = stopTime
 
-            result.insert(offs,self.delims[idigit - 1])
+            result = ''.join( ( result[0:offs], self.delims[idigit - 1], result[offs:] ) ) #J2J expr -> assignment
             if self.offsets[idigit] != -1:
                 offs = self.offsets[idigit]
             else:
@@ -1544,43 +1544,43 @@ class URITemplate:
 
                 if length < 0:
                     ss = str(digit)
-                    result.insert(offs,ss)
+                    result = ''.join( ( result[0:offs], ss, result[offs:] ) ) #J2J expr -> assignment
                     offs += len(ss)
                 else:
                     if self.qualifiersMaps[idigit] != None:
                         pad = URITemplate.getArg(self.qualifiersMaps[idigit],'pad',None)
                         if pad == None or pad=='zero':
-                            result.insert(offs,nf[length] % (digit ))
+                            result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) #J2J expr -> assignment
                             offs += length
                         else:
                             if digit < 10:
                                 if pad=="space":
-                                    result.insert(offs,' ')
-                                    result.insert(offs,str(digit))
+                                    result = ''.join( ( result[0:offs], ' ', result[offs:] ) ) #J2J expr -> assignment
+                                    result = ''.join( ( result[0:offs], str(digit), result[offs:] ) ) #J2J expr -> assignment
                                     offs += 2
                                 elif pad=="underscore":
-                                    result.insert(offs,'_')
-                                    result.insert(offs,str(digit))
+                                    result = ''.join( ( result[0:offs], '_', result[offs:] ) ) #J2J expr -> assignment
+                                    result = ''.join( ( result[0:offs], str(digit), result[offs:] ) ) #J2J expr -> assignment
                                     offs += 2
                                 elif pad=="none":
-                                    result.insert(offs,str(digit))
+                                    result = ''.join( ( result[0:offs], str(digit), result[offs:] ) ) #J2J expr -> assignment
                                     offs += 1
                                 else:
-                                    result.insert(offs,nf[length] % (digit ))
+                                    result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) #J2J expr -> assignment
                                     offs += length
 
                             else:
-                                result.insert(offs,nf[length] % (digit ))
+                                result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) #J2J expr -> assignment
                                 offs += length
 
 
                     else:
-                        result.insert(offs,nf[length] % (digit ))
+                        result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) #J2J expr -> assignment
                         offs += length
 
 
             elif self.handlers[idigit] == 13:
-                result.insert(offs,TimeUtil.monthNameAbbrev(timel[1]))
+                result = ''.join( ( result[0:offs], TimeUtil.monthNameAbbrev(timel[1]), result[offs:] ) ) #J2J expr -> assignment
                 offs += length
             elif self.handlers[idigit] == 12 or self.handlers[idigit] == 14:
                 raise Exception('cannot format spec containing ignore')
@@ -1592,7 +1592,7 @@ class URITemplate:
 
                         ins = '00000000000000000000'[0:length]
 
-                    result.insert(offs,ins)
+                    result = ''.join( ( result[0:offs], ins, result[offs:] ) ) #J2J expr -> assignment
                     offs += len(ins)
                 else:
                     fh1 = self.fieldHandlers[self.fc[idigit]]
@@ -1614,7 +1614,7 @@ class URITemplate:
                     if length > -1 and len(ins) != length:
                         raise Exception('length of fh is incorrect, should be ' + str(length) + ', got \"' + ins + '\"')
 
-                    result.insert(offs,ins)
+                    result = ''.join( ( result[0:offs], ins, result[offs:] ) ) #J2J expr -> assignment
                     offs += len(ins)
 
             elif self.handlers[idigit] == 10:
@@ -1624,7 +1624,7 @@ class URITemplate:
 
             idigit = idigit + 1
 
-        result.insert(offs,self.delims[self.ndigits - 1])
+        result = ''.join( ( result[0:offs], self.delims[self.ndigits - 1], result[offs:] ) ) #J2J expr -> assignment
         return result.trim()
 
     def printUsage():
