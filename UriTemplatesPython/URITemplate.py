@@ -1494,7 +1494,7 @@ class URITemplate:
                     digit = timel[3]
                 elif self.handlers[idigit]==6:
                     digit = timel[4]
-                elif self.handlers[idigit]==NUM_TIME_DIGITS:
+                elif self.handlers[idigit]==7:
                     digit = timel[5]
                 elif self.handlers[idigit]==8:
                     digit = timel[6] // 1000000
