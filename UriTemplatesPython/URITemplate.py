@@ -1192,7 +1192,6 @@ class URITemplate:
                 raise Exception('string is too short: ' + timeString)
 
             field = timeString[offs:offs + length].strip()
-            print("field %d: %s %d" % (idigit,field,length ))
             #J2J (logger) logger.log(Level.FINEST, "handling {0} with {1}", new Object[] { field, handlers[idigit] })
             try:
                 if self.handlers[idigit] < 10:
