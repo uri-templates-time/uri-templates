@@ -54,8 +54,7 @@ class URITemplateTest:
     def testTimeParser1(spec, test, norm):
         try:
             ut = URITemplate(spec)
-        except Exception as ex:
-            sys.stderr.write(str(ex))
+        except Exception as ex: # J2J: exceptions
             sys.stderr.write('### unable to parse spec: ' + spec+'\n')
             return
 
@@ -70,7 +69,7 @@ class URITemplateTest:
         inorm[7:7+7]=stop[0:7]
         try:
             res = ut.parse(test,{})
-        except ParseException:
+        except Exception as ex: # J2J: exceptions
             fail(ex.getMessage())
             return
 
@@ -144,8 +143,7 @@ class URITemplateTest:
     def testTimeFormat1(spec, test, norm):
         try:
             ut = URITemplate(spec)
-        except Exception as ex:
-            print(str(ex))
+        except Exception as ex: # J2J: exceptions
             print('### unable to parse spec: ' + spec)
             return
 
@@ -155,8 +153,8 @@ class URITemplateTest:
 
         try:
             res = ut.format(nn[0],nn[1],{})
-        except Exception as ex:
-            print('### ' + str(ex))
+        except Exception as ex: # J2J: exceptions
+            print('### ' + str(ex.getMessage()))
             return
 
         arrow = chr(8594)
@@ -241,11 +239,11 @@ class URITemplateTest:
                         timeStartStop = timeRange.split('/')
                         try:
                             self.testFormatHapiServerSiteOne(outputs,t,timeStartStop[0],timeStartStop[1])
-                        except Exception as ex:
+                        except Exception as ex: # J2J: exceptions
                             try:
                                 self.testFormatHapiServerSiteOne(outputs,t,timeStartStop[0],timeStartStop[1])
-                            except Exception:
-                                fail(str(ex))
+                            except Exception as ex1: # J2J: exceptions
+                                fail(ex.getMessage())
 
                             raise Exception(ex)
 
@@ -256,9 +254,9 @@ class URITemplateTest:
 
                 i = i + 1
 
-        except Exception as ex:
+        except Exception as ex: # J2J: exceptions
             #J2J (logger) Logger.getLogger(URITemplateTest.class.getName()).log(Level.SEVERE,None,ex)
-            fail(str(ex))
+            fail(ex.getLocalizedMessage())
 
 
     def testFormatRange(self):
@@ -282,7 +280,7 @@ class URITemplateTest:
             for f in ff:
                 print(f)
 
-        except ParseException:
+        except Exception as ex: # J2J: exceptions
             fail(ex.getMessage())
 
 
