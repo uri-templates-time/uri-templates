@@ -69,7 +69,7 @@ class URITemplateTest:
             fail(ex.getMessage())
             return
 
-        arrow = str(8594)
+        arrow = chr(8594)
         if res==inorm:
             print("%s:  \t\"%s\"%s\t\"%s\"" % (spec,test,arrow,URITemplateTest.toStr(res) ))
         else:
@@ -154,7 +154,7 @@ class URITemplateTest:
             print('### ' + str(ex))
             return
 
-        arrow = str(8594)
+        arrow = chr(8594)
         if res==test:
             print("%s:  \t\"%s\"%s\t\"%s\"" % (spec,norm,arrow,res ))
         else:
@@ -226,7 +226,7 @@ class URITemplateTest:
                 timeRanges = jo1['timeRange']  # Note Python loose typing returns
                 if type(timeRanges)==str:
                     timeRanges = [ timeRanges ]
- 
+
                 j = 0
                 while j < len(templates):  # J2J for loop
                     t = templates[j]
