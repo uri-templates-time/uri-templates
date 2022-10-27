@@ -17,8 +17,11 @@ def assertArrayEquals(a,b):
     for b1 in b: print(b1) 
     print(' '+str(len(b))) 
     if ( len(a)==len(b) ): 
-        for i in range(len(a)):
+        for i in range(len(a)): 
             if ( a[i]!=b[i] ): raise Exception('a[%d]!=b[%d]'%(i,i))
+def fail(msg):
+    print(msg)
+    raise Exception('fail: '+msg)
 
 #
 # @author jbf
@@ -26,9 +29,9 @@ class URITemplateTest:
     def __init__(self):
         pass
 
+    @staticmethod
     def setUpClass():
         pass
-    setUpClass = staticmethod(setUpClass)    
 
     def setUp(self):
         pass
@@ -41,12 +44,13 @@ class URITemplateTest:
         result = URITemplate.makeCanonical(formatString)
         assertEquals(expResult,result)
 
+    @staticmethod
     def toStr(res):
         t1 = TimeUtil.isoTimeFromArray(TimeUtil.getStartTime(res))[0:16]
         t2 = TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(res))[0:16]
         return t1 + '/' + t2
-    toStr = staticmethod(toStr)    
 
+    @staticmethod
     def testTimeParser1(spec, test, norm):
         try:
             ut = URITemplate(spec)
@@ -77,7 +81,6 @@ class URITemplateTest:
             print('### ranges do not match: ' + spec + ' ' + test + arrow + URITemplateTest.toStr(res) + ', should be ' + norm)
 
         assertArrayEquals(res,inorm)
-    testTimeParser1 = staticmethod(testTimeParser1)    
 
     def testParse1(self):
         ut = URITemplate('$Y_sc$(enum;values=a,b,c,d;id=sc)')
@@ -137,6 +140,7 @@ class URITemplateTest:
     # @param test
     # @param norm
     # @throws Exception 
+    @staticmethod
     def testTimeFormat1(spec, test, norm):
         try:
             ut = URITemplate(spec)
@@ -162,7 +166,6 @@ class URITemplateTest:
             print('### ranges do not match: ' + spec + ' ' + norm + arrow + res + ', should be ' + test)
 
         assertEquals(res,test)
-    testTimeFormat1 = staticmethod(testTimeFormat1)    
 
     # Test of format method, of class URITemplate.
     # @throws java.lang.Exception
@@ -187,10 +190,10 @@ class URITemplateTest:
         URITemplateTest.testTimeFormat1('$(j,Y=2012)','017','2012-01-17T00:00/2012-01-18T00:00')
         URITemplateTest.testTimeFormat1('ace_mag_$Y_$j_to_$(Y;end)_$j.cdf','ace_mag_2005_001_to_2005_003.cdf','2005-001T00:00/2005-003T00:00')
 
+    @staticmethod
     def readJSONToString(url):
         response = urlopen(url)
         return response.read()
-    readJSONToString = staticmethod(readJSONToString)    
 
     def testFormatHapiServerSiteOne(self, outputs, t, startTime, stopTime):
         testOutputs = URITemplate.formatRange(t,startTime,stopTime)
@@ -242,7 +245,7 @@ class URITemplateTest:
                             try:
                                 self.testFormatHapiServerSiteOne(outputs,t,timeStartStop[0],timeStartStop[1])
                             except Exception:
-                                fail(ex.getMessage())
+                                fail(str(ex))
 
                             raise Exception(ex)
 
@@ -255,7 +258,7 @@ class URITemplateTest:
 
         except Exception as ex:
             #J2J (logger) Logger.getLogger(URITemplateTest.class.getName()).log(Level.SEVERE,None,ex)
-            fail(ex.getLocalizedMessage())
+            fail(str(ex))
 
 
     def testFormatRange(self):
