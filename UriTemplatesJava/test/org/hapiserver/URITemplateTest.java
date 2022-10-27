@@ -262,17 +262,17 @@ public class URITemplateTest {
     }
     
     private void testFormatHapiServerSiteOne( 
-            JSONArray outputs, String t, String startTime, String stopTime )
+            String[] outputs, String t, String startTime, String stopTime )
             throws ParseException, JSONException {
         
         String[] testOutputs= URITemplate.formatRange( t, startTime, stopTime );
         
-        if ( testOutputs.length!=outputs.length() ) {
+        if ( testOutputs.length!=outputs.length) {
             fail("bad number of results in formatRange: "+t);
         }
-        for ( int l=0; l<outputs.length(); l++ ) {
-            if ( !testOutputs[l].equals(outputs.getString(l) ) ) {
-                fail("result doesn't match, got "+testOutputs[l]+", should be "+outputs.getString(l) );
+        for ( int l=0; l<outputs.length; l++ ) {
+            if ( !testOutputs[l].equals(outputs[l] ) ) {
+                fail("result doesn't match, got "+testOutputs[l]+", should be "+outputs[l] );
             }
         }   
     }
@@ -298,6 +298,10 @@ public class URITemplateTest {
                 }
                 JSONArray templates= jo1.getJSONArray("template");
                 JSONArray outputs= jo1.getJSONArray("output");
+                String[] outputss= new String[outputs.length()];
+                for ( int ii=0; ii<outputs.length(); ii++ ) {
+                    outputss[ii]= outputs.getString(ii);
+                }
                 JSONArray timeRanges;
                 try {
                     timeRanges = jo1.getJSONArray("timeRange");
@@ -312,10 +316,10 @@ public class URITemplateTest {
                         System.out.println("timeRange:"+timeRange);
                         String[] timeStartStop= timeRange.split("/",-2);
                         try {
-                            testFormatHapiServerSiteOne( outputs, t, timeStartStop[0], timeStartStop[1] );
+                            testFormatHapiServerSiteOne( outputss, t, timeStartStop[0], timeStartStop[1] );
                         } catch (ParseException | AssertionError ex) {
                             try {
-                                testFormatHapiServerSiteOne( outputs, t, timeStartStop[0], timeStartStop[1] );
+                                testFormatHapiServerSiteOne( outputss, t, timeStartStop[0], timeStartStop[1] );
                             } catch (ParseException ex1) {
                                 fail(ex.getMessage());
                             }
