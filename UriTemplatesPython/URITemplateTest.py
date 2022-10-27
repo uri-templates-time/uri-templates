@@ -149,7 +149,7 @@ class URITemplateTest:
             nn[1] = TimeUtil.isoTimeFromArray(TimeUtil.add(TimeUtil.isoTimeToArray(nn[0]),TimeUtil.parseISO8601Duration(nn[1])))
 
         try:
-            res = ut.format(nn[0],nn[1],Collections.EMPTY_MAP)
+            res = ut.format(nn[0],nn[1],{})
         except Exception as ex:
             print('### ' + str(ex))
             return
