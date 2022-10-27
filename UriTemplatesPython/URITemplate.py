@@ -23,9 +23,9 @@ class URITemplate:
     #J2J: private static final Logger logger = Logger.getLogger("hapiserver.uritemplates");
     VERSION = '20201007a'
 
+    @staticmethod
     def getVersion():
         return URITemplate.VERSION
-    getVersion = staticmethod(getVersion)    
 
     # the earliest valid year, limited because of Julian day calculations.
     MIN_VALID_YEAR = 1582
@@ -138,13 +138,13 @@ class URITemplate:
     # @param arg the argument to retrieve
     # @param deft the default value to return when the argument is not found.
     # @return the value.
+    @staticmethod
     def getArg(args, arg, deft):
         if arg in args:
             return args[arg]
         else:
             return deft
 
-    getArg = staticmethod(getArg)    
 
 
     # Interface to add custom handlers for strings with unique formats.  For 
@@ -594,6 +594,7 @@ class URITemplate:
     # Copied from Das2's TimeParser.
     # @param formatString like %{Y,m=02}*.dat or $(Y;m=02)$x.dat
     # @return formatString containing canonical spec, $() and $x instead of *, like $(Y,m=02)$x.dat
+    @staticmethod
     def makeCanonical(formatString):
         wildcard = '*' in formatString
         oldSpec = '${' in formatString
@@ -627,12 +628,12 @@ class URITemplate:
             formatString = re.sub(',',';',formatString,1)
 
         return formatString
-    makeCanonical = staticmethod(makeCanonical)    
 
     # $(subsec,places=4) --> $(subsec;places=4)
     # $(enum,values=01,02,03,id=foo) --> $(enum;values=01,02,03;id=foo)
     # @param qualifiers
     # @return 
+    @staticmethod
     def makeQualifiersCanonical(qualifiers):
         noDelimiters = True
         i = 0
@@ -644,7 +645,7 @@ class URITemplate:
 
         if noDelimiters: return qualifiers
 
-        result = [0] * len(qualifiers)
+        result = [None] * len(qualifiers)
         result[0] = qualifiers[0]
         istart = 1
         while istart < len(qualifiers):  # J2J for loop
@@ -679,24 +680,24 @@ class URITemplate:
             pass
 
         return rr
-    makeQualifiersCanonical = staticmethod(makeQualifiersCanonical)    
 
     # create the array if it hasn't been created already.
     # @param digits
     # @return 
+    @staticmethod
     def maybeInitialize(digits):
         if digits == None:
             return [0] * 7
         else:
             return digits
 
-    maybeInitialize = staticmethod(maybeInitialize)    
 
     # return the digit used to store the number associated with
     # the code.  For example, Y is the year, so it is stored in the 0th
     # position, H is hour and is stored in the 3rd position.
     # @param code one of YmjdHMS.
     # @return the digit 0-6, or -1 for none.
+    @staticmethod
     def digitForCode(code):
         if code=='Y':
             return 0
@@ -715,7 +716,6 @@ class URITemplate:
         else:
             return -1
 
-    digitForCode = staticmethod(digitForCode)    
 
     # set the explicit width
     # @param spec specification like "4" or "4H" for four hours.
@@ -1351,7 +1351,7 @@ class URITemplate:
     # @param externalContextTime the context in [ Y, m, d, H, M, S, nanos ]
     def setContext(self, externalContextTime):
         self.context[0:self.externalContext]=externalContextTime[0:self.externalContext]
-    
+
 
     # For convenience, add API to match that suggested by 
     # https://github.com/hapi-server/uri-templates/blob/master/formatting.json,
@@ -1365,6 +1365,7 @@ class URITemplate:
     # @param extra extra named parameters
     # @return the formatted times which cover the span.
     # @throws ParseException when the initial parsing cannot be done.
+    @staticmethod
     def formatRange(template, startTimeStr, stopTimeStr, extra={}):
         ut = URITemplate(template)
         result = []
@@ -1404,7 +1405,6 @@ class URITemplate:
             i = i + 1
 
         return result
-    formatRange = staticmethod(formatRange)    
 
     # return a list of formatted names, using the spec and the given 
     # time range.
@@ -1608,6 +1608,7 @@ class URITemplate:
         result = ''.join( ( result[0:offs], self.delims[self.ndigits - 1], result[offs:] ) ) #J2J expr -> assignment
         return result.strip()
 
+    @staticmethod
     def printUsage():
         sys.stderr.write('Usage: \n')
         sys.stderr.write('java -jar UriTemplatesJava.jar [--formatRange|--parse] [--range=<ISO8601 range>] --template=<URI template> [--name=<name>]\n')
@@ -1617,10 +1618,10 @@ class URITemplate:
         sys.stderr.write('   --parse names will be parsed into time ranges\n')
         sys.stderr.write('   --range is an iso8601 range, or - for ranges from stdin\n')
         sys.stderr.write('   --name is has been formatted by the template, or - for names from stdin\n')
-    printUsage = staticmethod(printUsage)    
 
     # Usage: java -jar dist/UriTemplatesJava.jar --formatRange --range='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'
     # @param args the command line arguments.
+    @staticmethod
     def main(args):
         if len(args) == 0 or args[1]=='--help':
             URITemplate.printUsage()
@@ -1726,9 +1727,5 @@ class URITemplate:
                     URITemplate.printUsage()
                     sys.stderr.write('parseException from ?\n')
                     sys.exit(-3)
-
-
-
-    main = staticmethod(main)    
 
 
