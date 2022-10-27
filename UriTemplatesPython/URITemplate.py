@@ -1,6 +1,6 @@
+import math
 import re
 import sys
-import math
 
 from TimeUtil import TimeUtil
 
@@ -199,7 +199,7 @@ class URITemplate:
         format = None
 
         def configure(self, args):
-            self.places = int(URITemplate.getArg(args, "places", null))
+            self.places = int(URITemplate.getArg(args,'places',None))
             if self.places > 9: raise Exception('only nine places allowed.')
 
             self.nanosecondsFactor = int((10**((9 - self.places))))
@@ -727,7 +727,7 @@ class URITemplate:
             digit = URITemplate.digitForCode(fc[0])
             self.timeWidth[digit] = span
         else:
-            span = int(spec.substring(0, n))
+            span = int(spec[0:n])
             digit = URITemplate.digitForCode(spec[n])
             self.timeWidth[digit] = span
 
@@ -779,7 +779,7 @@ class URITemplate:
                 pp = pp + 1
 
             if pp > 0:
-                self.lengths[i] = int(ssi.substring(0, pp))
+                self.lengths[i] = int(ssi[0:pp])
             else:
                 self.lengths[i] = 0
 
@@ -975,7 +975,7 @@ class URITemplate:
                                 else:
                                     pass
 
-                                lsdMult = int(val.substring(0, val.length() - 1))
+                                lsdMult = int(val[0:len(val) - 1])
                                 #J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult })
 
                         elif name=="id":
@@ -1242,7 +1242,7 @@ class URITemplate:
 
 
                 elif self.handlers[idigit] == 11:
-                    offset = int(timeString.substring(offs, offs + length))
+                    offset = int(timeString[offs:offs + length])
                     time[URITemplate.HOUR] -= offset // 100
                     time[URITemplate.MINUTE] -= offset % 100
                 elif self.handlers[idigit] == 12:
