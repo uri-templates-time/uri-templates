@@ -1451,9 +1451,7 @@ public class URITemplate {
             }
 
             String field= timeString.substring(offs, offs + length).trim();
-            
-            System.out.println( String.format("field %d: %s %d", idigit, field, length ) );
-            
+                        
             logger.log(Level.FINEST, "handling {0} with {1}", new Object[]{field, handlers[idigit]});
             
             try {

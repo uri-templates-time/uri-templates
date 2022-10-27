@@ -42,7 +42,7 @@ public class URITemplateTest {
      */
     @Test
     public void testMakeCanonical() {
-        System.out.println("makeCanonical");
+        System.out.println("# testMakeCanonical");
         String formatString = "%{Y,m=02}*.dat";
         String expResult = "$(Y;m=02)$x.dat";
         String result = URITemplate.makeCanonical(formatString);
@@ -132,7 +132,7 @@ public class URITemplateTest {
      */
     @Test
     public void testParse() throws Exception {
-        System.out.println("parse");
+        System.out.println("# testParse");
         testTimeParser1( "$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
         testParse1();
         testParse2();
@@ -209,7 +209,7 @@ public class URITemplateTest {
      */
     @Test
     public void testFormat() throws Exception {
-        System.out.println("format");
+        System.out.println("# testFormat");
         //testTimeParser1( "$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03" );
         testTimeFormat1( "$Y$m$d-$(Y;end)$m$d", "20130202-20140303", "2013-02-02/2014-03-03" );
         testTimeFormat1( "_$Y$m$(d)_$(Y;end)$m$(d)",                 "_20130202_20130203", "2013-02-02/2013-02-03" );
@@ -285,6 +285,7 @@ public class URITemplateTest {
     @Test 
     public void testFormatHapiServerSite() {
         try {
+            System.out.println("# testFormatHapiServerSite");
             String ss= readJSONToString( new URL( "https://raw.githubusercontent.com/hapi-server/uri-templates/master/formatting.json" ) );
             //String ss= readJSONToString( new URL( "file:/home/jbf/ct/git/uri-templates/formatting.json" ) );
             JSONArray jo= new JSONArray(ss);
@@ -340,6 +341,7 @@ public class URITemplateTest {
     @Test
     public void testFormatRange() {
         try { 
+            System.out.println("# testFormatRange");
             String t;            
             String[] ss;
 
