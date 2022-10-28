@@ -8,15 +8,9 @@ from TimeUtil import TimeUtil
 
 # cheesy unittest temporary
 def assertEquals(a,b):
-    print(a)
-    print(b)
     if ( not a==b ): raise Exception('a!=b')
 def assertArrayEquals(a,b):
-    for a1 in a: print(a1) 
-    print(' '+str(len(a))) 
-    for b1 in b: print(b1) 
-    print(' '+str(len(b))) 
-    if ( len(a)==len(b) ): 
+    if ( len(a)==len(b) ):
         for i in range(len(a)): 
             if ( a[i]!=b[i] ): raise Exception('a[%d]!=b[%d]'%(i,i))
 def fail(msg):
