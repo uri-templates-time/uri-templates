@@ -252,14 +252,14 @@ public class URITemplate {
 
         int places;
         int nanosecondsFactor;
-        String format;
+        String formatStr;
         
         @Override
         public String configure(Map<String, String> args) {
             places= Integer.parseInt( getArg( args, "places", null ) );
             if ( places>9 ) throw new IllegalArgumentException("only nine places allowed.");
             nanosecondsFactor= (int)( Math.pow( 10, (9-places) ) ); 
-            format= "%0"+places+"d";
+            formatStr= "%0"+places+"d";
             return null;
         }
 
@@ -281,7 +281,7 @@ public class URITemplate {
         @Override
         public String format( int[] startTime, int[] timeWidth, int length, Map<String, String> extra) throws IllegalArgumentException {
             double nn= startTime[6] / nanosecondsFactor;
-            return String.format( format, (int)Math.round(nn) ); 
+            return String.format(formatStr, (int)Math.round(nn) ); 
         }
         
     }
