@@ -18,5 +18,5 @@ Here is a list of implementations of the specification:
 | URI_Templates Java<br>reference implementation | Java     | https://github.com/hapi-server/uri-templates/tree/master/UriTemplatesJava |
 | Autoplot Aggregation<br>nearly complete for spec | Java  | https://autoplot.org/ |
 | URI_Templates JavaScript | JavaScript | Coming Soon |
-| URI_Templates Python | Python | Coming Fall 2022 |
+| URI_Templates Python | Python | https://github.com/hapi-server/uri-templates/tree/master/UriTemplatesPython |
 
