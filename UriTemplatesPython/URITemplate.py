@@ -196,14 +196,14 @@ class URITemplate:
 
         nanosecondsFactor = 0
 
-        format = None
+        formatStr = None
 
         def configure(self, args):
             self.places = int(URITemplate.getArg(args,'places',None))
             if self.places > 9: raise Exception('only nine places allowed.')
 
             self.nanosecondsFactor = int((10**((9 - self.places))))
-            self.format = '%0' + str(self.places) + 'd'
+            self.formatStr = '%0' + str(self.places) + 'd'
             return None
 
         def getRegex(self):
@@ -223,7 +223,7 @@ class URITemplate:
 
         def format(self, startTime, timeWidth, length, extra):
             nn = startTime[6] // self.nanosecondsFactor
-            return format % (int(round(nn)) )
+            return self.formatStr % (int(round(nn)) )
 
 
 
@@ -576,7 +576,7 @@ class URITemplate:
         def parse(self, fieldContent, startTime, timeWidth, extra):
             v = URITemplate.getArg(extra,'v',None)
             if v != None:
-                self.versioningType = VersioningType.numericSplit
+                self.versioningType = URITemplate.VersioningType.numericSplit
                 fieldContent = v + '.' + fieldContent
 
             extra['v'] = fieldContent
