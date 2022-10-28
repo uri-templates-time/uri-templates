@@ -5,3 +5,5 @@ can be done within a couple of hours.
 The website https://jfaden.net/JavaJythonConverter/ConvertServlet was used
 to do the conversion, and then a bit of human time and unit testing is needed
 beyond that.
+
+Note this may change as it is finalized.
