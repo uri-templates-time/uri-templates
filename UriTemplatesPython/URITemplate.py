@@ -147,7 +147,6 @@ class URITemplate:
             return deft
 
 
-
     # Interface to add custom handlers for strings with unique formats.  For 
     # example, the RPWS group had files with two-hex digits indicating the 
     # ten-minute interval covered by the file name. 
@@ -201,18 +200,14 @@ class URITemplate:
         def configure(self, args):
             self.places = int(URITemplate.getArg(args,'places',None))
             if self.places > 9: raise Exception('only nine places allowed.')
-
             self.nanosecondsFactor = int((10**((9 - self.places))))
             self.formatStr = '%0' + str(self.places) + 'd'
             return None
 
         def getRegex(self):
             b = ""
-            i = 0
-            while i < self.places:  # J2J for loop
+            for i in range(0,self.places):
                 b+= '[0-9]'
-                i = i + 1
-
             return b
 
         def parse(self, fieldContent, startTime, timeWidth, extra):
@@ -239,22 +234,16 @@ class URITemplate:
         def configure(self, args):
             vs = URITemplate.getArg(args,'values',None)
             if vs == None: vs = URITemplate.getArg(args,'names',None)
-
             if vs == None: return 'values must be specified for hrinterval'
-
             values1 = vs.split(',')
             self.mult = 24 / len(values1)
             if 24 - self.mult * len(values1) != 0:
                 raise Exception('only 1,2,3,4,6,8 or 12 intervals')
-
             self.values = {}
             self.revvalues = {}
-            i = 0
-            while i < len(values1):  # J2J for loop
+            for i in range(0,len(values1)):
                 self.values[values1[i]] = i
                 self.revvalues[i] = values1[i]
-                i = i + 1
-
             return None
 
         def getRegex(self):
@@ -262,7 +251,6 @@ class URITemplate:
             r = str(vv.next())
             while vv.hasNext():
                 r+= '|' + str(vv.next())
-
             return r
 
         def parse(self, fieldContent, startTime, timeWidth, extra):
@@ -270,7 +258,6 @@ class URITemplate:
                 ii = self.values[fieldContent]
             else:
                 raise Exception('expected one of ' + str(self.getRegex()))
-
             hour = self.mult * ii
             startTime[3] = hour
             timeWidth[3] = self.mult
@@ -285,7 +272,6 @@ class URITemplate:
                 return v
             else:
                 raise Exception('unable to identify enum for hour ' + str(startTime[3]))
-
 
 
 
@@ -307,7 +293,6 @@ class URITemplate:
             s = URITemplate.getArg(args,'start',None)
             if s == None:
                 return 'periodic field needs start'
-
             self.start = TimeUtil.isoTimeToArray(s)
             self.julday = TimeUtil.julianDay(self.start[0],self.start[1],self.start[2])
             self.start[0] = 0
@@ -316,27 +301,21 @@ class URITemplate:
             s = URITemplate.getArg(args,'offset',None)
             if s == None:
                 return 'periodic field needs offset'
-
             self.offset = int(s)
             s = URITemplate.getArg(args,'period',None)
             if s == None:
                 return 'periodic field needs period'
-
             if not s.startswith('P'):
                 if s.endswith('D'):
                     raise Exception('periodic unit for day is d, not D')
-
                 if s.endswith('d'):
                     s = 'P' + s.upper()
                 else:
                     s = 'PT' + s.upper()
-
-
             try:
                 self.period = TimeUtil.parseISO8601Duration(s)
             except Exception as ex: # J2J: exceptions
                 return 'unable to parse period: ' + s + '\n' + str(ex.getMessage())
-
             return None
 
         def getRegex(self):
@@ -356,9 +335,7 @@ class URITemplate:
                 while t[i] > limits[i]:
                     t[i - 1] = t[i - 1] + 1
                     t[i] -= limits[i]
-
                 i = i - 1
-
             timeWidth[3] = self.period[3]
             timeWidth[4] = self.period[4]
             timeWidth[5] = self.period[5]
@@ -376,14 +353,12 @@ class URITemplate:
             jd = TimeUtil.julianDay(startTime[0],startTime[1],startTime[2])
             if self.period[1] != 0 or self.period[3] != 0 or self.period[4] != 0 or self.period[5] != 0 or self.period[6] != 0:
                 raise Exception('under implemented, only integer number of days supported for formatting.')
-
             deltad = int((math.floor((jd - self.julday) / (self.period[2])))) + self.offset
             result = "%d" % (deltad )
             if length > 16:
                 raise Exception('length>16 not supported')
             elif length > -1:
                 result = '_________________'[0:length - len(result)] + result
-
             return result
 
 
@@ -398,15 +373,12 @@ class URITemplate:
             self.values = {}
             svalues = URITemplate.getArg(args,'values',None)
             if svalues == None: return 'need values'
-
             ss = svalues.split(',')
             if len(ss) == 1:
                 ss2 = svalues.split('|')
                 if len(ss2) > 1:
                     #J2J (logger) logger.fine("supporting legacy value containing pipes for values")
                     ss = ss2
-
-
             self.values.update( dict( zip( ss,ss) ))
             self.id = URITemplate.getArg(args,'id','unindentifiedEnum')
             return None
@@ -416,26 +388,22 @@ class URITemplate:
             b = '['.append(it.next())
             while it.hasNext():
                 b+= '|' + str(re.escape(it.next()))
-
             b+= ']'
             return b
 
         def parse(self, fieldContent, startTime, timeWidth, extra):
             if not fieldContent in self.values:
                 raise Exception('value is not in enum: ' + fieldContent)
-
             extra[self.id] = fieldContent
 
         def format(self, startTime, timeWidth, length, extra):
             v = URITemplate.getArg(extra,self.id,None)
             if v == None:
                 raise Exception('\"' + self.id + '\" is undefined in extras.')
-
             if v in self.values:
                 return v
             else:
                 raise Exception(self.id + ' value is not within enum: ' + self.values)
-
 
         # return the possible values.
         # @return the possible values.
@@ -459,7 +427,6 @@ class URITemplate:
             self.regex = URITemplate.getArg(args,'regex',None)
             if self.regex != None:
                 self.pattern = re.compile(self.regex)
-
             self.name = URITemplate.getArg(args,'name','unnamed')
             return None
 
@@ -470,11 +437,8 @@ class URITemplate:
             if self.regex != None:
                 if not self.pattern.match(fieldContent)!=None:
                     raise Exception('ignore content doesn\'t match regex: ' + fieldContent)
-
-
             if not self.name=='unnamed':
                 extra[self.name] = fieldContent
-
 
         def format(self, startTime, timeWidth, length, extra):
             return URITemplate.getArg(extra,self.name,'')
@@ -502,17 +466,13 @@ class URITemplate:
         ss1 = s1.split('[.-]')
         ss2 = s2.split('[.-]')
         n = min(len(ss1),len(ss2))
-        i = 0
-        while i < n:  # J2J for loop
+        for i in range(0,n):
             d1 = int(ss1[i])
             d2 = int(ss2[i])
             if d1 < d2:
                 return -1
             elif d1 > d2:
                 return 1
-
-            i = i + 1
-
         return len(ss1) - len(ss2)
     VersioningType.numericSplit.compare=compare
 
@@ -531,46 +491,35 @@ class URITemplate:
             sep = URITemplate.getArg(args,'sep',None)
             if sep == None and 'dotnotation' in args:
                 sep = 'T'
-
             alpha = URITemplate.getArg(args,'alpha',None)
             if alpha == None and 'alphanumeric' in args:
                 alpha = 'T'
-
             type = URITemplate.getArg(args,'type',None)
             if type != None:
                 if type=='sep' or type=='dotnotation':
                     sep = 'T'
                 elif type=='alpha' or type=='alphanumeric':
                     alpha = 'T'
-
-
             if 'gt' in args:
                 raise Exception('gt specified but not supported: must be ge or lt')
-
             if 'le' in args:
                 raise Exception('le specified but not supported: must be ge or lt')
-
             ge = URITemplate.getArg(args,'ge',None)
             if ge != None:
                 self.versionGe = ge
-
             lt = URITemplate.getArg(args,'lt',None)
             if lt != None:
                 self.versionLt = lt
-
             if alpha != None:
                 if sep != None:
                     return 'alpha with split not supported'
                 else:
                     self.versioningType = URITemplate.VersioningType.alphanumeric
-
             else:
                 if sep != None:
                     self.versioningType = URITemplate.VersioningType.numericSplit
                 else:
                     self.versioningType = URITemplate.VersioningType.numeric
-
-
             return None
 
         def parse(self, fieldContent, startTime, timeWidth, extra):
@@ -578,7 +527,6 @@ class URITemplate:
             if v != None:
                 self.versioningType = URITemplate.VersioningType.numericSplit
                 fieldContent = v + '.' + fieldContent
-
             extra['v'] = fieldContent
 
         def getRegex(self):
@@ -602,32 +550,24 @@ class URITemplate:
         p = re.compile('\\$[0-9]+\\{')
         oldSpec2 = p.search(formatString)!=None
         if formatString.startswith('$') and not wildcard and not oldSpec and not oldSpec2: return formatString
-
         if '%' in formatString and not '$' in formatString:
             formatString = re.sub('\\%','$',formatString)
-
         oldSpec = '${' in formatString
         if oldSpec and not '$(' in formatString:
             formatString = re.sub('\\$\\{','$(',formatString)
             formatString = re.sub('\\}',')',formatString)
-
         if oldSpec2 and not '$(' in formatString:
             formatString = re.sub('\\$([0-9]+)\\{','$$1(',formatString)
             formatString = re.sub('\\}',')',formatString)
-
         if wildcard:
             formatString = re.sub('\\*','$x',formatString)
-
         i = 1
         if i < len(formatString) and formatString[i] == '(':
             i = i + 1
-
         while i < len(formatString) and formatString[i].isalpha():
             i = i + 1
-
         if i < len(formatString) and formatString[i] == ',':
             formatString = re.sub(',',';',formatString,1)
-
         return formatString
 
     # $(subsec,places=4) --> $(subsec;places=4)
@@ -641,27 +581,21 @@ class URITemplate:
         while noDelimiters and i < len(qualifiers):  # J2J for loop
             if qualifiers[i] == ',' or qualifiers[i] == ';':
                 noDelimiters = False
-
             i = i + 1
-
         if noDelimiters: return qualifiers
-
         result = [None] * len(qualifiers)
+        # If it is, then assume the qualifiers are properly formatted.
         result[0] = qualifiers[0]
         istart = 1
         while istart < len(qualifiers):  # J2J for loop
             ch = qualifiers[istart]
             if ch == ';': return qualifiers
-
             if ch == ',':
                 result[istart] = ';'
                 break
-
             if ch.isalpha():
                 result[istart] = ch
-
             istart = istart + 1
-
         expectSemi = False
         i = len(qualifiers) - 1
         while i > istart:  # J2J for loop
@@ -672,14 +606,11 @@ class URITemplate:
                 result[i] = ';'
             elif ch == ';':
                 expectSemi = False
-
             i = i - 1
-
         rr = ''.join( result)
         if not result==qualifiers:
             #J2J (logger) logger.log(Level.FINE, "qualifiers are made canonical: {0}->{1}", new Object[] { qualifiers, rr })
             pass
-
         return rr
 
     # create the array if it hasn't been created already.
@@ -691,7 +622,6 @@ class URITemplate:
             return [0] * 7
         else:
             return digits
-
 
     # return the digit used to store the number associated with
     # the code.  For example, Y is the year, so it is stored in the 0th
@@ -717,7 +647,6 @@ class URITemplate:
         else:
             return -1
 
-
     # set the explicit width
     # @param spec specification like "4" or "4H" for four hours.
     def handleWidth(self, fc, spec):
@@ -730,7 +659,6 @@ class URITemplate:
             span = int(spec[0:n])
             digit = URITemplate.digitForCode(spec[n])
             self.timeWidth[digit] = span
-
         self.timeWidthIsExplicit = True
 
     def __init__(self,formatString):
@@ -751,8 +679,10 @@ class URITemplate:
         stopTime[0] = URITemplate.MAX_VALID_YEAR
         stopTime[1] = 1
         stopTime[2] = 1
+        #result.fieldHandlers = fieldHandlers;
         self.fieldHandlersById = {}
         formatString = URITemplate.makeCanonical(formatString)
+        #this.formatString = formatString;
         ss = formatString.split('$')
         self.fc = [None] * len(ss)
         self.qualifiers = [None] * len(ss)
@@ -760,29 +690,25 @@ class URITemplate:
         self.ndigits = len(ss)
         regex1 = ""
         regex1+= str(re.sub('\\+','+',ss[0]))
+        #TODO: I thought we did this already.
         self.lengths = [0] * self.ndigits
-        i = 0
-        while i < len(self.lengths):  # J2J for loop
+        for i in range(0,len(self.lengths)):
             self.lengths[i] = -1
-            i = i + 1
-
         self.startShift = None
         self.stopShift = None
         self.qualifiersMaps = [None] * self.ndigits
         self.phasestart = None
         delim[0] = ss[0]
-        i = 1
-        while i < self.ndigits:  # J2J for loop
+        for i in range(1,self.ndigits):
             pp = 0
             ssi = ss[i]
             while len(ssi) > pp and (ssi[pp].isdigit() or ssi[pp] == '-'):
                 pp = pp + 1
-
             if pp > 0:
+                # Note length ($5Y) is not supported in http://tsds.org/uri_templates.
                 self.lengths[i] = int(ssi[0:pp])
             else:
                 self.lengths[i] = 0
-
             ssi = URITemplate.makeQualifiersCanonical(ssi)
             #J2J (logger) logger.log(Level.FINE, "ssi={0}", ss[i])
             if ssi[pp] != '(':
@@ -792,50 +718,39 @@ class URITemplate:
                 endIndex = ssi.find(')',pp)
                 if endIndex == -1:
                     raise Exception('opening paren but no closing paren in \"' + ssi + '\"')
-
                 semi = ssi.find(';',pp)
                 if semi != -1:
                     self.fc[i] = ssi[pp + 1:semi]
                     self.qualifiers[i] = ssi[semi + 1:endIndex]
                 else:
                     self.fc[i] = ssi[pp + 1:endIndex]
-
                 delim[i] = ssi[endIndex + 1:]
-
-            i = i + 1
-
         self.handlers = [0] * self.ndigits
         self.offsets = [0] * self.ndigits
         pos = 0
         self.offsets[0] = pos
         self.lsd = -1
         lsdMult = 1
+        #TODO: We want to add $Y_1XX/$j/WAV_$Y$jT$(H,span=5)$M$S_REC_V01.PKT
         self.context = [0] * URITemplate.NUM_TIME_DIGITS
         self.context[0:URITemplate.NUM_TIME_DIGITS]=startTime[0:URITemplate.NUM_TIME_DIGITS]
         self.externalContext = URITemplate.NUM_TIME_DIGITS
+        # this will lower and will typically be 0.
         self.timeWidth = [0] * URITemplate.NUM_TIME_DIGITS
         haveHour = False
-        i = 1
-        while i < self.ndigits:  # J2J for loop
+        for i in range(1,self.ndigits):
             if pos != -1:
                 pos += len(delim[i - 1])
-
             handler = 9999
-            j = 0
-            while j < len(self.valid_formatCodes):  # J2J for loop
+            for j in range(0,len(self.valid_formatCodes)):
                 if self.valid_formatCodes[j]==self.fc[i]:
                     handler = j
                     break
-
-                j = j + 1
-
             if self.fc[i]=='H':
                 haveHour = True
             elif self.fc[i]=='p':
                 if not haveHour:
                     raise Exception('$H must preceed $p')
-
-
             if handler == 9999:
                 if not self.fc[i] in self.fieldHandlers:
                     raise Exception('bad format code: \"' + self.fc[i] + '\" in \"' + formatString + '\"')
@@ -844,11 +759,11 @@ class URITemplate:
                     self.handlers[i] = 100
                     self.offsets[i] = pos
                     if self.lengths[i] < 1 or pos == -1:
+                        # 0->indetermined as well, allows user to force indeterminate
                         pos = -1
                         self.lengths[i] = -1
                     else:
                         pos += self.lengths[i]
-
                     fh = self.fieldHandlers[self.fc[i]]
                     args = self.qualifiers[i]
                     argv = {}
@@ -860,41 +775,32 @@ class URITemplate:
                                 argv[ss21.strip()] = ''
                             else:
                                 argv[ss21[0:i3].strip()] = ss21[i3 + 1:].strip()
-
-
-
                     errm = fh.configure(argv)
                     if errm != None:
                         raise Exception(errm)
-
                     id = URITemplate.getArg(argv,'id',None)
                     if id != None:
                         self.fieldHandlersById[id] = fh
-
-
             else:
                 self.handlers[i] = handler
                 if self.lengths[i] == 0:
                     self.lengths[i] = self.formatCode_lengths[handler]
-
                 self.offsets[i] = pos
                 if self.lengths[i] < 1 or pos == -1:
                     pos = -1
                 else:
                     pos += self.lengths[i]
-
-
             span = 1
             if self.qualifiers[i] != None:
                 ss2 = self.qualifiers[i].split(';')
                 self.qualifiersMaps[i] = {}
                 for ss21 in ss2:
+                    #TODO: handle end before shift.
                     okay = False
                     qual = ss21.strip()
                     if qual=='startTimeOnly':
                         self.startTimeOnly = self.fc[i][0]
                         okay = True
-
                     idx = qual.find('=')
                     if not okay and idx > -1:
                         name = qual[0:idx].strip()
@@ -928,10 +834,12 @@ class URITemplate:
                             self.timeWidthIsExplicit = True
                         elif name=="span":
                             span = int(val)
+                            # not part of uri_templates
                             self.handleWidth(self.fc[i],val)
                             self.timeWidthIsExplicit = True
                         elif name=="delta":
                             span = int(val)
+                            # see http://tsds.org/uri_templates
                             self.handleWidth(self.fc[i],val)
                             self.timeWidthIsExplicit = True
                         elif name=="resolution":
@@ -942,20 +850,15 @@ class URITemplate:
                             if val.startswith('P'):
                                 try:
                                     r = TimeUtil.parseISO8601Duration(val)
-                                    j = 0
-                                    while j < URITemplate.NUM_TIME_DIGITS:  # J2J for loop
+                                    for j in range(0,URITemplate.NUM_TIME_DIGITS):
                                         if r[j] > 0:
                                             self.lsd = j
                                             lsdMult = r[j]
                                             #J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult })
                                             break
-
-                                        j = j + 1
-
                                 except Exception as ex: # J2J: exceptions
                                     #J2J (logger) logger.log(Level.SEVERE, null, ex)
                                     pass
-
                             else:
                                 code = val[len(val) - 1]
                                 if code=='Y':
@@ -974,7 +877,6 @@ class URITemplate:
                                     self.lsd = 5
                                 else:
                                     pass
-
                                 lsdMult = int(val[0:len(val) - 1])
                                 #J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult })
 
@@ -1022,7 +924,6 @@ class URITemplate:
                             if not self.fc[i] in self.fieldHandlers:
                                 raise Exception('unrecognized/unsupported field: ' + name + ' in ' + qual)
 
-
                         okay = True
                     elif not okay:
                         name = qual.strip()
@@ -1030,20 +931,13 @@ class URITemplate:
                             if self.stopTimeDigit == URITemplate.AFTERSTOP_INIT:
                                 self.startLsd = self.lsd
                                 self.stopTimeDigit = i
-
                             okay = True
-
-
                     if not okay and (qual=='Y' or qual=='m' or qual=='d' or qual=='j' or qual=='H' or qual=='M' or qual=='S'):
                         raise Exception("%s must be assigned an integer value (e.g. %s=1) in %s" % (qual,qual,ss[i] ))
-
                     if not okay:
                         if not self.fc[i] in self.fieldHandlers:
                             #J2J (logger) logger.log(Level.WARNING, "unrecognized/unsupported field:{0} in {1}", new Object[] { qual, ss[i] })
                             pass
-
-
-
             else:
                 if len(self.fc[i]) == 1:
                     code = self.fc[i][0]
@@ -1064,12 +958,9 @@ class URITemplate:
                         thisLsd = 5
                     else:
                         pass
-
                     if thisLsd == self.lsd:
+                        # allow subsequent repeat fields to reset (T$y$(m,delta=4)/$x_T$y$m$d.DAT)
                         lsdMult = 1
-
-
-
             if len(self.fc[i]) == 1:
                 if self.fc[i][0]=='Y':
                     self.externalContext = min(self.externalContext,0)
@@ -1087,24 +978,18 @@ class URITemplate:
                     self.externalContext = min(self.externalContext,5)
                 else:
                     pass
-
-
             if handler < 100:
                 if self.precision[handler] > self.lsd and lsdMult == 1:
+                    # omni2_h0_mrg1hr_$Y$(m,span=6)$d_v01.cdf.  Essentially we ignore the $d.
                     self.lsd = self.precision[handler]
                     lsdMult = span
                     #J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult })
-
-
             dots = '.........'
             if self.lengths[i] == -1:
                 regex1+= '(.*)'
             else:
                 regex1+= '(' + dots[0:self.lengths[i]] + ')'
-
             regex1+= str(re.sub('\\+','+',delim[i]))
-            i = i + 1
-
         if self.lsd==0 or self.lsd==1 or self.lsd==2 or self.lsd==3 or self.lsd==4 or self.lsd==5 or self.lsd==6:
             if not self.timeWidthIsExplicit:
                 self.timeWidth[self.lsd] = lsdMult
@@ -1113,13 +998,10 @@ class URITemplate:
             self.timeWidth[0] = 8000
         elif self.lsd==100:
             pass
-
         #J2J: if logger.isLoggable(Level.FINE) ... removed
         if self.stopTimeDigit == URITemplate.AFTERSTOP_INIT:
             if self.startShift != None:
                 self.stopShift = self.startShift
-
-
         self.delims = delim
         self.regex = regex1
 
@@ -1151,18 +1033,17 @@ class URITemplate:
         stopTime = [0] * URITemplate.NUM_TIME_DIGITS
         time = startTime
         time[0:URITemplate.NUM_TIME_DIGITS]=self.context[0:URITemplate.NUM_TIME_DIGITS]
-        idigit = 1
-        while idigit < self.ndigits:  # J2J for loop
+        for idigit in range(1,self.ndigits):
             if idigit == self.stopTimeDigit:
                 #J2J (logger) logger.finer("switching to parsing end time")
                 stopTime[0:URITemplate.NUM_TIME_DIGITS]=time[0:URITemplate.NUM_TIME_DIGITS]
                 time = stopTime
-
             if self.offsets[idigit] != -1:
+                # note offsets[0] is always known
                 offs = self.offsets[idigit]
+                pass
             else:
                 offs += length + len(self.delims[idigit - 1])
-
             if self.lengths[idigit] != -1:
                 length = self.lengths[idigit]
             else:
@@ -1170,27 +1051,20 @@ class URITemplate:
                     if idigit == self.ndigits - 1:
                         length = len(timeString) - offs
                     else:
-                        raise Exception('No delimer specified after unknown length field, \"' + self.formatName[self.handlers[idigit]] + '\", field number=' + (1 + idigit) + '')
-
+                        raise Exception('No delimer specified after unknown length field, \"' + self.formatName[self.handlers[idigit]] + '\", field number=' + str((1 + idigit)) + '')
                 else:
                     while offs < len(timeString) and timeString[offs].isspace():
                         offs = offs + 1
                     if offs >= len(timeString):
                         raise Exception('expected delimiter \"' + self.delims[idigit] + '\" but reached end of string')
-
                     i = timeString.find(self.delims[idigit],offs)
                     if i == -1:
                         raise Exception('expected delimiter \"' + self.delims[idigit] + '\"')
-
                     length = i - offs
                     if length < 0:
                         raise Exception('bad state, length should never be less than zero.')
-
-
-
             if len(timeString) < offs + length:
                 raise Exception('string is too short: ' + timeString)
-
             field = timeString[offs:offs + length].strip()
             #J2J (logger) logger.log(Level.FINEST, "handling {0} with {1}", new Object[] { field, handlers[idigit] })
             try:
@@ -1221,55 +1095,48 @@ class URITemplate:
                         time[URITemplate.NANOSECOND] = digit
                     else:
                         raise Exception('handlers[idigit] was not expected value (which shouldn\'t happen)')
-
                 elif self.handlers[idigit] == 100:
                     handler = (self.fieldHandlers[self.fc[idigit]])
                     handler.parse(timeString[offs:offs + length],time,self.timeWidth,extra)
                 elif self.handlers[idigit] == 10:
+                    # AM/PM -- code assumes hour has been read already
                     ch = timeString[offs]
                     if ch == 'P' or ch == 'p':
                         if time[URITemplate.HOUR] == 12:
                             pass
                         else:
                             time[URITemplate.HOUR] += 12
-
                     elif ch == 'A' or ch == 'a':
                         if time[URITemplate.HOUR] == 12:
                             time[URITemplate.HOUR] -= 12
                         else:
                             pass
-
-
                 elif self.handlers[idigit] == 11:
+                    # TimeZone is not supported, see code elsewhere.
                     offset = int(timeString[offs:offs + length])
                     time[URITemplate.HOUR] -= offset // 100
+                    # careful!
                     time[URITemplate.MINUTE] -= offset % 100
                 elif self.handlers[idigit] == 12:
                     if length >= 0:
                         extra['ignore'] = timeString[offs:offs + length]
-
                 elif self.handlers[idigit] == 13:
+                    # month name
                     time[URITemplate.MINUTE] = TimeUtil.monthNumber(timeString[offs:offs + length])
                 elif self.handlers[idigit] == 14:
                     if length >= 0:
                         extra['X'] = timeString[offs:offs + length]
-
                 elif self.handlers[idigit] == 15:
+                    # "x"
                     qual = self.qualifiersMaps[idigit]
                     if qual != None:
                         name = URITemplate.getArg(qual,'name','x')
                     else:
                         name = 'x'
-
                     if length >= 0:
                         extra[name] = timeString[offs:offs + length]
-
-
             except Exception as ex: # J2J: exceptions
                 raise Exception("fail to parse digit number %d: %s" % (idigit,field ))
-
-            idigit = idigit + 1
-
         if self.phasestart != None:
             if self.timeWidth == None:
                 #J2J (logger) logger.warning("phasestart cannot be used for month or year resolution")
@@ -1287,14 +1154,10 @@ class URITemplate:
                 else:
                     #J2J (logger) logger.log(Level.WARNING, "phasestart can only be used when step size is integer number of days greater than 1: {0}", TimeUtil.formatIso8601Duration(timeWidth))
                     pass
-
                 stopTime = TimeUtil.add(startTime,self.timeWidth)
-
         else:
             if self.stopTimeDigit == URITemplate.AFTERSTOP_INIT:
                 stopTime = TimeUtil.add(startTime,self.timeWidth)
-
-
         result = [0] * (URITemplate.NUM_TIME_DIGITS * 2)
         noShift = self.startShift == None
         if noShift:
@@ -1302,23 +1165,19 @@ class URITemplate:
             while i < URITemplate.NUM_TIME_DIGITS:  # J2J for loop
                 result[i] = startTime[i]
                 i = i + 1
-
             TimeUtil.normalizeTime(result)
         else:
             i = 0
             while i < URITemplate.NUM_TIME_DIGITS:  # J2J for loop
                 result[i] = startTime[i] + self.startShift[i]
                 i = i + 1
-
             TimeUtil.normalizeTime(result)
-
         noShift = self.stopShift == None
         if noShift:
             i = 0
             while i < URITemplate.NUM_TIME_DIGITS:  # J2J for loop
                 result[i + URITemplate.NUM_TIME_DIGITS] = stopTime[i]
                 i = i + 1
-
             TimeUtil.normalizeTime(result)
         else:
             result1 = [0] * URITemplate.NUM_TIME_DIGITS
@@ -1326,14 +1185,11 @@ class URITemplate:
             while i < URITemplate.NUM_TIME_DIGITS:  # J2J for loop
                 result1[i] = stopTime[i] + self.stopShift[i]
                 i = i + 1
-
             TimeUtil.normalizeTime(result1)
             i = 0
             while i < URITemplate.NUM_TIME_DIGITS:  # J2J for loop
                 result[i + URITemplate.NUM_TIME_DIGITS] = result1[i]
                 i = i + 1
-
-
         return result
 
     # return the number of digits, starting with the year, which must be
@@ -1374,14 +1230,12 @@ class URITemplate:
         stop = TimeUtil.isoTimeFromArray(stopDigits)
         if sptr > stop:
             raise Exception('start time must be before or equal to stop time.')
-
         i = 0
         externalContext = ut.getExternalContext()
         if externalContext > 0:
             context = [0] * URITemplate.NUM_TIME_DIGITS
             context[0:externalContext]=stopDigits[0:externalContext]
             ut.setContext(context)
-
         firstLoop = True
         while sptr < stop:
             sptr0 = sptr
@@ -1391,19 +1245,15 @@ class URITemplate:
                 sptr = TimeUtil.isoTimeFromArray(tta[0:7])
                 s1 = ut.format(sptr,sptr,extra)
                 firstLoop = False
-
             if tta[0:7]==tta[7:14]:
                 result.append(ut.format(startTimeStr,stopTimeStr))
                 break
             else:
                 result.append(s1)
-
             sptr = TimeUtil.isoTimeFromArray(tta[7:14])
             if sptr0==sptr:
                 raise Exception('template fails to advance')
-
             i = i + 1
-
         return result
 
     # return a list of formatted names, using the spec and the given 
@@ -1420,13 +1270,10 @@ class URITemplate:
         else:
             stopTime = TimeUtil.isoTimeToArray(stopTimeStr)
             timeWidthl = TimeUtil.subtract(stopTime,startTime)
-
         if self.startShift != None:
             startTime = TimeUtil.subtract(startTime,self.startShift)
-
         if self.stopShift != None:
             stopTime = TimeUtil.subtract(stopTime,self.stopShift)
-
         if self.timeWidthIsExplicit:
             if self.phasestart != None and self.timeWidth[2] > 0:
                 phaseStartJulian = TimeUtil.julianDay(self.phasestart[0],self.phasestart[1],self.phasestart[2])
@@ -1437,8 +1284,6 @@ class URITemplate:
                 startTime[1] = tnew[1]
                 startTime[2] = tnew[2]
                 stopTime = TimeUtil.add(startTime,self.timeWidth)
-
-
         timel = startTime
         result = ""
         offs = 0
@@ -1446,22 +1291,20 @@ class URITemplate:
         nf[2] = '%02d'
         nf[3] = '%03d'
         nf[4] = '%04d'
-        idigit = 1
-        while idigit < self.ndigits:  # J2J for loop
+        for idigit in range(1,self.ndigits):
             if idigit == self.stopTimeDigit:
                 timel = stopTime
-
             result = ''.join( ( result[0:offs], self.delims[idigit - 1], result[offs:] ) ) #J2J expr -> assignment
             if self.offsets[idigit] != -1:
+                # note offsets[0] is always known
                 offs = self.offsets[idigit]
+                pass
             else:
                 offs += len(self.delims[idigit - 1])
-
             if self.lengths[idigit] != -1:
                 length = self.lengths[idigit]
             else:
                 length = -9999
-
             if self.handlers[idigit] < 10:
                 qualm = self.qualifiersMaps[idigit]
                 delta = 1
@@ -1473,9 +1316,6 @@ class URITemplate:
                         ddelta = URITemplate.getArg(qualm,'span',None)
                         if ddelta != None:
                             delta = int(ddelta)
-
-
-
                 if self.handlers[idigit]==0:
                     digit = timel[0]
                 elif self.handlers[idigit]==1:
@@ -1502,11 +1342,12 @@ class URITemplate:
                     digit = timel[6] // 1000
                 else:
                     raise Exception('shouldn\'t get here')
-
                 if delta > 1:
                     h = self.handlers[idigit]
                     if h == 2 or h == 3:
+                        # $j, $m all start with 1.
                         digit = (((digit - 1) // delta) * delta) + 1
+                        pass
                     elif h == 4:
                         if self.phasestart != None:
                             phaseStartJulian = TimeUtil.julianDay(self.phasestart[0],self.phasestart[1],self.phasestart[2])
@@ -1518,17 +1359,15 @@ class URITemplate:
                             timel[2] = tnew[2]
                         else:
                             raise Exception('phaseshart not set for delta days')
-
                     else:
                         digit = (digit // delta) * delta
-
-
                 if length < 0:
                     ss = str(digit)
                     result = ''.join( ( result[0:offs], ss, result[offs:] ) ) #J2J expr -> assignment
                     offs += len(ss)
                 else:
                     if self.qualifiersMaps[idigit] != None:
+                        # TODO: suboptimal
                         pad = URITemplate.getArg(self.qualifiersMaps[idigit],'pad',None)
                         if pad == None or pad=='zero':
                             result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) #J2J expr -> assignment
@@ -1549,30 +1388,25 @@ class URITemplate:
                                 else:
                                     result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) #J2J expr -> assignment
                                     offs += length
-
                             else:
                                 result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) #J2J expr -> assignment
                                 offs += length
-
-
                     else:
                         result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) #J2J expr -> assignment
                         offs += length
-
-
             elif self.handlers[idigit] == 13:
+                # month names
                 result = ''.join( ( result[0:offs], TimeUtil.monthNameAbbrev(timel[1]), result[offs:] ) ) #J2J expr -> assignment
                 offs += length
             elif self.handlers[idigit] == 12 or self.handlers[idigit] == 14:
                 raise Exception('cannot format spec containing ignore')
             elif self.handlers[idigit] == 100:
                 if self.fc[idigit]=='v':
+                    # kludge for version.  TODO: This can probably use the code below now.
                     ins = URITemplate.getArg(extra,'v','00')
                     if length > -1:
                         if length > 20: raise Exception('version lengths>20 not supported')
-
                         ins = '00000000000000000000'[0:length]
-
                     result = ''.join( ( result[0:offs], ins, result[offs:] ) ) #J2J expr -> assignment
                     offs += len(ins)
                 else:
@@ -1591,20 +1425,14 @@ class URITemplate:
                     except Exception as ex: # J2J: exceptions
                         #J2J (logger) logger.log(Level.SEVERE, null, ex)
                         pass
-
                     if length > -1 and len(ins) != length:
                         raise Exception('length of fh is incorrect, should be ' + str(length) + ', got \"' + ins + '\"')
-
                     result = ''.join( ( result[0:offs], ins, result[offs:] ) ) #J2J expr -> assignment
                     offs += len(ins)
-
             elif self.handlers[idigit] == 10:
                 raise Exception('AM/PM not supported')
             elif self.handlers[idigit] == 11:
                 raise Exception('Time Zones not supported')
-
-            idigit = idigit + 1
-
         result = ''.join( ( result[0:offs], self.delims[self.ndigits - 1], result[offs:] ) ) #J2J expr -> assignment
         return result.strip()
 
@@ -1613,6 +1441,7 @@ class URITemplate:
         sys.stderr.write('Usage: \n')
         sys.stderr.write('java -jar UriTemplatesJava.jar [--formatRange|--parse] [--range=<ISO8601 range>] --template=<URI template> [--name=<name>]\n')
         sys.stderr.write('java -jar UriTemplatesJava.jar --formatRange --range=1999-01-01/1999-01-03 --template=\'http://example.com/data_$(d;pad=none).dat\'\n')
+        #example.com/data_$(d;pad=none).dat'");
         sys.stderr.write('java -jar UriTemplatesJava.jar --parse --template=\'data_$(d;pad=none;Y=1999; m=5).dat\' --name=data_1.dat\n')
         sys.stderr.write('   --formatRange time ranges will be formatted into names\n')
         sys.stderr.write('   --parse names will be parsed into time ranges\n')
@@ -1626,7 +1455,6 @@ class URITemplate:
         if len(args) == 0 or args[1]=='--help':
             URITemplate.printUsage()
             sys.exit(-1)
-
         argsm = {}
         for a in args:
             aa = a.split('=')
@@ -1634,8 +1462,6 @@ class URITemplate:
                 argsm[aa[0]] = ''
             else:
                 argsm[aa[0]] = aa[1]
-
-
         if '--formatRange' in argsm:
             argsm.pop('--formatRange')
             template = argsm.pop('--template')
@@ -1643,13 +1469,11 @@ class URITemplate:
                 URITemplate.printUsage()
                 sys.stderr.write('need --template parameter\n')
                 sys.exit(-2)
-
             timeRange = argsm.pop('--range')
             if timeRange == None:
                 URITemplate.printUsage()
                 sys.stderr.write('need --range parameter\n')
                 sys.exit(-3)
-
             if timeRange=='-':
                 tr1 = None
                 try:
@@ -1659,27 +1483,21 @@ class URITemplate:
                         result = URITemplate.formatRange(template,TimeUtil.isoTimeFromArray(itimeRange[0:7]),TimeUtil.isoTimeFromArray(itimeRange[7:14]))
                         for s in result:
                             print(s)
-
                         tr1 = r.readLine()
-
                 except Exception as ex: # J2J: exceptions
                     URITemplate.printUsage()
                     sys.stderr.write('range is misformatted: ' + tr1+'\n')
                     sys.exit(-3)
-
             else:
                 try:
                     itimeRange = TimeUtil.parseISO8601TimeRange(timeRange)
                     result = URITemplate.formatRange(template,TimeUtil.isoTimeFromArray(itimeRange[0:7]),TimeUtil.isoTimeFromArray(itimeRange[7:14]))
                     for s in result:
                         print(s)
-
                 except Exception as ex: # J2J: exceptions
                     URITemplate.printUsage()
                     sys.stderr.write('range is misformatted\n')
                     sys.exit(-3)
-
-
         elif '--parse' in argsm:
             argsm.pop('--parse')
             template = argsm.pop('--template')
@@ -1687,13 +1505,11 @@ class URITemplate:
                 URITemplate.printUsage()
                 sys.stderr.write('need --template parameter\n')
                 sys.exit(-2)
-
             name = argsm.pop('--name')
             if name == None:
                 URITemplate.printUsage()
                 sys.stderr.write('need --name parameter\n')
                 sys.exit(-3)
-
             if name=='-':
                 filen1 = None
                 try:
@@ -1705,12 +1521,10 @@ class URITemplate:
                         sys.stdout.write('/')
                         print(TimeUtil.isoTimeFromArray(itimeRange[7:14]))
                         filen1 = r.readLine()
-
                 except Exception as ex: # J2J: exceptions
                     URITemplate.printUsage()
                     sys.stderr.write('parseException from ' + filen1+'\n')
                     sys.exit(-3)
-
             else:
                 try:
                     ut = URITemplate(template)
