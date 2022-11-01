@@ -15,8 +15,6 @@ import java.util.logging.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -89,7 +87,7 @@ public class URITemplateTest {
         
     }    
 
-    private void testParse1() throws ParseException {
+    private void dotestParse1() throws ParseException {
         URITemplate ut= new URITemplate("$Y_sc$(enum;values=a,b,c,d;id=sc)");
         Map<String,String> extra= new HashMap<>();
         int[] digits= ut.parse("2003_scd",extra);
@@ -98,7 +96,7 @@ public class URITemplateTest {
         System.out.println(actual);
     }
     
-    private void testParse2() throws ParseException {
+    private void doTestParse2() throws ParseException {
         URITemplate ut= new URITemplate("$Y_$m_v$v.dat");
         Map<String,String> extra= new HashMap<>();
         int[] digits= ut.parse("2003_10_v20.3.dat",extra);
@@ -109,7 +107,7 @@ public class URITemplateTest {
         
     }
     
-    private void testParse3() throws ParseException {
+    private void doTestParse3() throws ParseException {
         URITemplate ut= new URITemplate("$Y$m$(d;delta=10;phasestart=1979-01-01)");
         Map<String,String> extra= new HashMap<>();
         int[] digits= ut.parse("19791227",extra);
@@ -126,9 +124,9 @@ public class URITemplateTest {
     public void testParse() throws Exception {
         System.out.println("# testParse");
         doTestTimeParser1( "$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
-        testParse1();
-        testParse2();
-        testParse3();
+        dotestParse1();
+        doTestParse2();
+        doTestParse3();
         doTestTimeParser1( "$Y $m $d $H $M", "2012 03 30 16 20", "2012-03-30T16:20/2012-03-30T16:21" );
         doTestTimeParser1( "$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03" );
         doTestTimeParser1( "$Y$m$d-$(Y;end)$m$d", "20130202-20140303", "2013-02-02/2014-03-03" );
@@ -253,7 +251,7 @@ public class URITemplateTest {
         }
     }
     
-    private void testFormatHapiServerSiteOne( 
+    private void doTestFormatHapiServerSiteOne( 
             String[] outputs, String t, String startTime, String stopTime )
             throws ParseException, JSONException {
         
@@ -309,10 +307,10 @@ public class URITemplateTest {
                         System.out.println("timeRange:"+timeRange);
                         String[] timeStartStop= timeRange.split("/",-2);
                         try {
-                            testFormatHapiServerSiteOne( outputss, t, timeStartStop[0], timeStartStop[1] );
+                            doTestFormatHapiServerSiteOne( outputss, t, timeStartStop[0], timeStartStop[1] );
                         } catch (ParseException | AssertionError ex) {
                             try {
-                                testFormatHapiServerSiteOne( outputss, t, timeStartStop[0], timeStartStop[1] );
+                                doTestFormatHapiServerSiteOne( outputss, t, timeStartStop[0], timeStartStop[1] );
                             } catch (ParseException ex1) {
                                 fail(ex.getMessage());
                             }
