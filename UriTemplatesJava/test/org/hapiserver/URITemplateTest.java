@@ -45,7 +45,7 @@ public class URITemplateTest {
         return t1+"/"+t2;
     }
         
-    private static void doTestTimeParser1( String spec, String test, String norm ) throws Exception {
+    private void doTestTimeParser1( String spec, String test, String norm ) throws Exception {
         URITemplate ut;
         try {
             ut = new URITemplate(spec);
@@ -160,7 +160,7 @@ public class URITemplateTest {
      * @param norm
      * @throws Exception 
      */
-    private static void doTestTimeFormat1( String spec, String test, String norm ) throws Exception {
+    private void doTestTimeFormat1( String spec, String test, String norm ) throws Exception {
         URITemplate ut;
         try {
             ut = new URITemplate(spec);
