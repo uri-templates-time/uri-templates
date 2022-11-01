@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,6 +28,12 @@ public class URITemplateTest {
     public URITemplateTest() {
     }
 
+    /**
+     * Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
+     */
+    public static final Pattern iso8601DurationPattern = // repeated for Java to Jython conversion.
+            Pattern.compile("P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?");
+    
     /**
      * Test of makeCanonical method, of class URITemplate.
      */
@@ -55,7 +62,7 @@ public class URITemplateTest {
         }
         
         String[] nn= norm.split("/",-2);
-        if ( TimeUtil.iso8601DurationPattern.matcher(nn[1]).matches() ) {
+        if ( iso8601DurationPattern.matcher(nn[1]).matches() ) {
             nn[1]= TimeUtil.isoTimeFromArray(
                     TimeUtil.add( TimeUtil.isoTimeToArray(nn[0]), 
                             TimeUtil.parseISO8601Duration(nn[1]) ) );
@@ -170,7 +177,7 @@ public class URITemplateTest {
         }
         
         String[] nn= norm.split("/",-2);
-        if ( TimeUtil.iso8601DurationPattern.matcher(nn[1]).matches() ) {
+        if ( iso8601DurationPattern.matcher(nn[1]).matches() ) {
             nn[1]= TimeUtil.isoTimeFromArray(
                     TimeUtil.add( TimeUtil.isoTimeToArray(nn[0]), 
                             TimeUtil.parseISO8601Duration(nn[1]) ) );
