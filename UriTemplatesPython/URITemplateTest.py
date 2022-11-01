@@ -1,3 +1,4 @@
+import re
 import sys
 import json
 from urllib.request import urlopen
@@ -9,6 +10,9 @@ from TimeUtil import TimeUtil
 #
 # @author jbf
 class URITemplateTest(unittest.TestCase):
+    # Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
+    iso8601DurationPattern = re.compile('P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?')
+
     # Test of makeCanonical method, of class URITemplate.
     def testMakeCanonical(self):
         print('# testMakeCanonical')
@@ -23,15 +27,14 @@ class URITemplateTest(unittest.TestCase):
         t2 = TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(res))[0:16]
         return t1 + '/' + t2
 
-    @staticmethod
-    def doTestTimeParser1(spec, test, norm):
+    def doTestTimeParser1(self, spec, test, norm):
         try:
             ut = URITemplate(spec)
         except Exception as ex: # J2J: exceptions
             sys.stderr.write('### unable to parse spec: ' + spec+'\n')
             return
         nn = norm.split('/')
-        if TimeUtil.iso8601DurationPattern.match(nn[1])!=None:
+        if URITemplateTest.iso8601DurationPattern.match(nn[1])!=None:
             nn[1] = TimeUtil.isoTimeFromArray(TimeUtil.add(TimeUtil.isoTimeToArray(nn[0]),TimeUtil.parseISO8601Duration(nn[1])))
         start = TimeUtil.isoTimeToArray(nn[0])
         stop = TimeUtil.isoTimeToArray(nn[1])
@@ -41,7 +44,7 @@ class URITemplateTest(unittest.TestCase):
         try:
             res = ut.parse(test,{})
         except Exception as ex: # J2J: exceptions
-            fail(ex.getMessage())
+            fail(str(ex))
             return
         arrow = chr(8594)
         if res==inorm:
@@ -79,45 +82,44 @@ class URITemplateTest(unittest.TestCase):
     # @throws java.lang.Exception
     def testParse(self):
         print('# testParse')
-        URITemplateTest.doTestTimeParser1('$(j;Y=2012).*.*.*.$H','017.x.y.z.02','2012-01-17T02:00:00/2012-01-17T03:00:00')
+        self.doTestTimeParser1('$(j;Y=2012).*.*.*.$H','017.x.y.z.02','2012-01-17T02:00:00/2012-01-17T03:00:00')
         self.dotestParse1()
         self.doTestParse2()
         self.doTestParse3()
-        URITemplateTest.doTestTimeParser1('$Y $m $d $H $M','2012 03 30 16 20','2012-03-30T16:20/2012-03-30T16:21')
-        URITemplateTest.doTestTimeParser1('$Y$m$d-$(enum;values=a,b,c,d)','20130202-a','2013-02-02/2013-02-03')
-        URITemplateTest.doTestTimeParser1('$Y$m$d-$(Y;end)$m$d','20130202-20140303','2013-02-02/2014-03-03')
-        URITemplateTest.doTestTimeParser1('$Y$m$d-$(Y;end)$m$(d;shift=1)','20200101-20200107','2020-01-01/2020-01-08')
-        URITemplateTest.doTestTimeParser1('$Y$m$d-$(d;end)','20130202-13','2013-02-02/2013-02-13')
-        URITemplateTest.doTestTimeParser1('$(periodic;offset=0;start=2000-001;period=P1D)','0','2000-001/P1D')
-        URITemplateTest.doTestTimeParser1('$(periodic;offset=0;start=2000-001;period=P1D)','20','2000-021/P1D')
-        URITemplateTest.doTestTimeParser1('$(periodic;offset=2285;start=2000-346;period=P27D)','1','1832-02-08/P27D')
-        URITemplateTest.doTestTimeParser1('$(periodic;offset=2285;start=2000-346;period=P27D)','2286','2001-007/P27D')
-        URITemplateTest.doTestTimeParser1('$(j;Y=2012)$(hrinterval;names=01,02,03,04)','01702','2012-01-17T06:00/PT6H')
-        URITemplateTest.doTestTimeParser1('$(j;Y=2012).$H$M$S.$(subsec;places=3)','017.020000.245','2012-01-17T02:00:00.245/2012-01-17T02:00:00.246')
-        URITemplateTest.doTestTimeParser1('$(j;Y=2012).$x.$X.$(ignore).$H','017.x.y.z.02','2012-01-17T02:00:00/2012-01-17T03:00:00')
-        URITemplateTest.doTestTimeParser1('$(j;Y=2012).*.*.*.$H','017.x.y.z.02','2012-01-17T02:00:00/2012-01-17T03:00:00')
+        self.doTestTimeParser1('$Y $m $d $H $M','2012 03 30 16 20','2012-03-30T16:20/2012-03-30T16:21')
+        self.doTestTimeParser1('$Y$m$d-$(enum;values=a,b,c,d)','20130202-a','2013-02-02/2013-02-03')
+        self.doTestTimeParser1('$Y$m$d-$(Y;end)$m$d','20130202-20140303','2013-02-02/2014-03-03')
+        self.doTestTimeParser1('$Y$m$d-$(Y;end)$m$(d;shift=1)','20200101-20200107','2020-01-01/2020-01-08')
+        self.doTestTimeParser1('$Y$m$d-$(d;end)','20130202-13','2013-02-02/2013-02-13')
+        self.doTestTimeParser1('$(periodic;offset=0;start=2000-001;period=P1D)','0','2000-001/P1D')
+        self.doTestTimeParser1('$(periodic;offset=0;start=2000-001;period=P1D)','20','2000-021/P1D')
+        self.doTestTimeParser1('$(periodic;offset=2285;start=2000-346;period=P27D)','1','1832-02-08/P27D')
+        self.doTestTimeParser1('$(periodic;offset=2285;start=2000-346;period=P27D)','2286','2001-007/P27D')
+        self.doTestTimeParser1('$(j;Y=2012)$(hrinterval;names=01,02,03,04)','01702','2012-01-17T06:00/PT6H')
+        self.doTestTimeParser1('$(j;Y=2012).$H$M$S.$(subsec;places=3)','017.020000.245','2012-01-17T02:00:00.245/2012-01-17T02:00:00.246')
+        self.doTestTimeParser1('$(j;Y=2012).$x.$X.$(ignore).$H','017.x.y.z.02','2012-01-17T02:00:00/2012-01-17T03:00:00')
+        self.doTestTimeParser1('$(j;Y=2012).*.*.*.$H','017.x.y.z.02','2012-01-17T02:00:00/2012-01-17T03:00:00')
         #testTimeParser1( "$(o;id=rbspa-pp)", "31",  "2012-09-10T14:48:30.914Z/2012-09-10T23:47:34.973Z");
-        URITemplateTest.doTestTimeParser1('$(j;Y=2012)$(hrinterval;names=01,02,03,04)','01702','2012-01-17T06:00/2012-01-17T12:00')
-        URITemplateTest.doTestTimeParser1('$-1Y $-1m $-1d $H$M','2012 3 30 1620','2012-03-30T16:20/2012-03-30T16:21')
-        URITemplateTest.doTestTimeParser1('$Y','2012','2012-01-01T00:00/2013-01-01T00:00')
-        URITemplateTest.doTestTimeParser1('$Y-$j','2012-017','2012-01-17T00:00/2012-01-18T00:00')
-        URITemplateTest.doTestTimeParser1('$(j,Y=2012)','017','2012-01-17T00:00/2012-01-18T00:00')
-        URITemplateTest.doTestTimeParser1('ace_mag_$Y_$j_to_$(Y;end)_$j.cdf','ace_mag_2005_001_to_2005_003.cdf','2005-001T00:00/2005-003T00:00')
+        self.doTestTimeParser1('$(j;Y=2012)$(hrinterval;names=01,02,03,04)','01702','2012-01-17T06:00/2012-01-17T12:00')
+        self.doTestTimeParser1('$-1Y $-1m $-1d $H$M','2012 3 30 1620','2012-03-30T16:20/2012-03-30T16:21')
+        self.doTestTimeParser1('$Y','2012','2012-01-01T00:00/2013-01-01T00:00')
+        self.doTestTimeParser1('$Y-$j','2012-017','2012-01-17T00:00/2012-01-18T00:00')
+        self.doTestTimeParser1('$(j,Y=2012)','017','2012-01-17T00:00/2012-01-18T00:00')
+        self.doTestTimeParser1('ace_mag_$Y_$j_to_$(Y;end)_$j.cdf','ace_mag_2005_001_to_2005_003.cdf','2005-001T00:00/2005-003T00:00')
 
     # Use the spec, format the test time and verify that we get norm.
     # @param spec
     # @param test
     # @param norm
     # @throws Exception
-    @staticmethod
-    def doTestTimeFormat1(spec, test, norm):
+    def doTestTimeFormat1(self, spec, test, norm):
         try:
             ut = URITemplate(spec)
         except Exception as ex: # J2J: exceptions
             print('### unable to parse spec: ' + spec)
             return
         nn = norm.split('/')
-        if TimeUtil.iso8601DurationPattern.match(nn[1])!=None:
+        if URITemplateTest.iso8601DurationPattern.match(nn[1])!=None:
             nn[1] = TimeUtil.isoTimeFromArray(TimeUtil.add(TimeUtil.isoTimeToArray(nn[0]),TimeUtil.parseISO8601Duration(nn[1])))
         try:
             res = ut.format(nn[0],nn[1],{})
@@ -136,25 +138,25 @@ class URITemplateTest(unittest.TestCase):
     def testFormat(self):
         print('# testFormat')
         #testTimeParser1( "$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03" );
-        URITemplateTest.doTestTimeFormat1('$Y$m$d-$(Y;end)$m$d','20130202-20140303','2013-02-02/2014-03-03')
-        URITemplateTest.doTestTimeFormat1('_$Y$m$(d)_$(Y;end)$m$(d)','_20130202_20130203','2013-02-02/2013-02-03')
-        URITemplateTest.doTestTimeFormat1('_$Y$m$(d;shift=1)_$(Y;end)$m$(d;shift=1)','_20130201_20130202','2013-02-02/2013-02-03')
-        URITemplateTest.doTestTimeFormat1('$Y$m$d-$(Y;end)$m$(d;shift=1)','20200101-20200107','2020-01-01T00:00Z/2020-01-08T00:00Z')
-        URITemplateTest.doTestTimeFormat1('$Y$m$d-$(d;end)','20130202-13','2013-02-02/2013-02-13')
-        URITemplateTest.doTestTimeFormat1('$(periodic;offset=0;start=2000-001;period=P1D)','0','2000-001/P1D')
-        URITemplateTest.doTestTimeFormat1('$(periodic;offset=0;start=2000-001;period=P1D)','20','2000-021/P1D')
-        URITemplateTest.doTestTimeFormat1('$(periodic;offset=2285;start=2000-346;period=P27D)','1','1832-02-08/P27D')
-        URITemplateTest.doTestTimeFormat1('$(periodic;offset=2285;start=2000-346;period=P27D)','2286','2001-007/P27D')
-        URITemplateTest.doTestTimeFormat1('$(j;Y=2012)$(hrinterval;names=01,02,03,04)','01702','2012-01-17T06:00/PT12H')
-        URITemplateTest.doTestTimeFormat1('$(j;Y=2012).$H$M$S.$(subsec;places=3)','017.020000.245','2012-01-17T02:00:00.245/2012-01-17T02:00:00.246')
-        URITemplateTest.doTestTimeFormat1('$(j;Y=2012).$x.$X.$(ignore).$H','017.x.y.z.02','2012-01-17T02:00:00/2012-01-17T03:00:00')
+        self.doTestTimeFormat1('$Y$m$d-$(Y;end)$m$d','20130202-20140303','2013-02-02/2014-03-03')
+        self.doTestTimeFormat1('_$Y$m$(d)_$(Y;end)$m$(d)','_20130202_20130203','2013-02-02/2013-02-03')
+        self.doTestTimeFormat1('_$Y$m$(d;shift=1)_$(Y;end)$m$(d;shift=1)','_20130201_20130202','2013-02-02/2013-02-03')
+        self.doTestTimeFormat1('$Y$m$d-$(Y;end)$m$(d;shift=1)','20200101-20200107','2020-01-01T00:00Z/2020-01-08T00:00Z')
+        self.doTestTimeFormat1('$Y$m$d-$(d;end)','20130202-13','2013-02-02/2013-02-13')
+        self.doTestTimeFormat1('$(periodic;offset=0;start=2000-001;period=P1D)','0','2000-001/P1D')
+        self.doTestTimeFormat1('$(periodic;offset=0;start=2000-001;period=P1D)','20','2000-021/P1D')
+        self.doTestTimeFormat1('$(periodic;offset=2285;start=2000-346;period=P27D)','1','1832-02-08/P27D')
+        self.doTestTimeFormat1('$(periodic;offset=2285;start=2000-346;period=P27D)','2286','2001-007/P27D')
+        self.doTestTimeFormat1('$(j;Y=2012)$(hrinterval;names=01,02,03,04)','01702','2012-01-17T06:00/PT12H')
+        self.doTestTimeFormat1('$(j;Y=2012).$H$M$S.$(subsec;places=3)','017.020000.245','2012-01-17T02:00:00.245/2012-01-17T02:00:00.246')
+        self.doTestTimeFormat1('$(j;Y=2012).$x.$X.$(ignore).$H','017.x.y.z.02','2012-01-17T02:00:00/2012-01-17T03:00:00')
         #testTimeFormat1( "$(o;id=rbspa-pp)", "31",  "2012-09-10T14:48:30.914Z/2012-09-10T23:47:34.973Z");
-        URITemplateTest.doTestTimeFormat1('$(j;Y=2012)$(hrinterval;names=01,02,03,04)','01702','2012-01-17T06:00/2012-01-17T18:00')
-        URITemplateTest.doTestTimeFormat1('$-1Y $-1m $-1d $H$M','2012 3 30 1620','2012-03-30T16:20/2012-03-30T16:21')
-        URITemplateTest.doTestTimeFormat1('$Y','2012','2012-01-01T00:00/2013-01-01T00:00')
-        URITemplateTest.doTestTimeFormat1('$Y-$j','2012-017','2012-01-17T00:00/2012-01-18T00:00')
-        URITemplateTest.doTestTimeFormat1('$(j,Y=2012)','017','2012-01-17T00:00/2012-01-18T00:00')
-        URITemplateTest.doTestTimeFormat1('ace_mag_$Y_$j_to_$(Y;end)_$j.cdf','ace_mag_2005_001_to_2005_003.cdf','2005-001T00:00/2005-003T00:00')
+        self.doTestTimeFormat1('$(j;Y=2012)$(hrinterval;names=01,02,03,04)','01702','2012-01-17T06:00/2012-01-17T18:00')
+        self.doTestTimeFormat1('$-1Y $-1m $-1d $H$M','2012 3 30 1620','2012-03-30T16:20/2012-03-30T16:21')
+        self.doTestTimeFormat1('$Y','2012','2012-01-01T00:00/2013-01-01T00:00')
+        self.doTestTimeFormat1('$Y-$j','2012-017','2012-01-17T00:00/2012-01-18T00:00')
+        self.doTestTimeFormat1('$(j,Y=2012)','017','2012-01-17T00:00/2012-01-18T00:00')
+        self.doTestTimeFormat1('ace_mag_$Y_$j_to_$(Y;end)_$j.cdf','ace_mag_2005_001_to_2005_003.cdf','2005-001T00:00/2005-003T00:00')
 
     @staticmethod
     def readJSONToString(url):
@@ -198,12 +200,8 @@ class URITemplateTest(unittest.TestCase):
                         print('timeRange:' + timeRange)
                         timeStartStop = timeRange.split('/')
                         try:
-                            self.doTestFormatHapiServerSiteOne(outputss,t,timeStartStop[0],timeStartStop[1])
+                            self.doTestFormatHapiServerSiteOne(outputs,t,timeStartStop[0],timeStartStop[1])
                         except Exception as ex: # J2J: exceptions
-                            try:
-                                self.doTestFormatHapiServerSiteOne(outputss,t,timeStartStop[0],timeStartStop[1])
-                            except Exception as ex1: # J2J: exceptions
-                                fail(ex.getMessage())
                             raise Exception(ex)
                     print('' + t)
         except Exception as ex: # J2J: exceptions
