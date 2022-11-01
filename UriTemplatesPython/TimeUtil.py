@@ -8,7 +8,7 @@ import re
 # <li>2020-112Z (day-of-year instead of $Y-$m-$d)
 # <li>2020-112T23:45:67.000000001 (note Z is assumed)
 # </ul>
-#
+# 
 # @author jbf
 class TimeUtil:
     # Number of time components: year, month, day, hour, minute, second, nanosecond
@@ -415,7 +415,7 @@ class TimeUtil:
     # <li>lastday-P1D
     # <li>lasthour-PT1H
     # </ul>
-    #
+    # 
     # @param time isoTime to decompose
     # @return the decomposed time
     # @throws IllegalArgumentException when the time cannot be parsed.
@@ -527,7 +527,7 @@ class TimeUtil:
     # print dayOfYear( 2020, 4, 21 ) # 112
     # }
     # </pre>
-    #
+    # 
     # @param year the year
     # @param month the month, from 1 to 12.
     # @param day the day in the month.
@@ -579,7 +579,7 @@ class TimeUtil:
     # print x % 86400000   # and no milliseconds
     # }
     # </pre>
-    #
+    # 
     # @param time the isoTime, which is parsed using
     # DateTimeFormatter.ISO_INSTANT.parse.
     # @return number of non-leap-second milliseconds since 1970-01-01T00:00Z.
