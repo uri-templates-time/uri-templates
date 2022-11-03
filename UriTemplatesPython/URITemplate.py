@@ -1031,7 +1031,6 @@ class URITemplate:
             if self.offsets[idigit] != -1:
                 # note offsets[0] is always known
                 offs = self.offsets[idigit]
-                pass
             else:
                 offs += length + len(self.delims[idigit - 1])
             if self.lengths[idigit] != -1:
@@ -1278,7 +1277,6 @@ class URITemplate:
             if self.offsets[idigit] != -1:
                 # note offsets[0] is always known
                 offs = self.offsets[idigit]
-                pass
             else:
                 offs += len(self.delims[idigit - 1])
             if self.lengths[idigit] != -1:
@@ -1327,7 +1325,6 @@ class URITemplate:
                     if h == 2 or h == 3:
                         # $j, $m all start with 1.
                         digit = (((digit - 1) // delta) * delta) + 1
-                        pass
                     elif h == 4:
                         if self.phasestart != None:
                             phaseStartJulian = TimeUtil.julianDay(self.phasestart[0], self.phasestart[1], self.phasestart[2])
