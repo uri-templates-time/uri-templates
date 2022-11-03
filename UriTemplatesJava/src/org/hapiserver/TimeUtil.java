@@ -800,15 +800,15 @@ public class TimeUtil {
      */
     public static void normalizeTime(int[] time) {
         while ( time[6]>=1000000000 ) {
-            time[5] = time[5]+1;
+            time[5] += 1;
             time[6] -= 1000000000;
         }
         while ( time[5]>59 ) { // TODO: leap seconds?
-            time[4]= time[4]+1;
+            time[4]+= 1;
             time[5]-= 60;
         }
         while ( time[4]>59 ) {
-            time[3]= time[3]+1;
+            time[3]+= 1;
             time[4]-= 60;
         }        
         while (time[3] >= 24) {
@@ -847,26 +847,26 @@ public class TimeUtil {
         }
         if (time[1] < 1) {
             time[0] -= 1; // take a year
-            time[1] += time[1] + 12; // add 12 months
+            time[1] += 12; // add 12 months
         }
         if (time[3] > 24) {
             throw new IllegalArgumentException("time[3] is greater than 24 (hours)");
         }
         if (time[1] > 12) {
-            time[0]= time[0] + 1;
-            time[1]= time[1] - 12;
+            time[0] += 1;
+            time[1] -= 12;
         }
         if (time[1] == 12 && time[2]>31 && time[2]<62 ) {
-            time[0] = time[0] + 1;
+            time[0] += 1;
             time[1] = 1;
-            time[2] = time[2]-31;
+            time[2] -= 31;
             return;
         }
         int leap = isLeapYear(time[0]) ? 1 : 0;
-        if (time[2] == 0) {
-            time[1] = time[1] - 1;
+        if (time[2] == 0) { //TODO: tests don't hit this branch, and I'm not sure it can occur.
+            time[1] -= 1;
             if (time[1] == 0) {
-                time[0] = time[0] - 1;
+                time[0] -= 1;
                 time[1] = 12;
             }
             time[2] = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
