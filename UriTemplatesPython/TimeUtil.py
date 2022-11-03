@@ -1,4 +1,13 @@
 import re
+#J2J: increment used at line 197, which needs human study.
+#J2J: decrement used at line 380, which needs human study.
+#J2J: increment used at line 876, which needs human study.
+
+from java.time import Instant
+from java.util import Calendar
+from java.util import Date
+from java.util import TimeZone
+from java.util.regex import Matcher
 
 # Utilities for times in IsoTime strings (limited set of ISO8601 times)
 # Examples of isoTime strings include:<ul>
@@ -8,7 +17,7 @@ import re
 # <li>2020-112Z (day-of-year instead of $Y-$m-$d)
 # <li>2020-112T23:45:67.000000001 (note Z is assumed)
 # </ul>
-# 
+#
 # @author jbf
 class TimeUtil:
     # Number of time components: year, month, day, hour, minute, second, nanosecond
@@ -415,7 +424,7 @@ class TimeUtil:
     # <li>lastday-P1D
     # <li>lasthour-PT1H
     # </ul>
-    # 
+    #
     # @param time isoTime to decompose
     # @return the decomposed time
     # @throws IllegalArgumentException when the time cannot be parsed.
@@ -450,9 +459,9 @@ class TimeUtil:
                         idigit = 6
                     else:
                         raise Exception('unsupported unit: ' + unit)
-                    for id in range(max(1, idigit),TimeUtil.DATE_DIGITS):
+                    for id in range(max(1,idigit),TimeUtil.DATE_DIGITS):
                         n[id] = 1
-                    for id in range(max(TimeUtil.DATE_DIGITS, idigit),TimeUtil.TIME_DIGITS):
+                    for id in range(max(TimeUtil.DATE_DIGITS,idigit),TimeUtil.TIME_DIGITS):
                         n[id] = 0
                 else:
                     raise Exception('expected lastday+P1D, etc')
@@ -527,7 +536,7 @@ class TimeUtil:
     # print dayOfYear( 2020, 4, 21 ) # 112
     # }
     # </pre>
-    # 
+    #
     # @param year the year
     # @param month the month, from 1 to 12.
     # @param day the day in the month.
@@ -562,11 +571,9 @@ class TimeUtil:
         if doy < 1: raise Exception('doy must be 1 or more')
         if doy > dayOffset[13]:
             raise Exception('doy must be less than or equal to ' + str(dayOffset[13]))
-        i = 12
-        while i > 1:  # J2J for loop
+        for i in range(12,1,-1):
             if dayOffset[i] < doy:
                 return i
-            i = i - 1
         return 1
 
     # return the time as milliseconds since 1970-01-01T00:00Z. This does not
@@ -579,7 +586,7 @@ class TimeUtil:
     # print x % 86400000   # and no milliseconds
     # }
     # </pre>
-    # 
+    #
     # @param time the isoTime, which is parsed using
     # DateTimeFormatter.ISO_INSTANT.parse.
     # @return number of non-leap-second milliseconds since 1970-01-01T00:00Z.
@@ -859,8 +866,9 @@ class TimeUtil:
     def julianDay(year, month, day):
         if year <= 1582:
             raise Exception('year must be more than 1582')
-
-        jd = 367 * year - 7 * (year + (month + 9) // 12) // 4 - 3 * ((year + (month - 9) // 7) // 100 + 1) // 4 + 275 * month // 9 + day + 1721029
+        jd = 367 * year - 7 * (year + (month + 9) // 12) // 4 
+             - 3 * ((year + (month - 9) // 7) // 100 + 1) // 4 
+             + 275 * month // 9 + day + 1721029
         return jd
 
     # Break the Julian day apart into month, day year. This is based on
