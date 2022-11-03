@@ -4,7 +4,6 @@ import sys
 
 from TimeUtil import TimeUtil
 
-
 # URITemplate implements a URI_Template, as described in 
 # https://github.com/hapi-server/uri-templates/wiki/Specification
 # The main method shows how the library can be used to format
@@ -146,7 +145,6 @@ class URITemplate:
         else:
             return deft
 
-
     # Interface to add custom handlers for strings with unique formats.  For 
     # example, the RPWS group had files with two-hex digits indicating the 
     # ten-minute interval covered by the file name. 
@@ -188,7 +186,6 @@ class URITemplate:
         def format(self, startTime, timeWidth, length, extra):
             pass
 
-
     # $(subsec;places=6)  "36" → "36 microseconds"
     class SubsecFieldHandler(FieldHandler):
         places = 0
@@ -219,7 +216,6 @@ class URITemplate:
         def format(self, startTime, timeWidth, length, extra):
             nn = startTime[6] // self.nanosecondsFactor
             return self.formatStr % (int(round(nn)) )
-
 
 
     # $(hrinterval;names=a,b,c,d)  "b" → "06:00/12:00"
@@ -272,7 +268,6 @@ class URITemplate:
                 return v
             else:
                 raise Exception('unable to identify enum for hour ' + str(startTime[3]))
-
 
 
     # regular intervals are numbered:
@@ -333,7 +328,7 @@ class URITemplate:
             while i > 2:  # J2J for loop
                 t[i] = self.start[i] + addOffset * self.period[i]
                 while t[i] > limits[i]:
-                    t[i - 1] = t[i - 1] + 1
+                    t[i - 1] += 1
                     t[i] -= limits[i]
                 i = i - 1
             timeWidth[3] = self.period[3]
@@ -360,7 +355,6 @@ class URITemplate:
             elif length > -1:
                 result = '_________________'[0:length - len(result)] + result
             return result
-
 
 
     # $(enum,values=a,b,c)
@@ -412,7 +406,6 @@ class URITemplate:
 
         def getId(self):
             return self.id
-
 
 
     # $(x,name=sc,regex=[a|b])
@@ -475,7 +468,6 @@ class URITemplate:
                 return 1
         return len(ss1) - len(ss2)
     VersioningType.numericSplit.compare=compare
-
 
     # Version field handler.  Versions are codes with special sort orders.
     class VersionFieldHandler(FieldHandler):
@@ -563,9 +555,9 @@ class URITemplate:
             formatString = re.sub('\\*','$x',formatString)
         i = 1
         if i < len(formatString) and formatString[i] == '(':
-            i = i + 1
+            i += 1
         while i < len(formatString) and formatString[i].isalpha():
-            i = i + 1
+            i += 1
         if i < len(formatString) and formatString[i] == ',':
             formatString = re.sub(',',';',formatString,1)
         return formatString
@@ -597,8 +589,7 @@ class URITemplate:
                 result[istart] = ch
             istart = istart + 1
         expectSemi = False
-        i = len(qualifiers) - 1
-        while i > istart:  # J2J for loop
+        for i in range(len(qualifiers) - 1,istart,-1):
             result[i] = qualifiers[i]
             ch = qualifiers[i]
             if ch == '=': expectSemi = True
@@ -606,7 +597,6 @@ class URITemplate:
                 result[i] = ';'
             elif ch == ';':
                 expectSemi = False
-            i = i - 1
         rr = ''.join( result)
         if not result==qualifiers:
             #J2J (logger) logger.log(Level.FINE, "qualifiers are made canonical: {0}->{1}", new Object[] { qualifiers, rr })
@@ -703,7 +693,7 @@ class URITemplate:
             pp = 0
             ssi = ss[i]
             while len(ssi) > pp and (ssi[pp].isdigit() or ssi[pp] == '-'):
-                pp = pp + 1
+                pp += 1
             if pp > 0:
                 # Note length ($5Y) is not supported in http://tsds.org/uri_templates.
                 self.lengths[i] = int(ssi[0:pp])
@@ -1054,7 +1044,7 @@ class URITemplate:
                         raise Exception('No delimer specified after unknown length field, \"' + self.formatName[self.handlers[idigit]] + '\", field number=' + str((1 + idigit)) + '')
                 else:
                     while offs < len(timeString) and timeString[offs].isspace():
-                        offs = offs + 1
+                        offs += 1
                     if offs >= len(timeString):
                         raise Exception('expected delimiter \"' + self.delims[idigit] + '\" but reached end of string')
                     i = timeString.find(self.delims[idigit],offs)
@@ -1161,35 +1151,25 @@ class URITemplate:
         result = [0] * (URITemplate.NUM_TIME_DIGITS * 2)
         noShift = self.startShift == None
         if noShift:
-            i = 0
-            while i < URITemplate.NUM_TIME_DIGITS:  # J2J for loop
+            for i in range(0,URITemplate.NUM_TIME_DIGITS):
                 result[i] = startTime[i]
-                i = i + 1
             TimeUtil.normalizeTime(result)
         else:
-            i = 0
-            while i < URITemplate.NUM_TIME_DIGITS:  # J2J for loop
+            for i in range(0,URITemplate.NUM_TIME_DIGITS):
                 result[i] = startTime[i] + self.startShift[i]
-                i = i + 1
             TimeUtil.normalizeTime(result)
         noShift = self.stopShift == None
         if noShift:
-            i = 0
-            while i < URITemplate.NUM_TIME_DIGITS:  # J2J for loop
+            for i in range(0,URITemplate.NUM_TIME_DIGITS):
                 result[i + URITemplate.NUM_TIME_DIGITS] = stopTime[i]
-                i = i + 1
             TimeUtil.normalizeTime(result)
         else:
             result1 = [0] * URITemplate.NUM_TIME_DIGITS
-            i = 0
-            while i < URITemplate.NUM_TIME_DIGITS:  # J2J for loop
+            for i in range(0,URITemplate.NUM_TIME_DIGITS):
                 result1[i] = stopTime[i] + self.stopShift[i]
-                i = i + 1
             TimeUtil.normalizeTime(result1)
-            i = 0
-            while i < URITemplate.NUM_TIME_DIGITS:  # J2J for loop
+            for i in range(0,URITemplate.NUM_TIME_DIGITS):
                 result[i + URITemplate.NUM_TIME_DIGITS] = result1[i]
-                i = i + 1
         return result
 
     # return the number of digits, starting with the year, which must be
