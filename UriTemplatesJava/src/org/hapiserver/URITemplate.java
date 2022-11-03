@@ -425,7 +425,7 @@ public class URITemplate {
             for ( i=6; i>2; i-- ) {
                 t[i]= start[i]+addOffset*period[i];
                 while ( t[i]>limits[i] ) {
-                    t[i-1]++;
+                    t[i-1] +=1;
                     t[i]-= limits[i];
                 }
             }
@@ -745,11 +745,11 @@ public class URITemplate {
         }
         int i=1;
         if ( i<formatString.length() && formatString.charAt(i)=='(' ) {
-            i++;
+            i+=1;
         }
         while ( i<formatString.length() 
                 && Character.isAlphabetic(formatString.charAt(i) ) ) {
-            i++;
+            i+=1;
         }
         if ( i<formatString.length() && formatString.charAt(i)==',' ) {
             formatString= formatString.replaceFirst(",",";");
@@ -933,7 +933,7 @@ public class URITemplate {
             int pp = 0;
             String ssi= ss[i];
             while ( ssi.length()>pp && ( Character.isDigit(ssi.charAt(pp)) || ssi.charAt(pp) == '-') ) {
-                pp++;
+                pp+=1;
             }
             if (pp > 0) { // Note length ($5Y) is not supported in http://tsds.org/uri_templates.
                 lengths[i] = Integer.parseInt(ssi.substring(0, pp));
@@ -1431,7 +1431,7 @@ public class URITemplate {
                         throw new IllegalArgumentException("No delimer specified after unknown length field, \"" + formatName[handlers[idigit]] + "\", field number=" + (1 + idigit) + "");
                     }
                 } else {
-                    while ( offs<timeString.length() && Character.isWhitespace( timeString.charAt(offs) ) ) offs++;
+                    while ( offs<timeString.length() && Character.isWhitespace( timeString.charAt(offs) ) ) offs+=1;
                     if ( offs>=timeString.length() ) {
                         throw new ParseException( "expected delimiter \"" + this.delims[idigit] + "\" but reached end of string", offs);
                     }
@@ -1577,16 +1577,15 @@ public class URITemplate {
         
         int [] result= new int[NUM_TIME_DIGITS*2];
         
-        int i;
         boolean noShift;
         noShift = this.startShift==null;
         if ( noShift ) { 
-            for ( i=0; i<NUM_TIME_DIGITS; i++ ) {
+            for ( int i=0; i<NUM_TIME_DIGITS; i++ ) {
                 result[i]= startTime[i];
             }
             TimeUtil.normalizeTime(result);
         } else {
-            for ( i=0; i<NUM_TIME_DIGITS; i++ ) {
+            for ( int i=0; i<NUM_TIME_DIGITS; i++ ) {
                 result[i]= startTime[i] + this.startShift[i];
             }
             TimeUtil.normalizeTime(result);
@@ -1594,17 +1593,17 @@ public class URITemplate {
         
         noShift = this.stopShift==null;
         if ( noShift ) {        
-            for ( i= 0; i<NUM_TIME_DIGITS; i++ ) {
+            for ( int i= 0; i<NUM_TIME_DIGITS; i++ ) {
                 result[i+NUM_TIME_DIGITS]= stopTime[i];
             }
             TimeUtil.normalizeTime(result);
         } else {
             int[] result1= new int[NUM_TIME_DIGITS];
-            for ( i= 0; i<NUM_TIME_DIGITS; i++ ) {
+            for ( int i= 0; i<NUM_TIME_DIGITS; i++ ) {
                 result1[i]= stopTime[i] + this.stopShift[i];
             }
             TimeUtil.normalizeTime(result1);
-            for ( i= 0; i<NUM_TIME_DIGITS; i++ ) {
+            for ( int i= 0; i<NUM_TIME_DIGITS; i++ ) {
                 result[i+NUM_TIME_DIGITS]= result1[i];
             }
         }
