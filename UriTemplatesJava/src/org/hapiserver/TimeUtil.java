@@ -194,7 +194,7 @@ public class TimeUtil {
             nn[2] = nn[2] + 1;
             if ( nn[2]>28 ) normalizeTime(nn);
             time =  String.format("%04d-%02d-%02dZ", nn[0], nn[1], nn[2]);
-            i++;
+            i += 1;
         }
         return result;
     }
@@ -377,7 +377,7 @@ public class TimeUtil {
         String ss2= formatIso8601TimeInTimeRange(nn, TIME_DIGITS);
         int firstNonZeroDigit=7;
         while ( firstNonZeroDigit>3 && nn[firstNonZeroDigit-1]==0 && nn[firstNonZeroDigit+TIME_DIGITS-1]==0 ) {
-            firstNonZeroDigit--;
+            firstNonZeroDigit -= 1;
         }
         switch (firstNonZeroDigit) {
             case 2:
@@ -873,7 +873,7 @@ public class TimeUtil {
         }
         int d = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
         while (time[2] > d) {
-            time[1]++;
+            time[1] += 1;
             time[2] -= d;
             d = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
             if (time[1] > 12) {
