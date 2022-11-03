@@ -311,15 +311,6 @@ class TimeUtil:
         else:
             return ss1 + '/' + ss2
 
-    # format the time, but omit trailing zeros.  $Y-$m-$dT$H:$M is the coursest resolution returned.
-    # @param time seven element time range
-    # @param offset the offset into the time array (7 for stop time in 14-element range array).
-    # @return formatted time, possibly truncated to minutes, seconds, milliseconds, or microseconds
-    # @see #formatIso8601TimeBrief(int[]) 
-    # @deprecated see formatIso8601TimeInTimeRangeBrief
-    @staticmethod
-    def formatIso8601Time(time, offset):
-        return TimeUtil.formatIso8601TimeInTimeRange(time,offset)
 
     # return the string as a formatted string, which can be at an offset of seven positions 
     # to format the end date.
@@ -1021,15 +1012,6 @@ class TimeUtil:
     def formatIso8601TimeBrief(time):
         return TimeUtil.formatIso8601TimeInTimeRangeBrief(time,0)
 
-    # format the time, but omit trailing zeros.  $Y-$m-$dT$H:$M is the coursest resolution returned.
-    # @param time seven element time range
-    # @param offset the offset into the time array (7 for stop time in 14-element range array).
-    # @return formatted time, possibly truncated to minutes, seconds, milliseconds, or microseconds
-    # @see #formatIso8601TimeBrief(int[]) 
-    # @deprecated see formatIso8601TimeInTimeRangeBrief
-    @staticmethod
-    def formatIso8601TimeBrief(time, offset):
-        return TimeUtil.formatIso8601TimeInTimeRangeBrief(time,offset)
 
     # format the time, but omit trailing zeros.  $Y-$m-$dT$H:$M is the coursest resolution returned.
     # @param time seven element time range
