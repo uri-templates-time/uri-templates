@@ -48,7 +48,7 @@ class URITemplateTest(unittest.TestCase):
             return
         arrow = chr(8594)
         if res==inorm:
-            print("%s:  \t\"%s\"%s\t\"%s\"" % (spec, test, arrow, URITemplateTest.toStr(res) ))
+            print('%s:  \t\"%s\"%s\t\"%s\"' % (spec, test, arrow, URITemplateTest.toStr(res)))
         else:
             print('### ranges do not match: ' + spec + ' ' + test + arrow + str(URITemplateTest.toStr(res)) + ', should be ' + norm)
         self.assertEqual(res,inorm)
@@ -57,7 +57,7 @@ class URITemplateTest(unittest.TestCase):
         ut = URITemplate('$Y_sc$(enum;values=a,b,c,d;id=sc)')
         extra = {}
         digits = ut.parse('2003_scd', extra)
-        actual = "%d %s" % (digits[0], extra['sc'] )
+        actual = '%d %s' % (digits[0], extra['sc'])
         self.assertEqual('2003 d',actual)
         print(actual)
 
@@ -128,7 +128,7 @@ class URITemplateTest(unittest.TestCase):
             return
         arrow = chr(8594)
         if res==test:
-            print("%s:  \t\"%s\"%s\t\"%s\"" % (spec, norm, arrow, res ))
+            print('%s:  \t\"%s\"%s\t\"%s\"' % (spec, norm, arrow, res))
         else:
             print('### ranges do not match: ' + spec + ' ' + norm + arrow + res + ', should be ' + test)
         self.assertEqual(res,test)
@@ -167,7 +167,7 @@ class URITemplateTest(unittest.TestCase):
         testOutputs = URITemplate.formatRange(t, startTime, stopTime)
         if len(testOutputs) != len(outputs):
             fail('bad number of results in formatRange: ' + t)
-        for l in range(0,len(outputs)):
+        for l in range(0, len(outputs)):
             if not testOutputs[l]==outputs[l]:
                 fail('result doesn\'t match, got ' + testOutputs[l] + ', should be ' + outputs[l])
 
@@ -179,7 +179,7 @@ class URITemplateTest(unittest.TestCase):
             print('# testFormatHapiServerSite')
             ss = URITemplateTest.readJSONToString('https://raw.githubusercontent.com/hapi-server/uri-templates/master/formatting.json')
             jo = json.loads(ss)
-            for i in range(0,len(jo)):
+            for i in range(0, len(jo)):
                 jo1 = jo[i]
                 id = jo1['id']
                 print("# %2d: %s %s" % (i, id, jo1['whatTests']))
@@ -205,7 +205,7 @@ class URITemplateTest(unittest.TestCase):
                             raise Exception(ex)
                     print('' + t)
         except Exception as ex: # J2J: exceptions
-            #J2J (logger) Logger.getLogger(URITemplateTest.class.getName()).log(Level.SEVERE, None, ex)
+            # J2J (logger) Logger.getLogger(URITemplateTest.class.getName()).log(Level.SEVERE, None, ex)
             fail(ex.getLocalizedMessage())
 
     def testFormatRange(self):
