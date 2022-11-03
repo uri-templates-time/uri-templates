@@ -1,13 +1,4 @@
 import re
-#J2J: increment used at line 197, which needs human study.
-#J2J: decrement used at line 380, which needs human study.
-#J2J: increment used at line 876, which needs human study.
-
-from java.time import Instant
-from java.util import Calendar
-from java.util import Date
-from java.util import TimeZone
-from java.util.regex import Matcher
 
 # Utilities for times in IsoTime strings (limited set of ISO8601 times)
 # Examples of isoTime strings include:<ul>
@@ -158,7 +149,7 @@ class TimeUtil:
             nn[2] = nn[2] + 1
             if nn[2] > 28: TimeUtil.normalizeTime(nn)
             time = "%04d-%02d-%02dZ" % (nn[0],nn[1],nn[2] )
-            i = i + 1
+            i += 1
         return result
 
     # true if the year between 1582 and 2400 is a leap year.
@@ -306,7 +297,7 @@ class TimeUtil:
         ss2 = TimeUtil.formatIso8601TimeInTimeRange(nn,TimeUtil.TIME_DIGITS)
         firstNonZeroDigit = 7
         while firstNonZeroDigit > 3 and nn[firstNonZeroDigit - 1] == 0 and nn[firstNonZeroDigit + TimeUtil.TIME_DIGITS - 1] == 0:
-            firstNonZeroDigit = firstNonZeroDigit - 1
+            firstNonZeroDigit -= 1
         if firstNonZeroDigit==2:
             return ss1[0:10] + '/' + ss2[0:10]
         elif firstNonZeroDigit==3:
@@ -654,14 +645,14 @@ class TimeUtil:
     @staticmethod
     def normalizeTime(time):
         while time[6] >= 1000000000:
-            time[5] = time[5] + 1
+            time[5] += 1
             time[6] -= 1000000000
         while time[5] > 59:
             # TODO: leap seconds?
-            time[4] = time[4] + 1
+            time[4] += 1
             time[5] -= 60
         while time[4] > 59:
-            time[3] = time[3] + 1
+            time[3] += 1
             time[4] -= 60
         while time[3] >= 24:
             time[2] += 1
@@ -697,30 +688,31 @@ class TimeUtil:
         if time[1] < 1:
             time[0] -= 1
             # take a year
-            time[1] += time[1] + 12
+            time[1] += 12
         if time[3] > 24:
             raise Exception('time[3] is greater than 24 (hours)')
         if time[1] > 12:
-            time[0] = time[0] + 1
-            time[1] = time[1] - 12
+            time[0] += 1
+            time[1] -= 12
         if time[1] == 12 and time[2] > 31 and time[2] < 62:
-            time[0] = time[0] + 1
+            time[0] += 1
             time[1] = 1
-            time[2] = time[2] - 31
+            time[2] -= 31
             return
         if TimeUtil.isLeapYear(time[0]):
             leap = 1
         else:
             leap = 0
         if time[2] == 0:
-            time[1] = time[1] - 1
+            #TODO: tests don't hit this branch, and I'm not sure it can occur.
+            time[1] -= 1
             if time[1] == 0:
-                time[0] = time[0] - 1
+                time[0] -= 1
                 time[1] = 12
             time[2] = TimeUtil.DAYS_IN_MONTH[leap][time[1]]
         d = TimeUtil.DAYS_IN_MONTH[leap][time[1]]
         while time[2] > d:
-            time[1] = time[1] + 1
+            time[1] += 1
             time[2] -= d
             d = TimeUtil.DAYS_IN_MONTH[leap][time[1]]
             if time[1] > 12:
@@ -866,9 +858,9 @@ class TimeUtil:
     def julianDay(year, month, day):
         if year <= 1582:
             raise Exception('year must be more than 1582')
-        jd = 367 * year - 7 * (year + (month + 9) // 12) // 4 
-             - 3 * ((year + (month - 9) // 7) // 100 + 1) // 4 
-             + 275 * month // 9 + day + 1721029
+        jd = 367 * year - 7 * (year + (month + 9) // 12) // 4   \
+            - 3 * ((year + (month - 9) // 7) // 100 + 1) // 4   \
+            + 275 * month // 9 + day + 1721029
         return jd
 
     # Break the Julian day apart into month, day year. This is based on
@@ -1107,4 +1099,5 @@ class TimeUtil:
         start = TimeUtil.getStartTime(granule)
         stop = TimeUtil.getStopTime(granule)
         return TimeUtil.isValidTime(start) and TimeUtil.isValidTime(stop) and TimeUtil.gt(stop,start)
+
 
