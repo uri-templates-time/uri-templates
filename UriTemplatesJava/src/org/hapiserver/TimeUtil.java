@@ -403,6 +403,7 @@ public class TimeUtil {
      * @see #formatIso8601TimeBrief(int[]) 
      * @deprecated see formatIso8601TimeInTimeRangeBrief
      */
+    @Deprecated
     public static String formatIso8601Time(int[] time, int offset ) {
         return formatIso8601TimeInTimeRange(time,offset);
     }
@@ -1254,6 +1255,7 @@ public class TimeUtil {
      * @see #formatIso8601TimeBrief(int[]) 
      * @deprecated see formatIso8601TimeInTimeRangeBrief
      */
+    @Deprecated
     public static String formatIso8601TimeBrief(int[] time, int offset ) {
         return formatIso8601TimeInTimeRangeBrief(time,offset);
     }
