@@ -75,23 +75,23 @@ class URITemplate:
 
     qualifiers = None
 
-    qualifiersMaps = None  #J2J added
+    qualifiersMaps = None  # J2J added
 
-    fieldHandlers = None  #J2J added
+    fieldHandlers = None  # J2J added
 
-    fieldHandlersById = None  #J2J added
+    fieldHandlersById = None  # J2J added
 
     # one element for each field, it is the handler (or type) of each field.
-    handlers = None  #J2J added
+    handlers = None  # J2J added
 
     # one element for each field, it is the offset to each field.
-    offsets = None  #J2J added
+    offsets = None  # J2J added
 
     # one element for each field, it is number of digits in each field.
-    lengths = None  #J2J added
+    lengths = None  # J2J added
 
     # shift found in each digit--going away
-    shift = None  #J2J added
+    shift = None  # J2J added
 
     # int[7] shift for each component for the start time.
     startShift = None
@@ -106,14 +106,14 @@ class URITemplate:
 
     lsd = 0
 
-    timeWidth = None  #J2J added
+    timeWidth = None  # J2J added
 
     # the template explicitly defines the width, with delta or other specifiers.
     timeWidthIsExplicit = False
 
     regex = None
 
-    context = None  #J2J added
+    context = None  # J2J added
 
     # typically zero, the number of digits which come from an external context.
     externalContext = 0
@@ -126,10 +126,10 @@ class URITemplate:
 
     precision = [ 0, 0, 2, 1, 2, 3, 4, 5, 6, 7, -1, -1, -1, 1 ]
 
-    startTimeOnly = None  #J2J added
+    startTimeOnly = None  # J2J added
 
     # null or the phasestart.
-    phasestart = None  #J2J added
+    phasestart = None  # J2J added
 
     startLsd = 0
 
@@ -220,9 +220,9 @@ class URITemplate:
 
     # $(hrinterval;names=a,b,c,d)  "b" → "06:00/12:00"
     class HrintervalFieldHandler(FieldHandler):
-        values = None  #J2J added
+        values = None  # J2J added
 
-        revvalues = None  #J2J added
+        revvalues = None  # J2J added
 
         # multiply by this to get the start hour
         mult = 0
@@ -275,13 +275,13 @@ class URITemplate:
     class PeriodicFieldHandler(FieldHandler):
         offset = 0
 
-        start = None  #J2J added
+        start = None  # J2J added
 
         julday = 0
 
-        period = None  #J2J added
+        period = None  # J2J added
 
-        args = None  #J2J added
+        args = None  # J2J added
 
         def configure(self, args):
             self.args = {}
@@ -359,7 +359,7 @@ class URITemplate:
 
     # $(enum,values=a,b,c)
     class EnumFieldHandler(FieldHandler):
-        values = None  #J2J added
+        values = None  # J2J added
 
         id = None
 
@@ -371,7 +371,7 @@ class URITemplate:
             if len(ss) == 1:
                 ss2 = svalues.split('|')
                 if len(ss2) > 1:
-                    #J2J (logger) logger.fine("supporting legacy value containing pipes for values")
+                    # J2J (logger) logger.fine("supporting legacy value containing pipes for values")
                     ss = ss2
             self.values.update( dict( zip( ss,ss) ))
             self.id = URITemplate.getArg(args, 'id', 'unindentifiedEnum')
@@ -412,7 +412,7 @@ class URITemplate:
     class IgnoreFieldHandler(FieldHandler):
         regex = None
 
-        pattern = None  #J2J added
+        pattern = None  # J2J added
 
         name = None
 
@@ -471,7 +471,7 @@ class URITemplate:
 
     # Version field handler.  Versions are codes with special sort orders.
     class VersionFieldHandler(FieldHandler):
-        versioningType = None  #J2J added
+        versioningType = None  # J2J added
 
         versionGe = None
 
@@ -599,7 +599,7 @@ class URITemplate:
                 expectSemi = False
         rr = ''.join( result)
         if not result==qualifiers:
-            #J2J (logger) logger.log(Level.FINE, "qualifiers are made canonical: {0}->{1}", new Object[] { qualifiers, rr })
+            # J2J (logger) logger.log(Level.FINE, "qualifiers are made canonical: {0}->{1}", new Object[] { qualifiers, rr })
             pass
         return rr
 
@@ -659,7 +659,7 @@ class URITemplate:
         self.fieldHandlers['enum'] = URITemplate.EnumFieldHandler()
         self.fieldHandlers['x'] = URITemplate.IgnoreFieldHandler()
         self.fieldHandlers['v'] = URITemplate.VersionFieldHandler()
-        #J2J (logger) logger.log(Level.FINE, "new TimeParser({0},...)", formatString)
+        # J2J (logger) logger.log(Level.FINE, "new TimeParser({0},...)", formatString)
         startTime = [0] * URITemplate.NUM_TIME_DIGITS
         startTime[0] = URITemplate.MIN_VALID_YEAR
         startTime[1] = 1
@@ -700,7 +700,7 @@ class URITemplate:
             else:
                 self.lengths[i] = 0
             ssi = URITemplate.makeQualifiersCanonical(ssi)
-            #J2J (logger) logger.log(Level.FINE, "ssi={0}", ss[i])
+            # J2J (logger) logger.log(Level.FINE, "ssi={0}", ss[i])
             if ssi[pp] != '(':
                 self.fc[i] = ssi[pp:pp + 1]
                 delim[i] = ssi[pp + 1:]
@@ -844,10 +844,10 @@ class URITemplate:
                                         if r[j] > 0:
                                             self.lsd = j
                                             lsdMult = r[j]
-                                            #J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult })
+                                            # J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult })
                                             break
                                 except Exception as ex: # J2J: exceptions
-                                    #J2J (logger) logger.log(Level.SEVERE, null, ex)
+                                    # J2J (logger) logger.log(Level.SEVERE, null, ex)
                                     pass
                             else:
                                 code = val[len(val) - 1]
@@ -868,7 +868,7 @@ class URITemplate:
                                 else:
                                     pass
                                 lsdMult = int(val[0:len(val) - 1])
-                                #J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult })
+                                # J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult })
 
                         elif name=="id":
                             pass
@@ -878,7 +878,7 @@ class URITemplate:
                             try:
                                 self.phasestart = TimeUtil.isoTimeToArray(val)
                             except Exception as ex: # J2J: exceptions
-                                #J2J (logger) logger.log(Level.SEVERE, null, ex)
+                                # J2J (logger) logger.log(Level.SEVERE, null, ex)
                                 pass
 
                         elif name=="shift":
@@ -926,7 +926,7 @@ class URITemplate:
                         raise Exception("%s must be assigned an integer value (e.g. %s=1) in %s" % (qual, qual, ss[i] ))
                     if not okay:
                         if not self.fc[i] in self.fieldHandlers:
-                            #J2J (logger) logger.log(Level.WARNING, "unrecognized/unsupported field:{0} in {1}", new Object[] { qual, ss[i] })
+                            # J2J (logger) logger.log(Level.WARNING, "unrecognized/unsupported field:{0} in {1}", new Object[] { qual, ss[i] })
                             pass
             else:
                 if len(self.fc[i]) == 1:
@@ -973,7 +973,7 @@ class URITemplate:
                     # omni2_h0_mrg1hr_$Y$(m,span=6)$d_v01.cdf.  Essentially we ignore the $d.
                     self.lsd = self.precision[handler]
                     lsdMult = span
-                    #J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult })
+                    # J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult })
             dots = '.........'
             if self.lengths[i] == -1:
                 regex1+= '(.*)'
@@ -988,7 +988,7 @@ class URITemplate:
             self.timeWidth[0] = 8000
         elif self.lsd==100:
             pass
-        #J2J: if logger.isLoggable(Level.FINE) ... removed
+        # J2J: if logger.isLoggable(Level.FINE) ... removed
         if self.stopTimeDigit == URITemplate.AFTERSTOP_INIT:
             if self.startShift != None:
                 self.stopShift = self.startShift
@@ -1016,7 +1016,7 @@ class URITemplate:
     # @see TimeUtil#dayOfYear(int, int, int) if day-of-year is needed.
     # @see #parse(java.lang.String) which can be used when extra arguments are not needed.
     def parse(self, timeString, extra):
-        #J2J (logger) logger.log(Level.FINER, "parse {0}", timeString)
+        # J2J (logger) logger.log(Level.FINER, "parse {0}", timeString)
         offs = 0
         length = 0
         startTime = [0] * URITemplate.NUM_TIME_DIGITS
@@ -1025,7 +1025,7 @@ class URITemplate:
         time[0:URITemplate.NUM_TIME_DIGITS]=self.context[0:URITemplate.NUM_TIME_DIGITS]
         for idigit in range(1,self.ndigits):
             if idigit == self.stopTimeDigit:
-                #J2J (logger) logger.finer("switching to parsing end time")
+                # J2J (logger) logger.finer("switching to parsing end time")
                 stopTime[0:URITemplate.NUM_TIME_DIGITS]=time[0:URITemplate.NUM_TIME_DIGITS]
                 time = stopTime
             if self.offsets[idigit] != -1:
@@ -1056,7 +1056,7 @@ class URITemplate:
             if len(timeString) < offs + length:
                 raise Exception('string is too short: ' + timeString)
             field = timeString[offs:offs + length].strip()
-            #J2J (logger) logger.log(Level.FINEST, "handling {0} with {1}", new Object[] { field, handlers[idigit] })
+            # J2J (logger) logger.log(Level.FINEST, "handling {0} with {1}", new Object[] { field, handlers[idigit] })
             try:
                 if self.handlers[idigit] < 10:
                     digit = int(field)
@@ -1129,7 +1129,7 @@ class URITemplate:
                 raise Exception("fail to parse digit number %d: %s" % (idigit, field ))
         if self.phasestart != None:
             if self.timeWidth is None:
-                #J2J (logger) logger.warning("phasestart cannot be used for month or year resolution")
+                # J2J (logger) logger.warning("phasestart cannot be used for month or year resolution")
                 pass
             else:
                 if self.timeWidth[1] > 0:
@@ -1142,7 +1142,7 @@ class URITemplate:
                     ncycles = ndays//self.timeWidth[2]
                     startTime = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * self.timeWidth[2])
                 else:
-                    #J2J (logger) logger.log(Level.WARNING, "phasestart can only be used when step size is integer number of days greater than 1: {0}", TimeUtil.formatIso8601Duration(timeWidth))
+                    # J2J (logger) logger.log(Level.WARNING, "phasestart can only be used when step size is integer number of days greater than 1: {0}", TimeUtil.formatIso8601Duration(timeWidth))
                     pass
                 stopTime = TimeUtil.add(startTime, self.timeWidth)
         else:
@@ -1274,7 +1274,7 @@ class URITemplate:
         for idigit in range(1,self.ndigits):
             if idigit == self.stopTimeDigit:
                 timel = stopTime
-            result = ''.join( ( result[0:offs], self.delims[idigit - 1], result[offs:] ) ) #J2J expr -> assignment
+            result = ''.join( ( result[0:offs], self.delims[idigit - 1], result[offs:] ) ) # J2J expr -> assignment
             if self.offsets[idigit] != -1:
                 # note offsets[0] is always known
                 offs = self.offsets[idigit]
@@ -1343,40 +1343,40 @@ class URITemplate:
                         digit = (digit // delta) * delta
                 if length < 0:
                     ss = str(digit)
-                    result = ''.join( ( result[0:offs], ss, result[offs:] ) ) #J2J expr -> assignment
+                    result = ''.join( ( result[0:offs], ss, result[offs:] ) ) # J2J expr -> assignment
                     offs += len(ss)
                 else:
                     if self.qualifiersMaps[idigit] != None:
                         # TODO: suboptimal
                         pad = URITemplate.getArg(self.qualifiersMaps[idigit], 'pad', None)
                         if pad is None or pad=='zero':
-                            result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) #J2J expr -> assignment
+                            result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) # J2J expr -> assignment
                             offs += length
                         else:
                             if digit < 10:
                                 if pad=="space":
-                                    result = ''.join( ( result[0:offs], ' ', result[offs:] ) ) #J2J expr -> assignment
-                                    result = ''.join( ( result[0:offs], str(digit), result[offs:] ) ) #J2J expr -> assignment
+                                    result = ''.join( ( result[0:offs], ' ', result[offs:] ) ) # J2J expr -> assignment
+                                    result = ''.join( ( result[0:offs], str(digit), result[offs:] ) ) # J2J expr -> assignment
                                     offs += 2
                                 elif pad=="underscore":
-                                    result = ''.join( ( result[0:offs], '_', result[offs:] ) ) #J2J expr -> assignment
-                                    result = ''.join( ( result[0:offs], str(digit), result[offs:] ) ) #J2J expr -> assignment
+                                    result = ''.join( ( result[0:offs], '_', result[offs:] ) ) # J2J expr -> assignment
+                                    result = ''.join( ( result[0:offs], str(digit), result[offs:] ) ) # J2J expr -> assignment
                                     offs += 2
                                 elif pad=="none":
-                                    result = ''.join( ( result[0:offs], str(digit), result[offs:] ) ) #J2J expr -> assignment
+                                    result = ''.join( ( result[0:offs], str(digit), result[offs:] ) ) # J2J expr -> assignment
                                     offs += 1
                                 else:
-                                    result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) #J2J expr -> assignment
+                                    result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) # J2J expr -> assignment
                                     offs += length
                             else:
-                                result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) #J2J expr -> assignment
+                                result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) # J2J expr -> assignment
                                 offs += length
                     else:
-                        result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) #J2J expr -> assignment
+                        result = ''.join( ( result[0:offs], nf[length] % (digit ), result[offs:] ) ) # J2J expr -> assignment
                         offs += length
             elif self.handlers[idigit] == 13:
                 # month names
-                result = ''.join( ( result[0:offs], TimeUtil.monthNameAbbrev(timel[1]), result[offs:] ) ) #J2J expr -> assignment
+                result = ''.join( ( result[0:offs], TimeUtil.monthNameAbbrev(timel[1]), result[offs:] ) ) # J2J expr -> assignment
                 offs += length
             elif self.handlers[idigit] == 12 or self.handlers[idigit] == 14:
                 raise Exception('cannot format spec containing ignore')
@@ -1387,7 +1387,7 @@ class URITemplate:
                     if length > -1:
                         if length > 20: raise Exception('version lengths>20 not supported')
                         ins = '00000000000000000000'[0:length]
-                    result = ''.join( ( result[0:offs], ins, result[offs:] ) ) #J2J expr -> assignment
+                    result = ''.join( ( result[0:offs], ins, result[offs:] ) ) # J2J expr -> assignment
                     offs += len(ins)
                 else:
                     fh1 = self.fieldHandlers[self.fc[idigit]]
@@ -1403,17 +1403,17 @@ class URITemplate:
                         timeWidthl[0:URITemplate.NUM_TIME_DIGITS]=timeWidthTest[0:URITemplate.NUM_TIME_DIGITS]
                         stopTime[0:URITemplate.NUM_TIME_DIGITS]=TimeUtil.add(timel, timeWidthl)[0:URITemplate.NUM_TIME_DIGITS]
                     except Exception as ex: # J2J: exceptions
-                        #J2J (logger) logger.log(Level.SEVERE, null, ex)
+                        # J2J (logger) logger.log(Level.SEVERE, null, ex)
                         pass
                     if length > -1 and len(ins) != length:
                         raise Exception('length of fh is incorrect, should be ' + str(length) + ', got \"' + ins + '\"')
-                    result = ''.join( ( result[0:offs], ins, result[offs:] ) ) #J2J expr -> assignment
+                    result = ''.join( ( result[0:offs], ins, result[offs:] ) ) # J2J expr -> assignment
                     offs += len(ins)
             elif self.handlers[idigit] == 10:
                 raise Exception('AM/PM not supported')
             elif self.handlers[idigit] == 11:
                 raise Exception('Time Zones not supported')
-        result = ''.join( ( result[0:offs], self.delims[self.ndigits - 1], result[offs:] ) ) #J2J expr -> assignment
+        result = ''.join( ( result[0:offs], self.delims[self.ndigits - 1], result[offs:] ) ) # J2J expr -> assignment
         return result.strip()
 
     @staticmethod
