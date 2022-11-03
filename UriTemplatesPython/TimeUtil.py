@@ -311,7 +311,6 @@ class TimeUtil:
         else:
             return ss1 + '/' + ss2
 
-
     # return the string as a formatted string, which can be at an offset of seven positions 
     # to format the end date.
     # @param nn fourteen-element array of [ Y m d H M S nanos Y m d H M S nanos ]
@@ -1011,7 +1010,6 @@ class TimeUtil:
     @staticmethod
     def formatIso8601TimeBrief(time):
         return TimeUtil.formatIso8601TimeInTimeRangeBrief(time,0)
-
 
     # format the time, but omit trailing zeros.  $Y-$m-$dT$H:$M is the coursest resolution returned.
     # @param time seven element time range
