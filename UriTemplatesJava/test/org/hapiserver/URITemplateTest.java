@@ -316,12 +316,7 @@ public class URITemplateTest {
                         try {
                             doTestFormatHapiServerSiteOne( outputss, t, timeStartStop[0], timeStartStop[1] );
                         } catch (ParseException | AssertionError ex) {
-                            try {
-                                doTestFormatHapiServerSiteOne( outputss, t, timeStartStop[0], timeStartStop[1] );
-                            } catch (ParseException ex1) {
-                                fail(ex.getMessage());
-                            }
-                            throw new RuntimeException(ex);
+                            fail(ex.getMessage());
                         }
                     }
                     System.out.println("" +t);
