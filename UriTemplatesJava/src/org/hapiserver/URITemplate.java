@@ -1168,11 +1168,9 @@ public class URITemplate {
                                     logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[]{lsd, lsdMult});
                                 }   break;
                             case "id":
-                                ; //TODO: orbit plug in handler...
-                                break;
+                                break; //TODO: orbit plug in handler...
                             case "places":
-                                ; //TODO: this all needs to be redone...
-                                break;
+                                break; //TODO: this all needs to be redone...
                             case "phasestart":
                                 try {
                                     phasestart= TimeUtil.isoTimeToArray(val);
