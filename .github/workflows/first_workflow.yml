@@ -18,9 +18,9 @@ jobs:
         script: |
           echo $HOSTNAME
           cd /var/www/cottagesystems.com/autoplot/git/uri-templates
-          git pull origin main
+          git pull origin master
           git status
           echo "==="
           cd /var/www/cottagesystems.com/autoplot/git/uri-templates/UriTemplatesJava
           ant clean jar
-          echo "see https://cottagesystems.com/autoplot/git/uri-templates/UriTemplatesJava/UriTemplatesJava.jar"          
+          echo "see https://cottagesystems.com/autoplot/git/uri-templates/UriTemplatesJava/dist/UriTemplatesJava.jar"
