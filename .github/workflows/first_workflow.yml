@@ -17,19 +17,10 @@ jobs:
         port: 887
         script: |
           echo $HOSTNAME
-          cd /var/www/cottagesystems.com/autoplot/git/server-java
+          cd /var/www/cottagesystems.com/autoplot/git/uri-templates
           git pull origin main
           git status
           echo "==="
-          cd /var/www/cottagesystems.com/autoplot/git/server-java/HapiServerBase
+          cd /var/www/cottagesystems.com/autoplot/git/uri-templates/UriTemplatesJava
           ant clean jar
-          echo "see https://cottagesystems.com/autoplot/git/server-java/HapiServerBase/dist/HapiServerBase.jar"          
-          echo "==="
-          cd /var/www/cottagesystems.com/autoplot/git/server-java/HapiServer
-          ant -Dj2ee.server.home=/usr/local/apache-tomcat-8/ clean dist
-          echo "see https://cottagesystems.com/autoplot/git/server-java/HapiServer/dist/HapiServer.war"          
-          echo "==="
-          cd /var/www/cottagesystems.com/autoplot/git/server-java/SimpleClasspathExtension
-          ant clean jar
-          echo "see https://cottagesystems.com/autoplot/git/server-java/SimpleClasspathExtension/dist/SimpleClasspathExtension.jar"
-          echo "==="
+          echo "see https://cottagesystems.com/autoplot/git/uri-templates/UriTemplatesJava/UriTemplatesJava.jar"          
