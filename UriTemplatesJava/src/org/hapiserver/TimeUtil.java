@@ -1296,8 +1296,8 @@ public class TimeUtil {
      * return the next interval, given the 14-component time interval.  This
      * has the restrictions:<ul>
      * <li> can only handle intervals of at least one second
-     * <li> must be only one component which increments
-     * <li> increment must be a devisor of the increment, so 1, 2, 3, 4, or 6 months is valid, but 5 months is not.
+     * <li> must be only one component which increments (20 days, but not 20 days and 12 hours)
+     * <li> increment must be a divisor of the component (e.g. months), so 1, 2, 3, 4, or 6 months is valid, but 5 months is not.
      * </ul>
      * @param range 14-component time interval.
      * @return 14-component time interval.
@@ -1334,7 +1334,49 @@ public class TimeUtil {
         setStopTime( TimeUtil.add( getStopTime(range), width ), result );
         return result;
     }
-        
+       
+    /**
+     * return the previous interval, given the 14-component time interval.  This
+     * has the restrictions:<ul>
+     * <li> can only handle intervals of at least one second
+     * <li> must be only one component which increments (20 days, but not 20 days and 12 hours)
+     * <li> increment must be a divisor of the component (e.g. months), so 1, 2, 3, 4, or 6 months is valid, but 5 months is not.
+     * </ul>
+     * @param range 14-component time interval.
+     * @return 14-component time interval.
+     */
+    public static int[] previousRange( int[] range ) {
+        int[] result= new int[TimeUtil.TIME_RANGE_DIGITS];
+        int[] width= new int[TimeUtil.TIME_DIGITS];
+        for ( int i=0; i<TimeUtil.TIME_DIGITS; i++ ) {
+            width[ i ] = range[i+TimeUtil.TIME_DIGITS ] - range[i] ;
+        }
+        if ( width[5]<0 ) {
+            width[5]= width[5]+60;
+            width[4]= width[4]-1;
+        }
+        if ( width[4]<0 ) {
+            width[4]= width[4]+60;
+            width[3]= width[3]-1;
+        }
+        if ( width[3]<0 ) {
+            width[3]= width[3]+24;
+            width[2]= width[2]-1;
+        }
+        if ( width[2]<0 ) {
+            int daysInMonth= TimeUtil.daysInMonth( range[COMPONENT_YEAR], range[COMPONENT_MONTH] );
+            width[2]= width[2]+daysInMonth;
+            width[1]= width[1]-1;
+        }
+        if ( width[1]<0 ) {
+            width[1]= width[1]+12;
+            width[0]= width[0]-1;
+        }
+        setStopTime( getStartTime(range), result );
+        setStartTime( TimeUtil.subtract(getStartTime(range), width ), result ); // This creates an extra array, but let's not worry about that.
+        return result;
+    }
+            
     /**
      * return true if this is a valid time range having a non-zero width.
      * @param granule
