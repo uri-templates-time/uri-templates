@@ -100,6 +100,39 @@ public class TimeUtilTest {
     }
 
     /**
+     * Test of nextDay method, of class TimeUtil.
+     */
+    @Test
+    public void testNextRange() {
+        try {
+            System.out.println("nextRange");
+            int[] tr = TimeUtil.parseISO8601TimeRange("2022-12-05Z/2022-12-15Z");
+            String result = TimeUtil.formatIso8601TimeRange(TimeUtil.nextRange(tr));
+            String expResult= "2022-12-15/2022-12-25";
+            assertEquals(expResult, result);
+        } catch (ParseException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
+    /**
+     * Test of nextDay method, of class TimeUtil.
+     */
+    @Test
+    public void testPreviousRange() {
+        try {
+            System.out.println("previousRange");
+            int[] tr = TimeUtil.parseISO8601TimeRange("2022-12-05Z/2022-12-15Z");
+            String result = TimeUtil.formatIso8601TimeRange(TimeUtil.previousRange(tr));
+            String expResult= "2022-11-25/2022-12-05";
+            assertEquals(expResult, result);
+        } catch (ParseException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
+    
+    /**
      * Test of ceil method, of class TimeUtil.
      */
     @Test
