@@ -21,4 +21,3 @@ Here is a list of implementations of the specification:
 | URI_Templates Python | Python | https://github.com/hapi-server/uri-templates/tree/master/UriTemplatesPython |
 
 
-
