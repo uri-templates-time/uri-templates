@@ -3,7 +3,7 @@ This is the Java code for parsing and formatting using URI Templates.  This uses
 ## Using Pre-Built Jar File
 You can simply download the pre-built jar file, and use it within your codes or from the command line like so:
 ~~~~~
-wget -N https://github.com/hapi-server/uri-templates/raw/master/UriTemplatesJava/store/UriTemplatesJava.jar
+wget -N https://cottagesystems.com/autoplot/git/uri-templates/UriTemplatesJava/dist/UriTemplatesJava.jar
 java -jar UriTemplatesJava.jar --formatRange --range='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'
 java -jar UriTemplatesJava.jar --parse --template='data_$(d;pad=none;Y=1999; m=5).dat' --name='data_1.dat'
 ~~~~~
