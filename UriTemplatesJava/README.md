@@ -70,8 +70,8 @@ A copy of the javadoc can be found at https://jfaden.net/~jbf/javadoc/uri-templa
 
 This can be loaded into Autoplot scripts using the following code:
 ~~~~~
-lib= 'https://github.com/hapi-server/uri-templates/raw/master/UriTemplatesJava/store/UriTemplatesJava.jar'
-doc= 'https://jfaden.net/~jbf/javadoc/uri-templates/'
+lib= 'wget -N https://cottagesystems.com/autoplot/git/uri-templates/UriTemplatesJava/dist/UriTemplatesJava.jar'
+doc= 'https://cottagesystems.com/~jbf/javadoc/uri-templates/'
 
 import sys
 addToSearchPath( sys.path,lib,doc,monitor )  # caution: this only loads once!!!!!
