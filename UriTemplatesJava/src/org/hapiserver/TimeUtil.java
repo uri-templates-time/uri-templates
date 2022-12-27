@@ -1003,6 +1003,61 @@ public class TimeUtil {
     }
     
     /**
+     * return the julianDay for the year month and day. This was verified
+     * against another calculation (julianDayWP, commented out above) from
+     * http://en.wikipedia.org/wiki/Julian_day. Both calculations have 20
+     * operations.
+     *
+     * @param year calendar year greater than 1582.
+     * @param month the month number 1 through 12.
+     * @param day day of month. For day of year, use month=1 and doy for day.
+     * @return the Julian day
+     * @see #fromJulianDay(int) 
+     */
+    public static int julianDay(int year, int month, int day) {
+        if (year <= 1582) {
+            throw new IllegalArgumentException("year must be more than 1582");
+        }
+        int jd = 367 * year - 7 * (year + (month + 9) / 12) / 4
+                - 3 * ((year + (month - 9) / 7) / 100 + 1) / 4
+                + 275 * month / 9 + day + 1721029;
+        return jd;
+    }
+
+    /**
+     * Break the Julian day apart into month, day year. This is based on
+     * http://en.wikipedia.org/wiki/Julian_day (GNU Public License), and was
+     * introduced when toTimeStruct failed when the year was 1886.
+     *
+     * @see #julianDay( int year, int mon, int day )
+     * @param julian the (integer) number of days that have elapsed since the
+     * initial epoch at noon Universal Time (UT) Monday, January 1, 4713 BC
+     * @return a TimeStruct with the month, day and year fields set.
+     */
+    public static int[] fromJulianDay(int julian) {
+        int j = julian + 32044;
+        int g = j / 146097;
+        int dg = j % 146097;
+        int c = (dg / 36524 + 1) * 3 / 4;
+        int dc = dg - c * 36524;
+        int b = dc / 1461;
+        int db = dc % 1461;
+        int a = (db / 365 + 1) * 3 / 4;
+        int da = db - a * 365;
+        int y = g * 400 + c * 100 + b * 4 + a;
+        int m = (da * 5 + 308) / 153 - 2;
+        int d = da - (m + 4) * 153 / 5 + 122;
+        int Y = y - 4800 + (m + 2) / 12;
+        int M = (m + 2) % 12 + 1;
+        int D = d + 1;
+        int[] result = new int[TIME_DIGITS];
+        result[0] = Y;
+        result[1] = M;
+        result[2] = D;
+        return result;
+    }    
+    
+    /**
      * calculate the day of week, where 0 means Monday, 1 means Tuesday, etc.  For example,
      * 2022-03-12 is a Saturday, so 5 is returned.
      * @param year the year
@@ -1016,7 +1071,7 @@ public class TimeUtil {
         int mod7= ( daysSince2022 - 2 ) % 7; 
         if ( mod7<0 ) mod7= mod7 + 7;
         return mod7;
-    }
+    }    
     
     /**
      * calculate the week of year, inserting the month into time[1] and day into time[2]
@@ -1108,61 +1163,6 @@ public class TimeUtil {
             setStopTime( stoptime, result );
             return result;
         }
-    }
-    
-    /**
-     * return the julianDay for the year month and day. This was verified
-     * against another calculation (julianDayWP, commented out above) from
-     * http://en.wikipedia.org/wiki/Julian_day. Both calculations have 20
-     * operations.
-     *
-     * @param year calendar year greater than 1582.
-     * @param month the month number 1 through 12.
-     * @param day day of month. For day of year, use month=1 and doy for day.
-     * @return the Julian day
-     * @see #fromJulianDay(int) 
-     */
-    public static int julianDay(int year, int month, int day) {
-        if (year <= 1582) {
-            throw new IllegalArgumentException("year must be more than 1582");
-        }
-        int jd = 367 * year - 7 * (year + (month + 9) / 12) / 4
-                - 3 * ((year + (month - 9) / 7) / 100 + 1) / 4
-                + 275 * month / 9 + day + 1721029;
-        return jd;
-    }
-
-    /**
-     * Break the Julian day apart into month, day year. This is based on
-     * http://en.wikipedia.org/wiki/Julian_day (GNU Public License), and was
-     * introduced when toTimeStruct failed when the year was 1886.
-     *
-     * @see #julianDay( int year, int mon, int day )
-     * @param julian the (integer) number of days that have elapsed since the
-     * initial epoch at noon Universal Time (UT) Monday, January 1, 4713 BC
-     * @return a TimeStruct with the month, day and year fields set.
-     */
-    public static int[] fromJulianDay(int julian) {
-        int j = julian + 32044;
-        int g = j / 146097;
-        int dg = j % 146097;
-        int c = (dg / 36524 + 1) * 3 / 4;
-        int dc = dg - c * 36524;
-        int b = dc / 1461;
-        int db = dc % 1461;
-        int a = (db / 365 + 1) * 3 / 4;
-        int da = db - a * 365;
-        int y = g * 400 + c * 100 + b * 4 + a;
-        int m = (da * 5 + 308) / 153 - 2;
-        int d = da - (m + 4) * 153 / 5 + 122;
-        int Y = y - 4800 + (m + 2) / 12;
-        int M = (m + 2) % 12 + 1;
-        int D = d + 1;
-        int[] result = new int[TIME_DIGITS];
-        result[0] = Y;
-        result[1] = M;
-        result[2] = D;
-        return result;
     }
 
     /**
