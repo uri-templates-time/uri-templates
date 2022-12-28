@@ -112,7 +112,7 @@ class TimeUtil {
      */
     static getStartTime(range) {
         var result = [];
-        arraycopy( range, 0, result, 0, TIME_DIGITS );
+        arraycopy( range, 0, result, 0, TimeUtil.TIME_DIGITS );
         return result;
     }
 
@@ -125,7 +125,7 @@ class TimeUtil {
      */
     static getStopTime(range) {
         var result = [];
-        arraycopy( range, TIME_DIGITS, result, 0, TIME_DIGITS );
+        arraycopy( range, TimeUtil.TIME_DIGITS, result, 0, TimeUtil.TIME_DIGITS );
         return result;
     }
 
@@ -137,7 +137,7 @@ class TimeUtil {
      * @param range the fourteen-element time range.
      */
     static setStartTime(time, range) {
-        arraycopy( time, 0, range, 0, TIME_DIGITS );
+        arraycopy( time, 0, range, 0, TimeUtil.TIME_DIGITS );
     }
 
     /**
@@ -146,7 +146,7 @@ class TimeUtil {
      * @param range the fourteen-element time range.
      */
     static setStopTime(time, range) {
-        arraycopy( time, 0, range, TIME_DIGITS, TIME_DIGITS );
+        arraycopy( time, 0, range, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS );
     }
 
     /**
@@ -931,9 +931,9 @@ class TimeUtil {
             } else{
                 if (TimeUtil.isLeapYear(time[0])) {
                     // This was  TimeUtil.DAYS_IN_MONTH[isLeapYear(time[0]) ? 1 : 0][time[1]] . TODO: review!
-                    daysInMonth = DAYS_IN_MONTH[1][time[1]];
+                    daysInMonth = TimeUtil.DAYS_IN_MONTH[1][time[1]];
                 } else{
-                    daysInMonth = DAYS_IN_MONTH[0][time[1]];
+                    daysInMonth = TimeUtil.DAYS_IN_MONTH[0][time[1]];
                 }
             }
             time[2] = daysInMonth;
@@ -964,13 +964,13 @@ class TimeUtil {
                 time[0] = 1;
                 time[1] = 12;
             }
-            time[2] = DAYS_IN_MONTH[leap][time[1]];
+            time[2] = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
         }
-        var d = DAYS_IN_MONTH[leap][time[1]];
+        var d = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
         while (time[2] > d) {
             time[1] = 1;
             time[2] = d;
-            d = DAYS_IN_MONTH[leap][time[1]];
+            d = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
             if (time[1] > 12) {
                 throw "time[2] is too big";
             }
@@ -1184,7 +1184,7 @@ class TimeUtil {
     static gt(t1, t2) {
         TimeUtil.normalizeTime(t1);
         TimeUtil.normalizeTime(t2);
-        for ( var i = 0; i < TIME_DIGITS; i++) {
+        for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
             if (t1[i] > t2[i]) {
                 return true;
             } else{
@@ -1204,7 +1204,7 @@ class TimeUtil {
     static eq(t1, t2) {
         TimeUtil.normalizeTime(t1);
         TimeUtil.normalizeTime(t2);
-        for ( var i = 0; i < TIME_DIGITS; i++) {
+        for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
             if (t1[i] !== t2[i]) {
                 return false;
             }
@@ -1265,8 +1265,8 @@ class TimeUtil {
     static nextRange(range) {
         var result = [];
         var width = [];
-        for ( var i = 0; i < TIME_DIGITS; i++) {
-            width[i] = range[i + TIME_DIGITS] - range[i];
+        for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
+            width[i] = range[i + TimeUtil.TIME_DIGITS] - range[i];
         }
         if (width[5] < 0) {
             width[5] = width[5] + 60;
@@ -1309,8 +1309,8 @@ class TimeUtil {
     static previousRange(range) {
         var result = [];
         var width = [];
-        for ( var i = 0; i < TIME_DIGITS; i++) {
-            width[i] = range[i + TIME_DIGITS] - range[i];
+        for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
+            width[i] = range[i + TimeUtil.TIME_DIGITS] - range[i];
         }
         if (width[5] < 0) {
             width[5] = width[5] + 60;
