@@ -47,7 +47,7 @@ class TimeUtil {
      * @param s string containing an integer
      * @return the integer
      */
-    parseInt(s) {
+    static parseInt(s) {
         var result;
         var len = s.length;
         for ( var i = 0; i < len; i++) {
@@ -79,14 +79,14 @@ class TimeUtil {
      * @param s the number, containing 1 or more digits.
      * @return the int value
      */
-    parseIntDeft(s, deft) {
+    static parseIntDeft(s, deft) {
         if (s == null) {
             return deft
         }
         return parseInt(s)
     }
 
-    parseDouble(val, deft) {
+    static parseDouble(val, deft) {
         if (val == null) {
             if (deft != -99) {
                 return deft
@@ -110,7 +110,7 @@ class TimeUtil {
      * @param range a fourteen-element time range.
      * @return the start time.
      */
-    getStartTime(range) {
+    static getStartTime(range) {
         var result = [];
         arraycopy( range, 0, result, 0, TIME_DIGITS );
         return result
@@ -123,7 +123,7 @@ class TimeUtil {
      * @param range a fourteen-element time range.
      * @return the stop time.
      */
-    getStopTime(range) {
+    static getStopTime(range) {
         var result = [];
         arraycopy( range, TIME_DIGITS, result, 0, TIME_DIGITS );
         return result
@@ -136,7 +136,7 @@ class TimeUtil {
      * @param time the seven-element start time
      * @param range the fourteen-element time range.
      */
-    setStartTime(time, range) {
+    static setStartTime(time, range) {
         arraycopy( time, 0, range, 0, TIME_DIGITS );
     }
 
@@ -145,7 +145,7 @@ class TimeUtil {
      * @param time the seven-element stop time
      * @param range the fourteen-element time range.
      */
-    setStopTime(time, range) {
+    static setStopTime(time, range) {
         arraycopy( time, 0, range, TIME_DIGITS, TIME_DIGITS );
     }
 
@@ -157,7 +157,7 @@ class TimeUtil {
      * @return the formatted time.
      * @see DateTimeFormatter#parse
      */
-    fromMillisecondsSince1970(time) {
+    static fromMillisecondsSince1970(time) {
         return DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(time))
     }
 
@@ -168,7 +168,7 @@ class TimeUtil {
      * @return a fourteen digit time range.
      * @throws IllegalArgumentException when the first time is greater than or equal to the second time.
      */
-    createTimeRange(t1, t2) {
+    static createTimeRange(t1, t2) {
         if (!gt(t2, t1)) {
             throw "t1 is not smaller than t2"
         }
@@ -183,7 +183,7 @@ class TimeUtil {
      * @param year the year
      * @return true if the year between 1582 and 2400 is a leap year.
      */
-    isLeapYear(year) {
+    static isLeapYear(year) {
         if (year < 1582 || year > 2400) {
             throw "year must be between 1582 and 2400"
         }
@@ -199,7 +199,7 @@ class TimeUtil {
      * @param i month number, from 1 to 12.
      * @return the month name, like "Jan" or "Dec"
      */
-    monthNameAbbrev(i) {
+    static monthNameAbbrev(i) {
         return monthNames[i - 1]
     }
 
@@ -212,7 +212,7 @@ class TimeUtil {
      * @return the number, for example 1 for "January"
      * @throws ParseException when month name is not recognized.
      */
-    monthNumber(s) {
+    static monthNumber(s) {
         if (s.length < 3) {
             throw "need at least three letters"
         }
@@ -240,7 +240,7 @@ class TimeUtil {
      * @param day the day in the month.
      * @return the day of year.
      */
-    dayOfYear(year, month, day) {
+    static dayOfYear(year, month, day) {
         if (month == 1) {
             return day
         }
@@ -263,7 +263,7 @@ class TimeUtil {
      * @param doy the day of year.
      * @return the month 1-12 of the day.
      */
-    monthForDayOfYear(year, doy) {
+    static monthForDayOfYear(year, doy) {
         var leap = isLeapYear(year) ? 1 : 0;
         var dayOffset = DAY_OFFSET[leap];
         if (doy < 1) throw "doy must be 1 or more"
@@ -278,7 +278,12 @@ class TimeUtil {
         return 1
     }
 
-<J2J243 ConstructorDeclaration>
+    /**
+     * This class is not to be instantiated.
+     */
+    constructor() {
+    }
+
     /**
      * the number of days in each month.  DAYS_IN_MONTH[0][12] is number of days in December of a non-leap year
      */
@@ -298,13 +303,18 @@ class TimeUtil {
      * @param stopTime an iso time string
      * @return array of times, complete days, in the form $Y-$m-$d
      */
-    countOffDays(startTime, stopTime) {
+    static countOffDays(startTime, stopTime) {
         if (stopTime.length < 10 || /[0-9]/.test(stopTime.charAt(10))) {
             throw "arguments must be $Y-$m-$dZ"
         }
         var t1
         var t2;
-<J2J243 TryStmt>
+        try {
+            t1 = parseISO8601Time(startTime);
+            t2 = parseISO8601Time(stopTime);
+        } catch (ex) {
+            throw ex
+        }
         var j1 = julianDay(t1[0], t1[1], t1[2]);
         var j2 = julianDay(t2[0], t2[1], t2[2]);
         var result = [];
@@ -331,7 +341,7 @@ class TimeUtil {
      * @see #ceil(java.lang.String)
      * @see #previousDay(java.lang.String)
      */
-    nextDay(day) {
+    static nextDay(day) {
         var nn = isoTimeToArray(day);
         nn[2] = nn[2] + 1;
         normalizeTime(nn);
@@ -347,7 +357,7 @@ class TimeUtil {
      * @see #floor(java.lang.String)
      * @see #nextDay(java.lang.String)
      */
-    previousDay(day) {
+    static previousDay(day) {
         var nn = isoTimeToArray(day);
         nn[2] = nn[2] - 1;
         normalizeTime(nn);
@@ -361,7 +371,7 @@ class TimeUtil {
      * @param time any isoTime format string.
      * @return the next midnight or the value if already at midnight.
      */
-    ceil(time) {
+    static ceil(time) {
         time = normalizeTimeString(time);
         if (time.substring(11).equals("00:00:00.000000000Z")) {
             return time
@@ -377,7 +387,7 @@ class TimeUtil {
      * @param time any isoTime format string.
      * @return the previous midnight or the value if already at midnight.
      */
-    floor(time) {
+    static floor(time) {
         time = normalizeTimeString(time);
         if (time.substring(11).equals("00:00:00.000000000Z")) {
             return time
@@ -392,7 +402,7 @@ class TimeUtil {
      * @param time any isoTime format string.
      * @return the time in standard form.
      */
-    normalizeTimeString(time) {
+    static normalizeTimeString(time) {
         var nn = isoTimeToArray(time);
         normalizeTime(nn);
         return sprintf("%d-%02d-%02dT%02d:%02d:%02d.%09dZ",nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6])
@@ -415,7 +425,7 @@ class TimeUtil {
      * @return number of non-leap-second milliseconds since 1970-01-01T00:00Z.
      * @see DateTimeFormatter#parse
      */
-    toMillisecondsSince1970(time) {
+    static toMillisecondsSince1970(time) {
         time = normalizeTimeString(time);
         var ta = DateTimeFormatter.ISO_INSTANT.parse(time);
         var i = Instant.from(ta);
@@ -431,7 +441,7 @@ class TimeUtil {
      * @return the formatted time.
      * @see #isoTimeToArray(java.lang.String)
      */
-    isoTimeFromArray(nn) {
+    static isoTimeFromArray(nn) {
         if (nn[1] == 1 && nn[2] > 31) {
             var month = monthForDayOfYear(nn[0], nn[2]);
             var dom1 = dayOfYear(nn[0], month, 1);
@@ -446,7 +456,7 @@ class TimeUtil {
      * @param nn 14-element time range
      * @return efficient representation of the time range
      */
-    formatIso8601TimeRange(nn) {
+    static formatIso8601TimeRange(nn) {
         var ss1 = formatIso8601TimeInTimeRange(nn, 0);
         var ss2 = formatIso8601TimeInTimeRange(nn, TIME_DIGITS);
         var firstNonZeroDigit = 7;
@@ -477,7 +487,7 @@ class TimeUtil {
      * @return formatted time "1999-12-31T23:00:00.000000000Z"
      * @see #isoTimeFromArray(int[]) 
      */
-    formatIso8601TimeInTimeRange(nn, offset) {
+    static formatIso8601TimeInTimeRange(nn, offset) {
         switch (offset) {
             case 0:
                 return isoTimeFromArray(nn)
@@ -495,7 +505,7 @@ class TimeUtil {
      * @return formatted time "1999-12-31T23:00:00.000000000Z"
      * @see #isoTimeFromArray(int[]) 
      */
-    formatIso8601Time(nn) {
+    static formatIso8601Time(nn) {
         return isoTimeFromArray(nn)
     }
 
@@ -505,7 +515,7 @@ class TimeUtil {
      * @param nn seven-element array of [ Y m d H M S nanos ]
      * @return ISO8601 duration
      */
-    formatIso8601Duration(nn) {
+    static formatIso8601Duration(nn) {
         var units = ['Y', 'M', 'D', 'H', 'M', 'S'];
         if (nn.length > 7) throw "decomposed time can have at most 7 digits"
         var sb = "P";
@@ -574,7 +584,7 @@ class TimeUtil {
      * @see #TIME_DIGITS
      *
      */
-    parseISO8601Duration(stringIn) {
+    static parseISO8601Duration(stringIn) {
         var m = iso8601DurationPattern.exec(stringIn);
         if (m!=null) {
             var dsec = parseDouble(m[13], 0);
@@ -594,7 +604,7 @@ class TimeUtil {
      * return the UTC current time, to the millisecond, in seven components.
      * @return the current time, to the millisecond
      */
-    now() {
+    static now() {
         var ctm = Date.now();
         var d = new Date(ctm);
         var timeZone = TimeZone.getTimeZone("UTC");
@@ -628,7 +638,7 @@ class TimeUtil {
      * @see #isoTimeFromArray(int[])
      * @see #parseISO8601Time(java.lang.String) 
      */
-    isoTimeToArray(time) {
+    static isoTimeToArray(time) {
         var result;
         if (time.length == 4) {
             result = [Integer.parseInt(time), 1, 1, 0, 0, 0, 0];
@@ -650,22 +660,22 @@ class TimeUtil {
                         switch (unit) {
                             case "year":
                                 idigit = 1;
-<J2J243 BreakStmt>
+                                break
                             case "month":
                                 idigit = 2;
-<J2J243 BreakStmt>
+                                break
                             case "day":
                                 idigit = 3;
-<J2J243 BreakStmt>
+                                break
                             case "hour":
                                 idigit = 4;
-<J2J243 BreakStmt>
+                                break
                             case "minute":
                                 idigit = 5;
-<J2J243 BreakStmt>
+                                break
                             case "second":
                                 idigit = 6;
-<J2J243 BreakStmt>
+                                break
                             default:
                                 throw "unsupported unit: " + unit
                         }
@@ -683,10 +693,18 @@ class TimeUtil {
                     return n
                 } else{
                     if (remainder.charAt(0) == '-') {
-<J2J243 TryStmt>
+                        try {
+                            return subtract(n, parseISO8601Duration(remainder.substring(1)))
+                        } catch (ex) {
+                            throw ex
+                        }
                     } else{
                         if (remainder.charAt(0) == '+') {
-<J2J243 TryStmt>
+                            try {
+                                return add(n, parseISO8601Duration(remainder.substring(1)))
+                            } catch (ex) {
+                                throw ex
+                            }
                         }                    }                }
                 return now()
             } else{
@@ -775,7 +793,7 @@ class TimeUtil {
      * @param time the time in any allowed isoTime format
      * @return same time but in the same form as exampleForm.
      */
-    reformatIsoTime(exampleForm, time) {
+    static reformatIsoTime(exampleForm, time) {
         var c = exampleForm.charAt(8);
         var nn = TimeUtil.isoTimeToArray(TimeUtil.normalizeTimeString(time));
         switch (c) {
@@ -784,12 +802,12 @@ class TimeUtil {
                 nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2]);
                 nn[1] = 1;
                 time = sprintf("%d-%03dT%02d:%02d:%02d.%09dZ",nn[0], nn[2], nn[3], nn[4], nn[5], nn[6]);
-<J2J243 BreakStmt>
+                break
             case 'Z':
                 nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2]);
                 nn[1] = 1;
                 time = sprintf("%d-%03dZ",nn[0], nn[2]);
-<J2J243 BreakStmt>
+                break
             default:
                 if (exampleForm.length == 10) {
                     c = 'Z';
@@ -803,7 +821,7 @@ class TimeUtil {
                     if (c == 'Z') {
                         time = sprintf("%d-%02d-%02dZ",nn[0], nn[1], nn[2]);
                     }                }
-<J2J243 BreakStmt>
+                break
         }
         if (exampleForm.endsWith("Z")) {
             return time.substring(0, exampleForm.length - 1) + "Z"
@@ -821,7 +839,7 @@ class TimeUtil {
      * @param time the seven-component time.
      * @return true or throws an IllegalArgumentException
      */
-    isValidTime(time) {
+    static isValidTime(time) {
         var year = time[0];
         if (year < VALID_FIRST_YEAR) throw "invalid year at position 0"
         if (year > VALID_LAST_YEAR) throw "invalid year at position 0"
@@ -850,7 +868,7 @@ class TimeUtil {
      * @return the number of days in the month.
      * @see #isLeapYear(int) 
      */
-    daysInMonth(year, month) {
+    static daysInMonth(year, month) {
         var leap = isLeapYear(year) ? 1 : 0;
         return DAYS_IN_MONTH[leap][month]
     }
@@ -867,7 +885,7 @@ class TimeUtil {
      * Note that [Y,1,dayOfYear,...] is accepted, but the result will be Y,m,d.
      * @param time the seven-component time Y,m,d,H,M,S,nanoseconds
      */
-    normalizeTime(time) {
+    static normalizeTime(time) {
         while (time[6] >= 1000000000) {
             time[5] = 1;
             time[6] = 1000000000;
@@ -971,7 +989,7 @@ class TimeUtil {
      * @return the Julian day
      * @see #fromJulianDay(int) 
      */
-    julianDay(year, month, day) {
+    static julianDay(year, month, day) {
         if (year <= 1582) {
             throw "year must be more than 1582"
         }
@@ -989,7 +1007,7 @@ class TimeUtil {
      * initial epoch at noon Universal Time (UT) Monday, January 1, 4713 BC
      * @return a TimeStruct with the month, day and year fields set.
      */
-    fromJulianDay(julian) {
+    static fromJulianDay(julian) {
         var j = julian + 32044;
         var g = j / 146097;
         var dg = j % 146097;
@@ -1020,7 +1038,7 @@ class TimeUtil {
      * @param day the day of the month
      * @return the day of the week.
      */
-    dayOfWeek(year, month, day) {
+    static dayOfWeek(year, month, day) {
         var jd = julianDay(year, month, day);
         var daysSince2022 = jd - julianDay(2022, 1, 1);
         var mod7 = (daysSince2022 - 2) % 7;
@@ -1039,7 +1057,7 @@ class TimeUtil {
      * @param weekOfYear the week of the year, where week 01 is starting with the Monday in the period 29 December - 4 January.
      * @param time the result is placed in here, where time[0] is the year provided, and the month and day are calculated.
      */
-    fromWeekOfYear(year, weekOfYear, time) {
+    static fromWeekOfYear(year, weekOfYear, time) {
         time[0] = year;
         var day = dayOfWeek(year, 1, 1);
         var doy;
@@ -1069,7 +1087,7 @@ class TimeUtil {
      * @throws ParseException when the string cannot be parsed.
      * @see #isoTimeToArray(java.lang.String) 
      */
-    parseISO8601Time(string) {
+    static parseISO8601Time(string) {
         return isoTimeToArray(string)
     }
 
@@ -1080,7 +1098,7 @@ class TimeUtil {
      * @return the time start and stop [ Y,m,d,H,M,S,nano, Y,m,d,H,M,S,nano ]
      * @throws ParseException when the string cannot be used
      */
-    parseISO8601TimeRange(stringIn) {
+    static parseISO8601TimeRange(stringIn) {
         var ss = stringIn.split("/");
         if (ss.length != 2) {
             throw "expected one slash (/) splitting start and stop times."
@@ -1129,7 +1147,7 @@ class TimeUtil {
      * @param offset offset in each component.
      * @return a time
      */
-    subtract(base, offset) {
+    static subtract(base, offset) {
         var result = [];
         for ( var i = 0; i < TIME_DIGITS; i++) {
             result[i] = base[i] - offset[i];
@@ -1148,7 +1166,7 @@ class TimeUtil {
      * @param offset offset in each component.
      * @return a time
      */
-    add(base, offset) {
+    static add(base, offset) {
         var result = [];
         for ( var i = 0; i < TIME_DIGITS; i++) {
             result[i] = base[i] + offset[i];
@@ -1163,7 +1181,7 @@ class TimeUtil {
      * @param t2 seven-component time
      * @return true if t1 is after t2.
      */
-    gt(t1, t2) {
+    static gt(t1, t2) {
         TimeUtil.normalizeTime(t1);
         TimeUtil.normalizeTime(t2);
         for ( var i = 0; i < TIME_DIGITS; i++) {
@@ -1183,7 +1201,7 @@ class TimeUtil {
      * @param t2 seven-component time
      * @return true if t1 is equal to t2.
      */
-    eq(t1, t2) {
+    static eq(t1, t2) {
         TimeUtil.normalizeTime(t1);
         TimeUtil.normalizeTime(t2);
         for ( var i = 0; i < TIME_DIGITS; i++) {
@@ -1200,7 +1218,7 @@ class TimeUtil {
      * @return formatted time, possibly truncated to minutes, seconds, milliseconds, or microseconds
      * @see #formatIso8601TimeInTimeRangeBrief(int[] time, int offset ) 
      */
-    formatIso8601TimeBrief(time) {
+    static formatIso8601TimeBrief(time) {
         return formatIso8601TimeInTimeRangeBrief(time, 0)
     }
 
@@ -1211,7 +1229,7 @@ class TimeUtil {
      * @return formatted time, possibly truncated to minutes, seconds, milliseconds, or microseconds
      * @see #formatIso8601TimeBrief(int[]) 
      */
-    formatIso8601TimeInTimeRangeBrief(time, offset) {
+    static formatIso8601TimeInTimeRangeBrief(time, offset) {
         var stime = TimeUtil.formatIso8601TimeInTimeRange(time, offset);
         var nanos = time[COMPONENT_NANOSECOND + offset];
         var micros = nanos % 1000;
@@ -1244,7 +1262,7 @@ class TimeUtil {
      * @param range 14-component time interval.
      * @return 14-component time interval.
      */
-    nextRange(range) {
+    static nextRange(range) {
         var result = [];
         var width = [];
         for ( var i = 0; i < TIME_DIGITS; i++) {
@@ -1288,7 +1306,7 @@ class TimeUtil {
      * @param range 14-component time interval.
      * @return 14-component time interval.
      */
-    previousRange(range) {
+    static previousRange(range) {
         var result = [];
         var width = [];
         for ( var i = 0; i < TIME_DIGITS; i++) {
@@ -1325,7 +1343,7 @@ class TimeUtil {
      * @param granule
      * @return 
      */
-    isValidTimeRange(granule) {
+    static isValidTimeRange(granule) {
         var start = getStartTime(granule);
         var stop = getStopTime(granule);
         return TimeUtil.isValidTime(start) && TimeUtil.isValidTime(stop) && gt(stop, start)
