@@ -588,8 +588,8 @@ class TimeUtil {
         var m = iso8601DurationPattern.exec(stringIn);
         if (m!=null) {
             var dsec = parseDouble(m[13], 0);
-            var sec = <J2J243 CastExpr>;
-            var nanosec = <J2J243 CastExpr>;
+            var sec = Math.trunc( dsec );
+            var nanosec = int(((dsec - sec) * 1e9)) //J2J: cast type//;
             return [parseIntDeft(m[2], 0), parseIntDeft(m[4], 0), parseIntDeft(m[6], 0), parseIntDeft(m[9], 0), parseIntDeft(m[11], 0), sec, nanosec]
         } else{
             if (stringIn.contains("P") && stringIn.contains("S") && !stringIn.contains("T")) {
@@ -765,7 +765,7 @@ class TimeUtil {
                     result[5] = parseInt(time.substring(6, 8));
                 }
                 if (time.length > 9) {
-                    result[6] = <J2J243 CastExpr> * parseInt(time.substring(9));
+                    result[6] = int((Math.pow(10, 18 - time.length))) //J2J: cast type// * parseInt(time.substring(9));
                 }
                 normalizeTime(result);
             }        }
