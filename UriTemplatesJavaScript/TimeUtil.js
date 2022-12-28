@@ -14,31 +14,31 @@ class TimeUtil {
     /**
      * Number of time components: year, month, day, hour, minute, second, nanosecond
      */
-    static TIME_DIGITS = 7
+    static TIME_DIGITS = 7;
 
     /**
      * Number of components in time representation: year, month, day
      */
-    static DATE_DIGITS = 3
+    static DATE_DIGITS = 3;
 
     /**
      * Number of components in a time range, which is two times.
      */
-    static TIME_RANGE_DIGITS = 14
+    static TIME_RANGE_DIGITS = 14;
 
-    static COMPONENT_YEAR = 0
+    static COMPONENT_YEAR = 0;
 
-    static COMPONENT_MONTH = 1
+    static COMPONENT_MONTH = 1;
 
-    static COMPONENT_DAY = 2
+    static COMPONENT_DAY = 2;
 
-    static COMPONENT_HOUR = 3
+    static COMPONENT_HOUR = 3;
 
-    static COMPONENT_MINUTE = 4
+    static COMPONENT_MINUTE = 4;
 
-    static COMPONENT_SECOND = 5
+    static COMPONENT_SECOND = 5;
 
-    static COMPONENT_NANOSECOND = 6
+    static COMPONENT_NANOSECOND = 6;
 
     /**
      * fast parser requires that each character of string is a digit.  Note this 
@@ -53,23 +53,23 @@ class TimeUtil {
         for ( var i = 0; i < len; i++) {
             var c = s.charAt(i);
             if (c.charCodeAt(0) < 48 || c.charCodeAt(0) >= 58) {
-                throw "only digits are allowed in string"
+                throw "only digits are allowed in string";
             }
         }
         switch (len) {
             case 2:
                 result = 10 * (s.charAt(0).charCodeAt(0) - 48) + (s.charAt(1).charCodeAt(0) - 48);
-                return result
+                return result;
             case 3:
                 result = 100 * (s.charAt(0).charCodeAt(0) - 48) + 10 * (s.charAt(1).charCodeAt(0) - 48) + (s.charAt(2).charCodeAt(0) - 48);
-                return result
+                return result;
             default:
                 result = 0;
                 for ( var i = 0; i < s.length; i++) {
                     result = 10 * result + (s.charAt(i).charCodeAt(0) - 48);
                 }
 
-                return result
+                return result;
         }
     }
 
@@ -81,24 +81,24 @@ class TimeUtil {
      */
     static parseIntDeft(s, deft) {
         if (s == null) {
-            return deft
+            return deft;
         }
-        return parseInt(s)
+        return parseInt(s);
     }
 
     static parseDouble(val, deft) {
         if (val == null) {
             if (deft != -99) {
-                return deft
+                return deft;
             } else{
-                throw "bad digit"
+                throw "bad digit";
             }
         }
         var n = val.length - 1;
         if (/[a-z]/i.test(val.charAt(n))) {
-            return Double.parseDouble(val.substring(0, n))
+            return Double.parseDouble(val.substring(0, n));
         } else{
-            return Double.parseDouble(val)
+            return Double.parseDouble(val);
         }
     }
 
@@ -113,7 +113,7 @@ class TimeUtil {
     static getStartTime(range) {
         var result = [];
         arraycopy( range, 0, result, 0, TIME_DIGITS );
-        return result
+        return result;
     }
 
     /**
@@ -126,7 +126,7 @@ class TimeUtil {
     static getStopTime(range) {
         var result = [];
         arraycopy( range, TIME_DIGITS, result, 0, TIME_DIGITS );
-        return result
+        return result;
     }
 
     /**
@@ -158,7 +158,7 @@ class TimeUtil {
      * @see DateTimeFormatter#parse
      */
     static fromMillisecondsSince1970(time) {
-        return DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(time))
+        return DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(time));
     }
 
     /**
@@ -170,12 +170,12 @@ class TimeUtil {
      */
     static createTimeRange(t1, t2) {
         if (!gt(t2, t1)) {
-            throw "t1 is not smaller than t2"
+            throw "t1 is not smaller than t2";
         }
         var result = [];
         setStartTime(result, t1);
         setStopTime(result, t2);
-        return result
+        return result;
     }
 
     /**
@@ -185,12 +185,12 @@ class TimeUtil {
      */
     static isLeapYear(year) {
         if (year < 1582 || year > 2400) {
-            throw "year must be between 1582 and 2400"
+            throw "year must be between 1582 and 2400";
         }
-        return (year % 4) == 0 && (year % 400 == 0 || year % 100 != 0)
+        return (year % 4) == 0 && (year % 400 == 0 || year % 100 != 0);
     }
 
-    static monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    static monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     /**
      * return the English month name, abbreviated to three letters, for the
@@ -200,7 +200,7 @@ class TimeUtil {
      * @return the month name, like "Jan" or "Dec"
      */
     static monthNameAbbrev(i) {
-        return monthNames[i - 1]
+        return monthNames[i - 1];
     }
 
     /**
@@ -214,15 +214,15 @@ class TimeUtil {
      */
     static monthNumber(s) {
         if (s.length < 3) {
-            throw "need at least three letters"
+            throw "need at least three letters";
         }
         s = s.substring(0, 3);
         for ( var i = 0; i < 12; i++) {
             if (s.toUpperCase()===monthNames[i].toUpperCase()) {
-                return i + 1
+                return i + 1;
             }
         }
-        throw "Unable to parse month"
+        throw "Unable to parse month";
     }
 
     /**
@@ -242,19 +242,19 @@ class TimeUtil {
      */
     static dayOfYear(year, month, day) {
         if (month == 1) {
-            return day
+            return day;
         }
         if (month < 1) {
-            throw "month must be greater than 0."
+            throw "month must be greater than 0.";
         }
         if (month > 12) {
-            throw "month must be less than 12."
+            throw "month must be less than 12.";
         }
         if (day > 366) {
-            throw "day (" + day + ") must be less than 366."
+            throw "day (" + day + ") must be less than 366.";
         }
         var leap = isLeapYear(year) ? 1 : 0;
-        return DAY_OFFSET[leap][month] + day
+        return DAY_OFFSET[leap][month] + day;
     }
 
     /**
@@ -266,16 +266,16 @@ class TimeUtil {
     static monthForDayOfYear(year, doy) {
         var leap = isLeapYear(year) ? 1 : 0;
         var dayOffset = DAY_OFFSET[leap];
-        if (doy < 1) throw "doy must be 1 or more"
+        if (doy < 1) throw "doy must be 1 or more";
         if (doy > dayOffset[13]) {
-            throw "doy must be less than or equal to " + dayOffset[13]
+            throw "doy must be less than or equal to " + dayOffset[13];
         }
         for ( var i = 12; i > 1; i--) {
             if (dayOffset[i] < doy) {
-                return i
+                return i;
             }
         }
-        return 1
+        return 1;
     }
 
     /**
@@ -287,12 +287,12 @@ class TimeUtil {
     /**
      * the number of days in each month.  DAYS_IN_MONTH[0][12] is number of days in December of a non-leap year
      */
-    static DAYS_IN_MONTH = [[0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0], [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0]]
+    static DAYS_IN_MONTH = [[0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0], [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0]];
 
     /**
      * the number of days to the first of each month.  DAY_OFFSET[0][12] is offset to December 1st of a non-leap year
      */
-    static DAY_OFFSET = [[0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365], [0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]]
+    static DAY_OFFSET = [[0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365], [0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]];
 
     /**
      * count off the days between startTime and stopTime, but not including
@@ -305,7 +305,7 @@ class TimeUtil {
      */
     static countOffDays(startTime, stopTime) {
         if (stopTime.length < 10 || /[0-9]/.test(stopTime.charAt(10))) {
-            throw "arguments must be $Y-$m-$dZ"
+            throw "arguments must be $Y-$m-$dZ";
         }
         var t1
         var t2;
@@ -313,7 +313,7 @@ class TimeUtil {
             t1 = parseISO8601Time(startTime);
             t2 = parseISO8601Time(stopTime);
         } catch (ex) {
-            throw ex
+            throw ex;
         }
         var j1 = julianDay(t1[0], t1[1], t1[2]);
         var j2 = julianDay(t2[0], t2[1], t2[2]);
@@ -329,7 +329,7 @@ class TimeUtil {
             time = sprintf("%04d-%02d-%02dZ",nn[0], nn[1], nn[2]);
             i = 1;
         }
-        return result
+        return result;
     }
 
     /**
@@ -345,7 +345,7 @@ class TimeUtil {
         var nn = isoTimeToArray(day);
         nn[2] = nn[2] + 1;
         normalizeTime(nn);
-        return sprintf("%04d-%02d-%02dZ",nn[0], nn[1], nn[2])
+        return sprintf("%04d-%02d-%02dZ",nn[0], nn[1], nn[2]);
     }
 
     /**
@@ -361,7 +361,7 @@ class TimeUtil {
         var nn = isoTimeToArray(day);
         nn[2] = nn[2] - 1;
         normalizeTime(nn);
-        return sprintf("%04d-%02d-%02dZ",nn[0], nn[1], nn[2])
+        return sprintf("%04d-%02d-%02dZ",nn[0], nn[1], nn[2]);
     }
 
     /**
@@ -374,9 +374,9 @@ class TimeUtil {
     static ceil(time) {
         time = normalizeTimeString(time);
         if (time.substring(11).equals("00:00:00.000000000Z")) {
-            return time
+            return time;
         } else{
-            return nextDay(time.substring(0, 11)).substring(0, 10) + "T00:00:00.000000000Z"
+            return nextDay(time.substring(0, 11)).substring(0, 10) + "T00:00:00.000000000Z";
         }
     }
 
@@ -390,9 +390,9 @@ class TimeUtil {
     static floor(time) {
         time = normalizeTimeString(time);
         if (time.substring(11).equals("00:00:00.000000000Z")) {
-            return time
+            return time;
         } else{
-            return time.substring(0, 10) + "T00:00:00.000000000Z"
+            return time.substring(0, 10) + "T00:00:00.000000000Z";
         }
     }
 
@@ -405,7 +405,7 @@ class TimeUtil {
     static normalizeTimeString(time) {
         var nn = isoTimeToArray(time);
         normalizeTime(nn);
-        return sprintf("%d-%02d-%02dT%02d:%02d:%02d.%09dZ",nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6])
+        return sprintf("%d-%02d-%02dT%02d:%02d:%02d.%09dZ",nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6]);
     }
 
     /**
@@ -430,7 +430,7 @@ class TimeUtil {
         var ta = DateTimeFormatter.ISO_INSTANT.parse(time);
         var i = Instant.from(ta);
         var d = Date.from(i);
-        return d.getTime()
+        return d.getTime();
     }
 
     /**
@@ -448,7 +448,7 @@ class TimeUtil {
             nn[2] = nn[2] - dom1 + 1;
             nn[1] = month;
         }
-        return sprintf("%04d-%02d-%02dT%02d:%02d:%02d.%09dZ",nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6])
+        return sprintf("%04d-%02d-%02dT%02d:%02d:%02d.%09dZ",nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6]);
     }
 
     /**
@@ -465,17 +465,17 @@ class TimeUtil {
         }
         switch (firstNonZeroDigit) {
             case 2:
-                return ss1.substring(0, 10) + "/" + ss2.substring(0, 10)
+                return ss1.substring(0, 10) + "/" + ss2.substring(0, 10);
             case 3:
-                return ss1.substring(0, 10) + "/" + ss2.substring(0, 10)
+                return ss1.substring(0, 10) + "/" + ss2.substring(0, 10);
             case 4:
-                return ss1.substring(0, 16) + "Z/" + ss2.substring(0, 16) + "Z"
+                return ss1.substring(0, 16) + "Z/" + ss2.substring(0, 16) + "Z";
             case 5:
-                return ss1.substring(0, 16) + "Z/" + ss2.substring(0, 16) + "Z"
+                return ss1.substring(0, 16) + "Z/" + ss2.substring(0, 16) + "Z";
             case 6:
-                return ss1.substring(0, 19) + "Z/" + ss2.substring(0, 19) + "Z"
+                return ss1.substring(0, 19) + "Z/" + ss2.substring(0, 19) + "Z";
             default:
-                return ss1 + "/" + ss2
+                return ss1 + "/" + ss2;
         }
     }
 
@@ -490,12 +490,12 @@ class TimeUtil {
     static formatIso8601TimeInTimeRange(nn, offset) {
         switch (offset) {
             case 0:
-                return isoTimeFromArray(nn)
+                return isoTimeFromArray(nn);
             case 7:
                 var copy = getStopTime(nn);
-                return isoTimeFromArray(copy)
+                return isoTimeFromArray(copy);
             default:
-                throw "offset must be 0 or 7"
+                throw "offset must be 0 or 7";
         }
     }
 
@@ -506,7 +506,7 @@ class TimeUtil {
      * @see #isoTimeFromArray(int[]) 
      */
     static formatIso8601Time(nn) {
-        return isoTimeFromArray(nn)
+        return isoTimeFromArray(nn);
     }
 
     /**
@@ -517,7 +517,7 @@ class TimeUtil {
      */
     static formatIso8601Duration(nn) {
         var units = ['Y', 'M', 'D', 'H', 'M', 'S'];
-        if (nn.length > 7) throw "decomposed time can have at most 7 digits"
+        if (nn.length > 7) throw "decomposed time can have at most 7 digits";
         var sb = "P";
         var n = (nn.length < 5) ? nn.length : 5;
         var needT = false;
@@ -557,15 +557,15 @@ class TimeUtil {
                 sb+= "0D";
             }
         }
-        return sb
+        return sb;
     }
 
-    static iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?"
+    static iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?";
 
     /**
      * Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
      */
-    static iso8601DurationPattern = new RegExp("P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?")
+    static iso8601DurationPattern = new RegExp("P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?");
 
     /**
      * returns a 7 element array with [year,mon,day,hour,min,sec,nanos]. Note
@@ -590,12 +590,12 @@ class TimeUtil {
             var dsec = parseDouble(m[13], 0);
             var sec = Math.trunc( dsec );
             var nanosec = int(((dsec - sec) * 1e9)) //J2J: cast type//;
-            return [parseIntDeft(m[2], 0), parseIntDeft(m[4], 0), parseIntDeft(m[6], 0), parseIntDeft(m[9], 0), parseIntDeft(m[11], 0), sec, nanosec]
+            return [parseIntDeft(m[2], 0), parseIntDeft(m[4], 0), parseIntDeft(m[6], 0), parseIntDeft(m[9], 0), parseIntDeft(m[11], 0), sec, nanosec];
         } else{
             if (stringIn.contains("P") && stringIn.contains("S") && !stringIn.contains("T")) {
-                throw "ISO8601 duration expected but not found.  Was the T missing before S?"
+                throw "ISO8601 duration expected but not found.  Was the T missing before S?";
             } else{
-                throw "ISO8601 duration expected but not found."
+                throw "ISO8601 duration expected but not found.";
             }
         }
     }
@@ -610,7 +610,7 @@ class TimeUtil {
         var timeZone = TimeZone.getTimeZone("UTC");
         var c = Calendar.getInstance(timeZone);
         c.setTime(d);
-        return [c.get(Calendar.YEAR), 1 + c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), c.get(Calendar.SECOND), 1000000 * c.get(Calendar.MILLISECOND)]
+        return [c.get(Calendar.YEAR), 1 + c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), c.get(Calendar.SECOND), 1000000 * c.get(Calendar.MILLISECOND)];
     }
 
     /**
@@ -677,7 +677,7 @@ class TimeUtil {
                                 idigit = 6;
                                 break
                             default:
-                                throw "unsupported unit: " + unit
+                                throw "unsupported unit: " + unit;
                         }
                         for ( var id = Math.max(1, idigit); id < DATE_DIGITS; id++) {
                             n[id] = 1;
@@ -686,30 +686,30 @@ class TimeUtil {
                             n[id] = 0;
                         }
                     } else{
-                        throw "expected lastday+P1D, etc"
+                        throw "expected lastday+P1D, etc";
                     }
                 }
                 if (remainder == null || remainder.length == 0) {
-                    return n
+                    return n;
                 } else{
                     if (remainder.charAt(0) == '-') {
                         try {
-                            return subtract(n, parseISO8601Duration(remainder.substring(1)))
+                            return subtract(n, parseISO8601Duration(remainder.substring(1)));
                         } catch (ex) {
-                            throw ex
+                            throw ex;
                         }
                     } else{
                         if (remainder.charAt(0) == '+') {
                             try {
-                                return add(n, parseISO8601Duration(remainder.substring(1)))
+                                return add(n, parseISO8601Duration(remainder.substring(1)));
                             } catch (ex) {
-                                throw ex
+                                throw ex;
                             }
                         }                    }                }
-                return now()
+                return now();
             } else{
                 if (time.length < 7) {
-                    throw "time must have 4 or greater than 7 elements"
+                    throw "time must have 4 or greater than 7 elements";
                 }
                 if (time.length == 7) {
                     if (time.charAt(4) == 'W') {
@@ -769,7 +769,7 @@ class TimeUtil {
                 }
                 normalizeTime(result);
             }        }
-        return result
+        return result;
     }
 
     /**
@@ -824,15 +824,15 @@ class TimeUtil {
                 break
         }
         if (exampleForm.endsWith("Z")) {
-            return time.substring(0, exampleForm.length - 1) + "Z"
+            return time.substring(0, exampleForm.length - 1) + "Z";
         } else{
-            return time.substring(0, exampleForm.length)
+            return time.substring(0, exampleForm.length);
         }
     }
 
-    static VALID_FIRST_YEAR = 1900
+    static VALID_FIRST_YEAR = 1900;
 
-    static VALID_LAST_YEAR = 2100
+    static VALID_LAST_YEAR = 2100;
 
     /**
      * this returns true or throws an IllegalArgumentException indicating the problem.
@@ -841,24 +841,24 @@ class TimeUtil {
      */
     static isValidTime(time) {
         var year = time[0];
-        if (year < VALID_FIRST_YEAR) throw "invalid year at position 0"
-        if (year > VALID_LAST_YEAR) throw "invalid year at position 0"
+        if (year < VALID_FIRST_YEAR) throw "invalid year at position 0";
+        if (year > VALID_LAST_YEAR) throw "invalid year at position 0";
         var month = time[1];
-        if (month < 1) throw "invalid month at position 1"
-        if (month > 12) throw "invalid month at position 1"
+        if (month < 1) throw "invalid month at position 1";
+        if (month > 12) throw "invalid month at position 1";
         var leap = isLeapYear(year) ? 1 : 0;
         var dayOfMonth = time[2];
         if (month > 1) {
             if (dayOfMonth > DAYS_IN_MONTH[leap][month]) {
-                throw "day of month is too large at position 2"
+                throw "day of month is too large at position 2";
             }
         } else{
             if (dayOfMonth > DAY_OFFSET[leap][13]) {
-                throw "day of year is too large at position 2"
+                throw "day of year is too large at position 2";
             }
         }
-        if (dayOfMonth < 1) throw "day is less than 1 at position 2"
-        return true
+        if (dayOfMonth < 1) throw "day is less than 1 at position 2";
+        return true;
     }
 
     /**
@@ -870,7 +870,7 @@ class TimeUtil {
      */
     static daysInMonth(year, month) {
         var leap = isLeapYear(year) ? 1 : 0;
-        return DAYS_IN_MONTH[leap][month]
+        return DAYS_IN_MONTH[leap][month];
     }
 
     /**
@@ -944,7 +944,7 @@ class TimeUtil {
             time[1] = 12;
         }
         if (time[3] > 24) {
-            throw "time[3] is greater than 24 (hours)"
+            throw "time[3] is greater than 24 (hours)";
         }
         if (time[1] > 12) {
             time[0] = 1;
@@ -954,7 +954,7 @@ class TimeUtil {
             time[0] = 1;
             time[1] = 1;
             time[2] = 31;
-            return
+            return;
         }
         var leap = isLeapYear(time[0]) ? 1 : 0;
         if (time[2] == 0) {
@@ -972,7 +972,7 @@ class TimeUtil {
             time[2] = d;
             d = DAYS_IN_MONTH[leap][time[1]];
             if (time[1] > 12) {
-                throw "time[2] is too big"
+                throw "time[2] is too big";
             }
         }
     }
@@ -991,10 +991,10 @@ class TimeUtil {
      */
     static julianDay(year, month, day) {
         if (year <= 1582) {
-            throw "year must be more than 1582"
+            throw "year must be more than 1582";
         }
         var jd = 367 * year - 7 * (year + (month + 9) / 12) / 4 - 3 * ((year + (month - 9) / 7) / 100 + 1) / 4 + 275 * month / 9 + day + 1721029;
-        return jd
+        return jd;
     }
 
     /**
@@ -1027,7 +1027,7 @@ class TimeUtil {
         result[0] = Y;
         result[1] = M;
         result[2] = D;
-        return result
+        return result;
     }
 
     /**
@@ -1043,7 +1043,7 @@ class TimeUtil {
         var daysSince2022 = jd - julianDay(2022, 1, 1);
         var mod7 = (daysSince2022 - 2) % 7;
         if (mod7 < 0) mod7 = mod7 + 7;
-        return mod7
+        return mod7;
     }
 
     /**
@@ -1088,7 +1088,7 @@ class TimeUtil {
      * @see #isoTimeToArray(java.lang.String) 
      */
     static parseISO8601Time(string) {
-        return isoTimeToArray(string)
+        return isoTimeToArray(string);
     }
 
     /**
@@ -1101,13 +1101,13 @@ class TimeUtil {
     static parseISO8601TimeRange(stringIn) {
         var ss = stringIn.split("/");
         if (ss.length != 2) {
-            throw "expected one slash (/) splitting start and stop times."
+            throw "expected one slash (/) splitting start and stop times.";
         }
         if (ss[0].length == 0 || !(/[0-9]/.test(ss[0].charAt(0)) || ss[0].charAt(0) == 'P' || ss[0].startsWith("now"))) {
-            throw "first time/duration is misformatted.  Should be ISO8601 time or duration like P1D."
+            throw "first time/duration is misformatted.  Should be ISO8601 time or duration like P1D.";
         }
         if (ss[1].length == 0 || !(/[0-9]/.test(ss[1].charAt(0)) || ss[1].charAt(0) == 'P' || ss[1].startsWith("now"))) {
-            throw "second time/duration is misformatted.  Should be ISO8601 time or duration like P1D."
+            throw "second time/duration is misformatted.  Should be ISO8601 time or duration like P1D.";
         }
         var result = [0,0,0,0,0,0,0,0,0,0,0,0,0,0];
         if (ss[0].startsWith("P")) {
@@ -1118,7 +1118,7 @@ class TimeUtil {
             }
             normalizeTime(result);
             setStopTime(time, result);
-            return result
+            return result;
         } else{
             if (ss[1].startsWith("P")) {
                 var time = isoTimeToArray(ss[0]);
@@ -1130,13 +1130,13 @@ class TimeUtil {
                 }
                 normalizeTime(stoptime);
                 setStopTime(stoptime, result);
-                return result
+                return result;
             } else{
                 var starttime = isoTimeToArray(ss[0]);
                 var stoptime = isoTimeToArray(ss[1]);
                 setStartTime(starttime, result);
                 setStopTime(stoptime, result);
-                return result
+                return result;
             }        }
     }
 
@@ -1155,7 +1155,7 @@ class TimeUtil {
         if (result[0] > 400) {
             normalizeTime(result);
         }
-        return result
+        return result;
     }
 
     /**
@@ -1172,7 +1172,7 @@ class TimeUtil {
             result[i] = base[i] + offset[i];
         }
         normalizeTime(result);
-        return result
+        return result;
     }
 
     /**
@@ -1186,13 +1186,13 @@ class TimeUtil {
         TimeUtil.normalizeTime(t2);
         for ( var i = 0; i < TIME_DIGITS; i++) {
             if (t1[i] > t2[i]) {
-                return true
+                return true;
             } else{
                 if (t1[i] < t2[i]) {
-                    return false
+                    return false;
                 }            }
         }
-        return false
+        return false;
     }
 
     /**
@@ -1206,10 +1206,10 @@ class TimeUtil {
         TimeUtil.normalizeTime(t2);
         for ( var i = 0; i < TIME_DIGITS; i++) {
             if (t1[i] != t2[i]) {
-                return false
+                return false;
             }
         }
-        return true
+        return true;
     }
 
     /**
@@ -1219,7 +1219,7 @@ class TimeUtil {
      * @see #formatIso8601TimeInTimeRangeBrief(int[] time, int offset ) 
      */
     static formatIso8601TimeBrief(time) {
-        return formatIso8601TimeInTimeRangeBrief(time, 0)
+        return formatIso8601TimeInTimeRangeBrief(time, 0);
     }
 
     /**
@@ -1236,18 +1236,18 @@ class TimeUtil {
         var millis = nanos % 10000000;
         if (nanos == 0) {
             if (time[5 + offset] == 0) {
-                return stime.substring(0, 16) + "Z"
+                return stime.substring(0, 16) + "Z";
             } else{
-                return stime.substring(0, 19) + "Z"
+                return stime.substring(0, 19) + "Z";
             }
         } else{
             if (millis == 0) {
-                return stime.substring(0, 23) + "Z"
+                return stime.substring(0, 23) + "Z";
             } else{
                 if (micros == 0) {
-                    return stime.substring(0, 26) + "Z"
+                    return stime.substring(0, 26) + "Z";
                 } else{
-                    return stime
+                    return stime;
                 }            }
         }
     }
@@ -1293,7 +1293,7 @@ class TimeUtil {
         setStartTime(getStopTime(range), result);
         // This creates an extra array, but let's not worry about that.
         setStopTime(TimeUtil.add(getStopTime(range), width), result);
-        return result
+        return result;
     }
 
     /**
@@ -1335,7 +1335,7 @@ class TimeUtil {
         }
         setStopTime(getStartTime(range), result);
         setStartTime(TimeUtil.subtract(getStartTime(range), width), result);
-        return result
+        return result;
     }
 
     /**
@@ -1346,7 +1346,8 @@ class TimeUtil {
     static isValidTimeRange(granule) {
         var start = getStartTime(granule);
         var stop = getStopTime(granule);
-        return TimeUtil.isValidTime(start) && TimeUtil.isValidTime(stop) && gt(stop, start)
+        return TimeUtil.isValidTime(start) && TimeUtil.isValidTime(stop) && gt(stop, start);
     }
 
 }
+
