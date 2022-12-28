@@ -993,7 +993,7 @@ class TimeUtil {
         if (year <= 1582) {
             throw "year must be more than 1582";
         }
-        var jd = 367 * year - 7 * (year + (month + 9) / 12) / 4 - 3 * ((year + (month - 9) / 7) / 100 + 1) / 4 + 275 * month / 9 + day + 1721029;
+        var jd = 367 * year - Math.floor(7 * (year + Math.floor((month + 9) / 12)) / 4) - Math.floor(3 * (Math.floor((year + Math.floor((month - 9) / 7)) / 100) + 1) / 4) + Math.floor(275 * month / 9) + day + 1721029;
         return jd;
     }
 
@@ -1009,18 +1009,18 @@ class TimeUtil {
      */
     static fromJulianDay(julian) {
         var j = julian + 32044;
-        var g = j / 146097;
+        var g = Math.floor(j / 146097);
         var dg = j % 146097;
-        var c = (dg / 36524 + 1) * 3 / 4;
+        var c = Math.floor((Math.floor(dg / 36524) + 1) * 3 / 4);
         var dc = dg - c * 36524;
-        var b = dc / 1461;
+        var b = Math.floor(dc / 1461);
         var db = dc % 1461;
-        var a = (db / 365 + 1) * 3 / 4;
+        var a = Math.floor((Math.floor(db / 365) + 1) * 3 / 4);
         var da = db - a * 365;
         var y = g * 400 + c * 100 + b * 4 + a;
-        var m = (da * 5 + 308) / 153 - 2;
-        var d = da - (m + 4) * 153 / 5 + 122;
-        var Y = y - 4800 + (m + 2) / 12;
+        var m = Math.floor((da * 5 + 308) / 153) - 2;
+        var d = da - Math.floor((m + 4) * 153 / 5) + 122;
+        var Y = y - 4800 + Math.floor((m + 2) / 12);
         var M = (m + 2) % 12 + 1;
         var D = d + 1;
         var result = [];
