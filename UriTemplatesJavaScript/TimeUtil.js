@@ -41,49 +41,17 @@ class TimeUtil {
     static COMPONENT_NANOSECOND = 6;
 
     /**
-     * fast parser requires that each character of string is a digit.  Note this 
-     * does not check the the numbers are digits!
-     *
-     * @param s string containing an integer
-     * @return the integer
-     */
-    static parseInt(s) {
-        var result;
-        var len = s.length;
-        for ( var i = 0; i < len; i++) {
-            var c = s.charAt(i);
-            if (c.charCodeAt(0) < 48 || c.charCodeAt(0) >= 58) {
-                throw "only digits are allowed in string";
-            }
-        }
-        switch (len) {
-            case 2:
-                result = 10 * (s.charAt(0).charCodeAt(0) - 48) + (s.charAt(1).charCodeAt(0) - 48);
-                return result;
-            case 3:
-                result = 100 * (s.charAt(0).charCodeAt(0) - 48) + 10 * (s.charAt(1).charCodeAt(0) - 48) + (s.charAt(2).charCodeAt(0) - 48);
-                return result;
-            default:
-                result = 0;
-                for ( var i = 0; i < s.length; i++) {
-                    result = 10 * result + (s.charAt(i).charCodeAt(0) - 48);
-                }
-
-                return result;
-        }
-    }
-
-    /**
      * fast parser requires that each character of string is a digit.
      *
      * @param s the number, containing 1 or more digits.
+     * @param deft the default value to use, if s is null.
      * @return the int value
      */
     static parseIntDeft(s, deft) {
         if (s === null) {
             return deft;
         }
-        return TimeUtil.parseInt(s);
+        return parseInt(s);
     }
 
     static parseDouble(val, deft) {
@@ -96,9 +64,9 @@ class TimeUtil {
         }
         var n = val.length - 1;
         if (/[a-z]/i.test(val.charAt(n))) {
-            return Double.parseDouble(val.substring(0, n));
+            return parseFloat(val.substring(0, n));
         } else{
-            return Double.parseDouble(val);
+            return parseFloat(val);
         }
     }
 
@@ -605,12 +573,16 @@ class TimeUtil {
      * @return the current time, to the millisecond
      */
     static now() {
-        var ctm = Date.now();
-        var d = new Date(ctm);
-        var timeZone = TimeZone.getTimeZone("UTC");
-        var c = Calendar.getInstance(timeZone);
-        c.setTime(d);
-        return [c.get(Calendar.YEAR), 1 + c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), c.get(Calendar.SECOND), 1000000 * c.get(Calendar.MILLISECOND)];
+        var s = new Date().toISOString();
+        return [
+            parseInt(s.substring(0,4)),
+            parseInt(s.substring(5,7)),
+            parseInt(s.substring(8,10)),
+            parseInt(s.substring(11,13)),
+            parseInt(s.substring(14,16)),
+            parseInt(s.substring(17,19)),
+            parseInt(s.substring(20,23)) * 1000000 
+        ]
     }
 
     /**
