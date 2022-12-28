@@ -288,8 +288,11 @@ public class TimeUtil {
         return 1;
     }
 
+    /**
+     * This class is not to be instantiated.
+     */
     private TimeUtil() {
-        // this class is not instanciated.
+        
     }
 
     /**
