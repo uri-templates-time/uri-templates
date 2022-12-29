@@ -630,7 +630,7 @@ class TimeUtil {
         } else {
             if (time.startsWith("now") || time.startsWith("last")) {
                 var n;
-                var remainder;
+                var remainder = null;
                 if (time.startsWith("now")) {
                     n = TimeUtil.now();
                     remainder = time.substring(3);
