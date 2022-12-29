@@ -66,6 +66,7 @@ class TimeUtil {
      * fast parser requires that each character of string is a digit.
      *
      * @param s the number, containing 1 or more digits.
+     * @param deft the number to return when s is missing.
      * @return the int value
      */
     static parseIntDeft(s, deft) {
@@ -1021,6 +1022,10 @@ class TimeUtil {
         result[0] = Y;
         result[1] = M;
         result[2] = D;
+        result[3] = 0;
+        result[4] = 0;
+        result[5] = 0;
+        result[6] = 0;
         return result;
     }
 
