@@ -294,7 +294,7 @@ class TimeUtil {
             nn[2] = nn[2] + 1;
             if (nn[2] > 28) TimeUtil.normalizeTime(nn);
             time = sprintf("%04d-%02d-%02dZ",nn[0], nn[1], nn[2]);
-            i = 1;
+            i += 1;
         }
         return result;
     }
@@ -428,7 +428,7 @@ class TimeUtil {
         var ss2 = TimeUtil.formatIso8601TimeInTimeRange(nn, TimeUtil.TIME_DIGITS);
         var firstNonZeroDigit = 7;
         while (firstNonZeroDigit > 3 && nn[firstNonZeroDigit - 1] === 0 && nn[firstNonZeroDigit + TimeUtil.TIME_DIGITS - 1] === 0) {
-            firstNonZeroDigit = 1;
+            firstNonZeroDigit -= 1;
         }
         switch (firstNonZeroDigit) {
             case 2:
@@ -574,16 +574,12 @@ class TimeUtil {
      * @return the current time, to the millisecond
      */
     static now() {
-        var s = new Date().toISOString();
-        return [
-            parseInt(s.substring(0,4)),
-            parseInt(s.substring(5,7)),
-            parseInt(s.substring(8,10)),
-            parseInt(s.substring(11,13)),
-            parseInt(s.substring(14,16)),
-            parseInt(s.substring(17,19)),
-            parseInt(s.substring(20,23)) * 1000000 
-        ]
+        var ctm = Date.now();
+        var d = new Date(ctm);
+        var timeZone = TimeZone.getTimeZone("UTC");
+        var c = Calendar.getInstance(timeZone);
+        c.setTime(d);
+        return [c.get(Calendar.YEAR), 1 + c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), c.get(Calendar.SECOND), 1000000 * c.get(Calendar.MILLISECOND)];
     }
 
     /**
@@ -689,38 +685,38 @@ class TimeUtil {
                 if (time.length === 7) {
                     if (time.charAt(4) == 'W') {
                         // 2022W08
-                        var year = parseInt(time.substring(0, 4));
-                        var week = parseInt(time.substring(5));
+                        var year = TimeUtil.parseInt(time.substring(0, 4));
+                        var week = TimeUtil.parseInt(time.substring(5));
                         result = [year, 0, 0, 0, 0, 0, 0];
                         TimeUtil.fromWeekOfYear(year, week, result);
                         time = "";
                     } else {
-                        result = [parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), 1, 0, 0, 0, 0];
+                        result = [TimeUtil.parseInt(time.substring(0, 4)), TimeUtil.parseInt(time.substring(5, 7)), 1, 0, 0, 0, 0];
                         time = "";
                     }
                 } else {
                     if (time.length === 8) {
                         if (time.charAt(5) == 'W') {
                             // 2022-W08
-                            var year = parseInt(time.substring(0, 4));
-                            var week = parseInt(time.substring(6));
+                            var year = TimeUtil.parseInt(time.substring(0, 4));
+                            var week = TimeUtil.parseInt(time.substring(6));
                             result = [year, 0, 0, 0, 0, 0, 0];
                             TimeUtil.fromWeekOfYear(year, week, result);
                             time = "";
                         } else {
-                            result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
+                            result = [TimeUtil.parseInt(time.substring(0, 4)), 1, TimeUtil.parseInt(time.substring(5, 8)), 0, 0, 0, 0];
                             time = "";
                         }
                     } else {
                         if (time.charAt(8) == 'T') {
-                            result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
+                            result = [TimeUtil.parseInt(time.substring(0, 4)), 1, TimeUtil.parseInt(time.substring(5, 8)), 0, 0, 0, 0];
                             time = time.substring(9);
                         } else {
                             if (time.charAt(8) == 'Z') {
-                                result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
+                                result = [TimeUtil.parseInt(time.substring(0, 4)), 1, TimeUtil.parseInt(time.substring(5, 8)), 0, 0, 0, 0];
                                 time = time.substring(9);
                             } else {
-                                result = [parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), parseInt(time.substring(8, 10)), 0, 0, 0, 0];
+                                result = [TimeUtil.parseInt(time.substring(0, 4)), TimeUtil.parseInt(time.substring(5, 7)), TimeUtil.parseInt(time.substring(8, 10)), 0, 0, 0, 0];
                                 if (time.length === 10) {
                                     time = "";
                                 } else {
@@ -734,16 +730,16 @@ class TimeUtil {
                     time = time.substring(0, time.length - 1);
                 }
                 if (time.length >= 2) {
-                    result[3] = parseInt(time.substring(0, 2));
+                    result[3] = TimeUtil.parseInt(time.substring(0, 2));
                 }
                 if (time.length >= 5) {
-                    result[4] = parseInt(time.substring(3, 5));
+                    result[4] = TimeUtil.parseInt(time.substring(3, 5));
                 }
                 if (time.length >= 8) {
-                    result[5] = parseInt(time.substring(6, 8));
+                    result[5] = TimeUtil.parseInt(time.substring(6, 8));
                 }
                 if (time.length > 9) {
-                    result[6] = Math.trunc( (Math.pow(10, 18 - time.length)) ) * parseInt(time.substring(9));
+                    result[6] = Math.trunc( (Math.pow(10, 18 - time.length)) ) * TimeUtil.parseInt(time.substring(9));
                 }
                 TimeUtil.normalizeTime(result);
             }
@@ -869,43 +865,43 @@ class TimeUtil {
      */
     static normalizeTime(time) {
         while (time[6] >= 1000000000) {
-            time[5] = 1;
-            time[6] = 1000000000;
+            time[5] += 1;
+            time[6] -= 1000000000;
         }
         while (time[5] > 59) {
             // TODO: leap seconds?
-            time[4] = 1;
-            time[5] = 60;
+            time[4] += 1;
+            time[5] -= 60;
         }
         while (time[4] > 59) {
-            time[3] = 1;
-            time[4] = 60;
+            time[3] += 1;
+            time[4] -= 60;
         }
         while (time[3] >= 24) {
-            time[2] = 1;
-            time[3] = 24;
+            time[2] += 1;
+            time[3] -= 24;
         }
         if (time[6] < 0) {
-            time[5] = 1;
-            time[6] = 1000000000;
+            time[5] -= 1;
+            time[6] += 1000000000;
         }
         if (time[5] < 0) {
-            time[4] = 1;
+            time[4] -= 1;
             // take a minute
-            time[5] = 60;
+            time[5] += 60;
         }
         if (time[4] < 0) {
-            time[3] = 1;
+            time[3] -= 1;
             // take an hour
-            time[4] = 60;
+            time[4] += 60;
         }
         if (time[3] < 0) {
-            time[2] = 1;
+            time[2] -= 1;
             // take a day
-            time[3] = 24;
+            time[3] += 24;
         }
         if (time[2] < 1) {
-            time[1] = 1;
+            time[1] -= 1;
             // take a month
             var daysInMonth;
             if (time[1] === 0) {
@@ -918,40 +914,40 @@ class TimeUtil {
                     daysInMonth = TimeUtil.DAYS_IN_MONTH[0][time[1]];
                 }
             }
-            time[2] = daysInMonth;
+            time[2] += daysInMonth;
         }
         if (time[1] < 1) {
-            time[0] = 1;
+            time[0] -= 1;
             // take a year
-            time[1] = 12;
+            time[1] += 12;
         }
         if (time[3] > 24) {
             throw "time[3] is greater than 24 (hours)";
         }
         if (time[1] > 12) {
-            time[0] = 1;
-            time[1] = 12;
+            time[0] += 1;
+            time[1] -= 12;
         }
         if (time[1] === 12 && time[2] > 31 && time[2] < 62) {
-            time[0] = 1;
+            time[0] += 1;
             time[1] = 1;
-            time[2] = 31;
+            time[2] -= 31;
             return;
         }
         var leap = TimeUtil.isLeapYear(time[0]) ? 1 : 0;
         if (time[2] === 0) {
             //TODO: tests don't hit this branch, and I'm not sure it can occur.
-            time[1] = 1;
+            time[1] -= 1;
             if (time[1] === 0) {
-                time[0] = 1;
+                time[0] -= 1;
                 time[1] = 12;
             }
             time[2] = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
         }
         var d = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
         while (time[2] > d) {
-            time[1] = 1;
-            time[2] = d;
+            time[1] += 1;
+            time[2] -= d;
             d = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
             if (time[1] > 12) {
                 throw "time[2] is too big";
