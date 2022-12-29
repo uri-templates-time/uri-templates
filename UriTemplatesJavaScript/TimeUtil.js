@@ -686,38 +686,38 @@ class TimeUtil {
                 if (time.length === 7) {
                     if (time.charAt(4) == 'W') {
                         // 2022W08
-                        var year = TimeUtil.parseInt(time.substring(0, 4));
-                        var week = TimeUtil.parseInt(time.substring(5));
+                        var year = parseInt(time.substring(0, 4));
+                        var week = parseInt(time.substring(5));
                         result = [year, 0, 0, 0, 0, 0, 0];
                         TimeUtil.fromWeekOfYear(year, week, result);
                         time = "";
                     } else{
-                        result = [TimeUtil.parseInt(time.substring(0, 4)), TimeUtil.parseInt(time.substring(5, 7)), 1, 0, 0, 0, 0];
+                        result = [parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), 1, 0, 0, 0, 0];
                         time = "";
                     }
                 } else{
                     if (time.length === 8) {
                         if (time.charAt(5) == 'W') {
                             // 2022-W08
-                            var year = TimeUtil.parseInt(time.substring(0, 4));
-                            var week = TimeUtil.parseInt(time.substring(6));
+                            var year = parseInt(time.substring(0, 4));
+                            var week = parseInt(time.substring(6));
                             result = [year, 0, 0, 0, 0, 0, 0];
                             TimeUtil.fromWeekOfYear(year, week, result);
                             time = "";
                         } else{
-                            result = [TimeUtil.parseInt(time.substring(0, 4)), 1, TimeUtil.parseInt(time.substring(5, 8)), 0, 0, 0, 0];
+                            result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
                             time = "";
                         }
                     } else{
                         if (time.charAt(8) == 'T') {
-                            result = [TimeUtil.parseInt(time.substring(0, 4)), 1, TimeUtil.parseInt(time.substring(5, 8)), 0, 0, 0, 0];
+                            result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
                             time = time.substring(9);
                         } else{
                             if (time.charAt(8) == 'Z') {
-                                result = [TimeUtil.parseInt(time.substring(0, 4)), 1, TimeUtil.parseInt(time.substring(5, 8)), 0, 0, 0, 0];
+                                result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
                                 time = time.substring(9);
                             } else{
-                                result = [TimeUtil.parseInt(time.substring(0, 4)), TimeUtil.parseInt(time.substring(5, 7)), TimeUtil.parseInt(time.substring(8, 10)), 0, 0, 0, 0];
+                                result = [parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), parseInt(time.substring(8, 10)), 0, 0, 0, 0];
                                 if (time.length === 10) {
                                     time = "";
                                 } else{
@@ -728,19 +728,20 @@ class TimeUtil {
                     time = time.substring(0, time.length - 1);
                 }
                 if (time.length >= 2) {
-                    result[3] = TimeUtil.parseInt(time.substring(0, 2));
+                    result[3] = parseInt(time.substring(0, 2));
                 }
                 if (time.length >= 5) {
-                    result[4] = TimeUtil.parseInt(time.substring(3, 5));
+                    result[4] = parseInt(time.substring(3, 5));
                 }
                 if (time.length >= 8) {
-                    result[5] = TimeUtil.parseInt(time.substring(6, 8));
+                    result[5] = parseInt(time.substring(6, 8));
                 }
                 if (time.length > 9) {
-                    result[6] = int((Math.pow(10, 18 - time.length))) //J2J: cast type// * TimeUtil.parseInt(time.substring(9));
+                    result[6] = int((Math.pow(10, 18 - time.length))) * parseInt(time.substring(9));
                 }
                 TimeUtil.normalizeTime(result);
-            }        }
+            }        
+        }
         return result;
     }
 
