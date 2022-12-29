@@ -407,10 +407,7 @@ class TimeUtil {
      */
     static toMillisecondsSince1970(time) {
         time = TimeUtil.normalizeTimeString(time);
-        var ta = DateTimeFormatter.ISO_INSTANT.parse(time);
-        var i = Instant.from(ta);
-        var d = Date.from(i);
-        return d.getTime();
+        return new Date(time).getTime();
     }
 
     /**
