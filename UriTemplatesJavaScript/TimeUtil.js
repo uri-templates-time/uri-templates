@@ -53,6 +53,16 @@ class TimeUtil {
     static COMPONENT_NANOSECOND = 6;
 
     /**
+     * the number of days in each month.  DAYS_IN_MONTH[0][12] is number of days in December of a non-leap year
+     */
+    static DAYS_IN_MONTH = [[0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0], [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0]];
+
+    /**
+     * the number of days to the first of each month.  DAY_OFFSET[0][12] is offset to December 1st of a non-leap year
+     */
+    static DAY_OFFSET = [[0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365], [0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]];
+
+    /**
      * fast parser requires that each character of string is a digit.
      *
      * @param s the number, containing 1 or more digits.
@@ -233,7 +243,7 @@ class TimeUtil {
             throw "day (" + day + ") must be less than 366.";
         }
         var leap = TimeUtil.isLeapYear(year) ? 1 : 0;
-        return DAY_OFFSET[leap][month] + day;
+        return TimeUtil.DAY_OFFSET[leap][month] + day;
     }
 
     /**
@@ -244,7 +254,7 @@ class TimeUtil {
      */
     static monthForDayOfYear(year, doy) {
         var leap = TimeUtil.isLeapYear(year) ? 1 : 0;
-        var dayOffset = DAY_OFFSET[leap];
+        var dayOffset = TimeUtil.DAY_OFFSET[leap];
         if (doy < 1) throw "doy must be 1 or more";
         if (doy > dayOffset[13]) {
             throw "doy must be less than or equal to " + dayOffset[13];
@@ -262,16 +272,6 @@ class TimeUtil {
      */
     constructor() {
     }
-
-    /**
-     * the number of days in each month.  DAYS_IN_MONTH[0][12] is number of days in December of a non-leap year
-     */
-    static DAYS_IN_MONTH = [[0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0], [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0]];
-
-    /**
-     * the number of days to the first of each month.  DAY_OFFSET[0][12] is offset to December 1st of a non-leap year
-     */
-    static DAY_OFFSET = [[0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365], [0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]];
 
     /**
      * count off the days between startTime and stopTime, but not including
