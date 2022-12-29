@@ -1,19 +1,19 @@
 // cheesy unittest temporary
 function assertEquals(a,b) {
-    if ( a!==b ) throw new Exception('a!==b');
+    if ( a!==b ) throw 'a!==b : ' + a + ' !== ' + b;
 }
 function assertArrayEquals(a,b) {
     if ( a.length===b.length ) {
         for ( i=0; i<a.length; i++ ) {
-            if ( a[i]!==b[i] ) throw new Exception('a[%d]!==b[%d]'%(i,i));
+            if ( a[i]!==b[i] ) throw 'a['+i+']!==b['+i+'] : ' +a[i] + ' !== ' + b[i];
         }
     } else {
-        throw new Exception('array lengths differ');
+        throw 'array lengths differ';
     }
 }
 function fail(msg) {
     console.log(msg);
-    throw Exception('fail: '+msg);
+    throw 'fail: '+msg;
 }                
 
 /**
