@@ -57,14 +57,14 @@ class TimeUtil {
         if (val === null) {
             if (deft !== -99) {
                 return deft;
-            } else{
+            } else {
                 throw "bad digit";
             }
         }
         var n = val.length - 1;
         if (/[a-z]/i.test(val.charAt(n))) {
             return parseFloat(val.substring(0, n));
-        } else{
+        } else {
             return parseFloat(val);
         }
     }
@@ -342,7 +342,7 @@ class TimeUtil {
         time = TimeUtil.normalizeTimeString(time);
         if (time.substring(11).equals("00:00:00.000000000Z")) {
             return time;
-        } else{
+        } else {
             return TimeUtil.nextDay(time.substring(0, 11)).substring(0, 10) + "T00:00:00.000000000Z";
         }
     }
@@ -358,7 +358,7 @@ class TimeUtil {
         time = TimeUtil.normalizeTimeString(time);
         if (time.substring(11).equals("00:00:00.000000000Z")) {
             return time;
-        } else{
+        } else {
             return time.substring(0, 10) + "T00:00:00.000000000Z";
         }
     }
@@ -506,21 +506,23 @@ class TimeUtil {
             var nanoseconds = nn.length === 7 ? nn[6] : 0;
             if (nanoseconds === 0) {
                 sb+= str(seconds);
-            } else{
+            } else {
                 if (nanoseconds % 1000000 === 0) {
                     sb+= str(sprintf("%.3f",seconds + nanoseconds / 1e9));
-                } else{
+                } else {
                     if (nanoseconds % 1000 === 0) {
                         sb+= str(sprintf("%.6f",seconds + nanoseconds / 1e9));
-                    } else{
+                    } else {
                         sb+= str(sprintf("%.9f",seconds + nanoseconds / 1e9));
-                    }                }            }
+                    }
+                }
+            }
             sb+= "S";
         }
         if (sb.length() === 1) {
             if (nn.length > 3) {
                 sb+= "T0S";
-            } else{
+            } else {
                 sb+= "0D";
             }
         }
@@ -556,12 +558,12 @@ class TimeUtil {
         if (m!=null) {
             var dsec = TimeUtil.parseDouble(m[13], 0);
             var sec = Math.trunc( dsec );
-            var nanosec = int(((dsec - sec) * 1e9)) //J2J: cast type//;
+            var nanosec = Math.trunc( ((dsec - sec) * 1e9) );
             return [TimeUtil.parseIntDeft(m[2], 0), TimeUtil.parseIntDeft(m[4], 0), TimeUtil.parseIntDeft(m[6], 0), TimeUtil.parseIntDeft(m[9], 0), TimeUtil.parseIntDeft(m[11], 0), sec, nanosec];
-        } else{
+        } else {
             if (stringIn.contains("P") && stringIn.contains("S") && !stringIn.contains("T")) {
                 throw "ISO8601 duration expected but not found.  Was the T missing before S?";
-            } else{
+            } else {
                 throw "ISO8601 duration expected but not found.";
             }
         }
@@ -613,14 +615,14 @@ class TimeUtil {
         var result;
         if (time.length === 4) {
             result = [Integer.parseInt(time), 1, 1, 0, 0, 0, 0];
-        } else{
+        } else {
             if (time.startsWith("now") || time.startsWith("last")) {
                 var n;
                 var remainder;
                 if (time.startsWith("now")) {
                     n = TimeUtil.now();
                     remainder = time.substring(3);
-                } else{
+                } else {
                     var p = new RegExp("last([a-z]+)([\\+|\\-]P.*)?");
                     var m = p.exec(time);
                     if (m!=null) {
@@ -656,29 +658,31 @@ class TimeUtil {
                         for ( var id = Math.max(TimeUtil.DATE_DIGITS, idigit); id < TimeUtil.TIME_DIGITS; id++) {
                             n[id] = 0;
                         }
-                    } else{
+                    } else {
                         throw "expected lastday+P1D, etc";
                     }
                 }
                 if (remainder === null || remainder.length === 0) {
                     return n;
-                } else{
+                } else {
                     if (remainder.charAt(0) == '-') {
                         try {
                             return TimeUtil.subtract(n, TimeUtil.parseISO8601Duration(remainder.substring(1)));
                         } catch (ex) {
                             throw ex;
                         }
-                    } else{
+                    } else {
                         if (remainder.charAt(0) == '+') {
                             try {
                                 return TimeUtil.add(n, TimeUtil.parseISO8601Duration(remainder.substring(1)));
                             } catch (ex) {
                                 throw ex;
                             }
-                        }                    }                }
+                        }
+                    }
+                }
                 return TimeUtil.now();
-            } else{
+            } else {
                 if (time.length < 7) {
                     throw "time must have 4 or greater than 7 elements";
                 }
@@ -690,11 +694,11 @@ class TimeUtil {
                         result = [year, 0, 0, 0, 0, 0, 0];
                         TimeUtil.fromWeekOfYear(year, week, result);
                         time = "";
-                    } else{
+                    } else {
                         result = [parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), 1, 0, 0, 0, 0];
                         time = "";
                     }
-                } else{
+                } else {
                     if (time.length === 8) {
                         if (time.charAt(5) == 'W') {
                             // 2022-W08
@@ -703,26 +707,29 @@ class TimeUtil {
                             result = [year, 0, 0, 0, 0, 0, 0];
                             TimeUtil.fromWeekOfYear(year, week, result);
                             time = "";
-                        } else{
+                        } else {
                             result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
                             time = "";
                         }
-                    } else{
+                    } else {
                         if (time.charAt(8) == 'T') {
                             result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
                             time = time.substring(9);
-                        } else{
+                        } else {
                             if (time.charAt(8) == 'Z') {
                                 result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
                                 time = time.substring(9);
-                            } else{
+                            } else {
                                 result = [parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), parseInt(time.substring(8, 10)), 0, 0, 0, 0];
                                 if (time.length === 10) {
                                     time = "";
-                                } else{
+                                } else {
                                     time = time.substring(11);
                                 }
-                            }                        }                    }                }
+                            }
+                        }
+                    }
+                }
                 if (time.endsWith("Z")) {
                     time = time.substring(0, time.length - 1);
                 }
@@ -736,10 +743,10 @@ class TimeUtil {
                     result[5] = parseInt(time.substring(6, 8));
                 }
                 if (time.length > 9) {
-                    result[6] = int((Math.pow(10, 18 - time.length))) * parseInt(time.substring(9));
+                    result[6] = Math.trunc( (Math.pow(10, 18 - time.length)) ) * parseInt(time.substring(9));
                 }
                 TimeUtil.normalizeTime(result);
-            }        
+            }
         }
         return result;
     }
@@ -783,21 +790,24 @@ class TimeUtil {
             default:
                 if (exampleForm.length === 10) {
                     c = 'Z';
-                } else{
+                } else {
                     c = exampleForm.charAt(10);
                 }
+
                 if (c == 'T') {
                     // $Y-$jT
                     time = sprintf("%d-%02d-%02dT%02d:%02d:%02d.%09dZ",nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6]);
-                } else{
+                } else {
                     if (c == 'Z') {
                         time = sprintf("%d-%02d-%02dZ",nn[0], nn[1], nn[2]);
-                    }                }
+                    }
+                }
+
                 break
         }
         if (exampleForm.endsWith("Z")) {
             return time.substring(0, exampleForm.length - 1) + "Z";
-        } else{
+        } else {
             return time.substring(0, exampleForm.length);
         }
     }
@@ -824,7 +834,7 @@ class TimeUtil {
             if (dayOfMonth > TimeUtil.DAYS_IN_MONTH[leap][month]) {
                 throw "day of month is too large at position 2";
             }
-        } else{
+        } else {
             if (dayOfMonth > TimeUtil.DAY_OFFSET[leap][13]) {
                 throw "day of year is too large at position 2";
             }
@@ -900,11 +910,11 @@ class TimeUtil {
             var daysInMonth;
             if (time[1] === 0) {
                 daysInMonth = 31;
-            } else{
+            } else {
                 if (TimeUtil.isLeapYear(time[0])) {
                     // This was  TimeUtil.DAYS_IN_MONTH[isLeapYear(time[0]) ? 1 : 0][time[1]] . TODO: review!
                     daysInMonth = TimeUtil.DAYS_IN_MONTH[1][time[1]];
-                } else{
+                } else {
                     daysInMonth = TimeUtil.DAYS_IN_MONTH[0][time[1]];
                 }
             }
@@ -1040,11 +1050,11 @@ class TimeUtil {
                 if (TimeUtil.isLeapYear(time[0])) {
                     // was  doy= doy + ( isLeapYear(time[0]) ? 366 : 365 );  TODO: verify
                     doy = doy + 366;
-                } else{
+                } else {
                     doy = doy + 365;
                 }
             }
-        } else{
+        } else {
             doy = weekOfYear * 7 - day + 1;
         }
         time[1] = 1;
@@ -1091,7 +1101,7 @@ class TimeUtil {
             TimeUtil.normalizeTime(result);
             TimeUtil.setStopTime(time, result);
             return result;
-        } else{
+        } else {
             if (ss[1].startsWith("P")) {
                 var time = TimeUtil.isoTimeToArray(ss[0]);
                 var duration = TimeUtil.parseISO8601Duration(ss[1]);
@@ -1103,13 +1113,14 @@ class TimeUtil {
                 TimeUtil.normalizeTime(stoptime);
                 TimeUtil.setStopTime(stoptime, result);
                 return result;
-            } else{
+            } else {
                 var starttime = TimeUtil.isoTimeToArray(ss[0]);
                 var stoptime = TimeUtil.isoTimeToArray(ss[1]);
                 TimeUtil.setStartTime(starttime, result);
                 TimeUtil.setStopTime(stoptime, result);
                 return result;
-            }        }
+            }
+        }
     }
 
     /**
@@ -1159,10 +1170,11 @@ class TimeUtil {
         for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
             if (t1[i] > t2[i]) {
                 return true;
-            } else{
+            } else {
                 if (t1[i] < t2[i]) {
                     return false;
-                }            }
+                }
+            }
         }
         return false;
     }
@@ -1209,18 +1221,19 @@ class TimeUtil {
         if (nanos === 0) {
             if (time[5 + offset] === 0) {
                 return stime.substring(0, 16) + "Z";
-            } else{
+            } else {
                 return stime.substring(0, 19) + "Z";
             }
-        } else{
+        } else {
             if (millis === 0) {
                 return stime.substring(0, 23) + "Z";
-            } else{
+            } else {
                 if (micros === 0) {
                     return stime.substring(0, 26) + "Z";
-                } else{
+                } else {
                     return stime;
-                }            }
+                }
+            }
         }
     }
 
