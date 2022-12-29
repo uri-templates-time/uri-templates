@@ -44,7 +44,6 @@ class TimeUtil {
      * fast parser requires that each character of string is a digit.
      *
      * @param s the number, containing 1 or more digits.
-     * @param deft the default value to use, if s is null.
      * @return the int value
      */
     static parseIntDeft(s, deft) {
@@ -168,7 +167,7 @@ class TimeUtil {
      * @return the month name, like "Jan" or "Dec"
      */
     static monthNameAbbrev(i) {
-        return monthNames[i - 1];
+        return TimeUtil.monthNames[i - 1];
     }
 
     /**
@@ -186,7 +185,7 @@ class TimeUtil {
         }
         s = s.substring(0, 3);
         for ( var i = 0; i < 12; i++) {
-            if (s.toUpperCase()===monthNames[i].toUpperCase()) {
+            if (s.toUpperCase()===TimeUtil.monthNames[i].toUpperCase()) {
                 return i + 1;
             }
         }
@@ -426,9 +425,9 @@ class TimeUtil {
      */
     static formatIso8601TimeRange(nn) {
         var ss1 = TimeUtil.formatIso8601TimeInTimeRange(nn, 0);
-        var ss2 = TimeUtil.formatIso8601TimeInTimeRange(nn, TIME_DIGITS);
+        var ss2 = TimeUtil.formatIso8601TimeInTimeRange(nn, TimeUtil.TIME_DIGITS);
         var firstNonZeroDigit = 7;
-        while (firstNonZeroDigit > 3 && nn[firstNonZeroDigit - 1] === 0 && nn[firstNonZeroDigit + TIME_DIGITS - 1] === 0) {
+        while (firstNonZeroDigit > 3 && nn[firstNonZeroDigit - 1] === 0 && nn[firstNonZeroDigit + TimeUtil.TIME_DIGITS - 1] === 0) {
             firstNonZeroDigit = 1;
         }
         switch (firstNonZeroDigit) {
@@ -553,7 +552,7 @@ class TimeUtil {
      *
      */
     static parseISO8601Duration(stringIn) {
-        var m = iso8601DurationPattern.exec(stringIn);
+        var m = TimeUtil.iso8601DurationPattern.exec(stringIn);
         if (m!=null) {
             var dsec = TimeUtil.parseDouble(m[13], 0);
             var sec = Math.trunc( dsec );
@@ -651,10 +650,10 @@ class TimeUtil {
                             default:
                                 throw "unsupported unit: " + unit;
                         }
-                        for ( var id = Math.max(1, idigit); id < DATE_DIGITS; id++) {
+                        for ( var id = Math.max(1, idigit); id < TimeUtil.DATE_DIGITS; id++) {
                             n[id] = 1;
                         }
-                        for ( var id = Math.max(DATE_DIGITS, idigit); id < TIME_DIGITS; id++) {
+                        for ( var id = Math.max(TimeUtil.DATE_DIGITS, idigit); id < TimeUtil.TIME_DIGITS; id++) {
                             n[id] = 0;
                         }
                     } else{
@@ -814,19 +813,19 @@ class TimeUtil {
      */
     static isValidTime(time) {
         var year = time[0];
-        if (year < VALID_FIRST_YEAR) throw "invalid year at position 0";
-        if (year > VALID_LAST_YEAR) throw "invalid year at position 0";
+        if (year < TimeUtil.VALID_FIRST_YEAR) throw "invalid year at position 0";
+        if (year > TimeUtil.VALID_LAST_YEAR) throw "invalid year at position 0";
         var month = time[1];
         if (month < 1) throw "invalid month at position 1";
         if (month > 12) throw "invalid month at position 1";
         var leap = TimeUtil.isLeapYear(year) ? 1 : 0;
         var dayOfMonth = time[2];
         if (month > 1) {
-            if (dayOfMonth > DAYS_IN_MONTH[leap][month]) {
+            if (dayOfMonth > TimeUtil.DAYS_IN_MONTH[leap][month]) {
                 throw "day of month is too large at position 2";
             }
         } else{
-            if (dayOfMonth > DAY_OFFSET[leap][13]) {
+            if (dayOfMonth > TimeUtil.DAY_OFFSET[leap][13]) {
                 throw "day of year is too large at position 2";
             }
         }
@@ -843,7 +842,7 @@ class TimeUtil {
      */
     static daysInMonth(year, month) {
         var leap = TimeUtil.isLeapYear(year) ? 1 : 0;
-        return DAYS_IN_MONTH[leap][month];
+        return TimeUtil.DAYS_IN_MONTH[leap][month];
     }
 
     /**
@@ -1086,7 +1085,7 @@ class TimeUtil {
         if (ss[0].startsWith("P")) {
             var duration = TimeUtil.parseISO8601Duration(ss[0]);
             var time = TimeUtil.isoTimeToArray(ss[1]);
-            for ( var i = 0; i < TIME_DIGITS; i++) {
+            for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
                 result[i] = time[i] - duration[i];
             }
             TimeUtil.normalizeTime(result);
@@ -1098,7 +1097,7 @@ class TimeUtil {
                 var duration = TimeUtil.parseISO8601Duration(ss[1]);
                 TimeUtil.setStartTime(time, result);
                 var stoptime = [];
-                for ( var i = 0; i < TIME_DIGITS; i++) {
+                for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
                     stoptime[i] = time[i] + duration[i];
                 }
                 TimeUtil.normalizeTime(stoptime);
@@ -1122,7 +1121,7 @@ class TimeUtil {
      */
     static subtract(base, offset) {
         var result = [];
-        for ( var i = 0; i < TIME_DIGITS; i++) {
+        for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
             result[i] = base[i] - offset[i];
         }
         if (result[0] > 400) {
@@ -1141,7 +1140,7 @@ class TimeUtil {
      */
     static add(base, offset) {
         var result = [];
-        for ( var i = 0; i < TIME_DIGITS; i++) {
+        for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
             result[i] = base[i] + offset[i];
         }
         TimeUtil.normalizeTime(result);
@@ -1204,7 +1203,7 @@ class TimeUtil {
      */
     static formatIso8601TimeInTimeRangeBrief(time, offset) {
         var stime = TimeUtil.formatIso8601TimeInTimeRange(time, offset);
-        var nanos = time[COMPONENT_NANOSECOND + offset];
+        var nanos = time[TimeUtil.COMPONENT_NANOSECOND + offset];
         var micros = nanos % 1000;
         var millis = nanos % 10000000;
         if (nanos === 0) {
@@ -1254,7 +1253,7 @@ class TimeUtil {
             width[2] = width[2] - 1;
         }
         if (width[2] < 0) {
-            var daysInMonth = TimeUtil.daysInMonth(range[COMPONENT_YEAR], range[COMPONENT_MONTH]);
+            var daysInMonth = TimeUtil.daysInMonth(range[TimeUtil.COMPONENT_YEAR], range[TimeUtil.COMPONENT_MONTH]);
             width[2] = width[2] + daysInMonth;
             width[1] = width[1] - 1;
         }
@@ -1298,7 +1297,7 @@ class TimeUtil {
             width[2] = width[2] - 1;
         }
         if (width[2] < 0) {
-            var daysInMonth = TimeUtil.daysInMonth(range[COMPONENT_YEAR], range[COMPONENT_MONTH]);
+            var daysInMonth = TimeUtil.daysInMonth(range[TimeUtil.COMPONENT_YEAR], range[TimeUtil.COMPONENT_MONTH]);
             width[2] = width[2] + daysInMonth;
             width[1] = width[1] - 1;
         }
