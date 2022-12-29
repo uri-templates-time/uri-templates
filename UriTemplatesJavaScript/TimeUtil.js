@@ -586,12 +586,16 @@ class TimeUtil {
      * @return the current time, to the millisecond
      */
     static now() {
-        var ctm = Date.now();
-        var d = new Date(ctm);
-        var timeZone = TimeZone.getTimeZone("UTC");
-        var c = Calendar.getInstance(timeZone);
-        c.setTime(d);
-        return [c.get(Calendar.YEAR), 1 + c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), c.get(Calendar.SECOND), 1000000 * c.get(Calendar.MILLISECOND)];
+        var s = new Date().toISOString();
+        return [
+            parseInt(s.substring(0,4)),
+            parseInt(s.substring(5,7)),
+            parseInt(s.substring(8,10)),
+            parseInt(s.substring(11,13)),
+            parseInt(s.substring(14,16)),
+            parseInt(s.substring(17,19)),
+            parseInt(s.substring(20,23)) * 1000000 
+        ]
     }
 
     /**
