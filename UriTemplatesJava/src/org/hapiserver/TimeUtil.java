@@ -48,6 +48,22 @@ public class TimeUtil {
     public static final int COMPONENT_NANOSECOND=6;
     
     /**
+     * the number of days in each month.  DAYS_IN_MONTH[0][12] is number of days in December of a non-leap year
+     */
+    private final static int[][] DAYS_IN_MONTH = {
+        {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0},
+        {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0}
+    };
+
+    /**
+     * the number of days to the first of each month.  DAY_OFFSET[0][12] is offset to December 1st of a non-leap year
+     */
+    private final static int[][] DAY_OFFSET = {
+        {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365},
+        {0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366}
+    };
+    
+    /**
      * fast parser requires that each character of string is a digit.  Note this 
      * does not check the the numbers are digits!
      *
@@ -294,22 +310,6 @@ public class TimeUtil {
     private TimeUtil() {
         
     }
-
-    /**
-     * the number of days in each month.  DAYS_IN_MONTH[0][12] is number of days in December of a non-leap year
-     */
-    private final static int[][] DAYS_IN_MONTH = {
-        {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0},
-        {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0}
-    };
-
-    /**
-     * the number of days to the first of each month.  DAY_OFFSET[0][12] is offset to December 1st of a non-leap year
-     */
-    private final static int[][] DAY_OFFSET = {
-        {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365},
-        {0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366}
-    };
 
     /**
      * count off the days between startTime and stopTime, but not including
@@ -682,7 +682,7 @@ public class TimeUtil {
             result = new int[]{Integer.parseInt(time), 1, 1, 0, 0, 0, 0};
         } else if ( time.startsWith("now") || time.startsWith("last") ) {
             int[] n;
-            String remainder;
+            String remainder=null;
             if ( time.startsWith("now") ) {
                 n= now();
                 remainder= time.substring(3);
