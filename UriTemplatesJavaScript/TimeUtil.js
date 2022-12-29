@@ -69,14 +69,14 @@ class TimeUtil {
      * @return the int value
      */
     static parseIntDeft(s, deft) {
-        if (s === null) {
+        if (s === undefined || s === null) {
             return deft;
         }
         return parseInt(s);
     }
 
     static parseDouble(val, deft) {
-        if (val === null) {
+        if (val === undefined || val === null) {
             if (deft !== -99) {
                 return deft;
             } else {
@@ -674,7 +674,7 @@ class TimeUtil {
                         throw "expected lastday+P1D, etc";
                     }
                 }
-                if (remainder === null || remainder.length === 0) {
+                if ( remainder === undefined || remainder === null || remainder.length === 0) {
                     return n;
                 } else {
                     if (remainder.charAt(0) == '-') {
