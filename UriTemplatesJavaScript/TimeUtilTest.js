@@ -1,12 +1,11 @@
-
 // cheesy unittest temporary
 function assertEquals(a,b) {
-    if ( a!=b ) throw new Exception('a!=b');
+    if ( a!==b ) throw new Exception('a!==b');
 }
 function assertArrayEquals(a,b) {
-    if ( a.length()==b.length() ) {
+    if ( a.length===b.length ) {
         for ( i=0; i<a.length; i++ ) {
-            if ( a[i]!=b[i] ) throw new Exception('a[%d]!=b[%d]'%(i,i));
+            if ( a[i]!==b[i] ) throw new Exception('a[%d]!==b[%d]'%(i,i));
         }
     } else {
         throw new Exception('array lengths differ');
@@ -15,8 +14,8 @@ function assertArrayEquals(a,b) {
 function fail(msg) {
     console.log(msg);
     throw Exception('fail: '+msg);
-}
-    
+}                
+
 /**
  * Tests of the useful TimeUtil.java code.
  * @author jbf
@@ -501,36 +500,36 @@ class TimeUtilTest {
     }
 
 }
+test = new TimeUtilTest();
+test.testReformatIsoTime();
+test.testMonthNameAbbrev();
+test.testMonthNumber();
+test.testCountOffDays();
+test.testNextDay();
+test.testPreviousDay();
+test.testNextRange();
+test.testPreviousRange();
+test.testCeil();
+test.testFloor();
+test.testNormalizeTimeString();
+test.testNormalizeTime();
+test.testIsoTimeFromArray();
+test.testIsoTimeToArray();
+test.testDayOfYear();
+test.testToMillisecondsSince1970();
+test.testParseISO8601Duration();
+test.testJulianDay();
+test.testMonthForDayOfYear();
+test.testFromJulianDay();
+test.testSubtract();
+test.testAdd();
+test.testFormatIso8601Duration();
+test.testNow();
+test.testParseISO8601TimeRange();
+test.testFormatIso8601TimeRange();
+test.testFormatIso8601TimeInTimeRange();
+test.testFormatIso8601TimeInTime();
+test.testDayOfWeek();
+test.testFromWeekOfYear();
+test.testParseISO8601Time();
 
-test = new TimeUtilTest()
-test.testReformatIsoTime()
-test.testMonthNameAbbrev()
-test.testMonthNumber()
-test.testCountOffDays()
-test.testNextDay()
-test.testPreviousDay()
-test.testNextRange()
-test.testPreviousRange()
-test.testCeil()
-test.testFloor()
-test.testNormalizeTimeString()
-test.testNormalizeTime()
-test.testIsoTimeFromArray()
-test.testIsoTimeToArray()
-test.testDayOfYear()
-test.testToMillisecondsSince1970()
-test.testParseISO8601Duration()
-test.testJulianDay()
-test.testMonthForDayOfYear()
-test.testFromJulianDay()
-test.testSubtract()
-test.testAdd()
-test.testFormatIso8601Duration()
-test.testNow()
-test.testParseISO8601TimeRange()
-test.testFormatIso8601TimeRange()
-test.testFormatIso8601TimeInTimeRange()
-test.testFormatIso8601TimeInTime()
-test.testDayOfWeek()
-test.testFromWeekOfYear()
-test.testParseISO8601Time()
