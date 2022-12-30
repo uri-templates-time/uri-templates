@@ -326,9 +326,11 @@ public class TimeUtilTest {
     public void testFromMillisecondsSince1970() {
         System.out.println("fromMillisecondsSince1970");
         String s= TimeUtil.fromMillisecondsSince1970(0);
-        assertEquals( s, "1970-01-01T00:00:00Z");
+        assertEquals( s, "1970-01-01T00:00:00.000Z");
         s= TimeUtil.fromMillisecondsSince1970(2208988800000L);
-        assertEquals( s, "2040-01-01T00:00:00Z");
+        assertEquals( s, "2040-01-01T00:00:00.000Z");
+        s= TimeUtil.fromMillisecondsSince1970(1);
+        assertEquals( s, "1970-01-01T00:00:00.001Z");
     }
     
     /**
