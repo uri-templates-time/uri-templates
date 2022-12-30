@@ -148,7 +148,7 @@ class TimeUtil {
      * @see DateTimeFormatter#parse
      */
     static fromMillisecondsSince1970(time) {
-        new Date(time).toISOString();
+        return new Date(time).toISOString();
     }
 
     /**
