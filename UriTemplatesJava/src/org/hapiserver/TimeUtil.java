@@ -167,12 +167,12 @@ public class TimeUtil {
      * it is fine to use a time range as the start time, because codes
      * will only read the first seven components, and this is only added
      * to make code more readable.
-     * @param range a fourteen-element time range.
+     * @param timerange a fourteen-element time range.
      * @return the start time.
      */
-    public static int[] getStartTime( int [] range ) {
+    public static int[] getStartTime( int [] timerange ) {
         int[] result= new int[ TimeUtil.TIME_DIGITS ];
-        System.arraycopy( range, 0, result, 0, TimeUtil.TIME_DIGITS  );
+        System.arraycopy( timerange, 0, result, 0, TimeUtil.TIME_DIGITS  );
         return result;
     }
     
@@ -180,12 +180,12 @@ public class TimeUtil {
      * return the seven element stop time from the time range.  Note
      * it is fine to use a time range as the start time, because codes
      * will only read the first seven components.
-     * @param range a fourteen-element time range.
+     * @param timerange a fourteen-element time range.
      * @return the stop time.
      */
-    public static int[] getStopTime( int [] range ) {
+    public static int[] getStopTime( int [] timerange ) {
         int[] result= new int[ TimeUtil.TIME_DIGITS ];
-        System.arraycopy( range, TimeUtil.TIME_DIGITS , result, 0, TimeUtil.TIME_DIGITS  );
+        System.arraycopy( timerange, TimeUtil.TIME_DIGITS , result, 0, TimeUtil.TIME_DIGITS  );
         return result;
     }
     
@@ -194,20 +194,20 @@ public class TimeUtil {
      * This one-line method was introduced to clarify code and make conversion to 
      * other languages (in particular Python) easier.
      * @param time the seven-element start time
-     * @param range the fourteen-element time range.
+     * @param timerange the fourteen-element time range.
      */
-    public static void setStartTime( int[] time, int[] range ) {
-        System.arraycopy( time, 0, range, 0, TimeUtil.TIME_DIGITS  );
+    public static void setStartTime( int[] time, int[] timerange ) {
+        System.arraycopy( time, 0, timerange, 0, TimeUtil.TIME_DIGITS  );
     }
     
     
     /**
      * copy the components of time into the stop position (indeces 7-14) of the time range.
      * @param time the seven-element stop time
-     * @param range the fourteen-element time range.
+     * @param timerange the fourteen-element time range.
      */
-    public static void setStopTime( int[] time, int[] range ) {
-        System.arraycopy( time, 0, range, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS  );
+    public static void setStopTime( int[] time, int[] timerange ) {
+        System.arraycopy( time, 0, timerange, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS  );
     }
     
     private static final DateTimeFormatter FORMATTER_MS_1970 = new DateTimeFormatterBuilder().appendInstant(3).toFormatter();
@@ -505,14 +505,14 @@ public class TimeUtil {
 
     /**
      * format the time range components into iso8601 time range.  
-     * @param nn 14-element time range
+     * @param timerange 14-element time range
      * @return efficient representation of the time range
      */
-    public static String formatIso8601TimeRange( int[] nn ) {
-        String ss1= formatIso8601TimeInTimeRange(nn, 0);
-        String ss2= formatIso8601TimeInTimeRange(nn, TIME_DIGITS);
+    public static String formatIso8601TimeRange( int[] timerange ) {
+        String ss1= formatIso8601TimeInTimeRange(timerange, 0);
+        String ss2= formatIso8601TimeInTimeRange(timerange, TIME_DIGITS);
         int firstNonZeroDigit=7;
-        while ( firstNonZeroDigit>3 && nn[firstNonZeroDigit-1]==0 && nn[firstNonZeroDigit+TIME_DIGITS-1]==0 ) {
+        while ( firstNonZeroDigit>3 && timerange[firstNonZeroDigit-1]==0 && timerange[firstNonZeroDigit+TIME_DIGITS-1]==0 ) {
             firstNonZeroDigit -= 1;
         }
         switch (firstNonZeroDigit) {
@@ -1340,14 +1340,14 @@ public class TimeUtil {
      * <li> must be only one component which increments (20 days, but not 20 days and 12 hours)
      * <li> increment must be a divisor of the component (e.g. months), so 1, 2, 3, 4, or 6 months is valid, but 5 months is not.
      * </ul>
-     * @param range 14-component time interval.
+     * @param timerange 14-component time interval.
      * @return 14-component time interval.
      */
-    public static int[] nextRange( int[] range ) {
+    public static int[] nextRange( int[] timerange ) {
         int[] result= new int[TimeUtil.TIME_RANGE_DIGITS];
         int[] width= new int[TimeUtil.TIME_DIGITS];
         for ( int i=0; i<TimeUtil.TIME_DIGITS; i++ ) {
-            width[ i ] = range[i+TimeUtil.TIME_DIGITS ] - range[i] ;
+            width[ i ] = timerange[i+TimeUtil.TIME_DIGITS ] - timerange[i] ;
         }
         if ( width[5]<0 ) {
             width[5]= width[5]+60;
@@ -1362,7 +1362,7 @@ public class TimeUtil {
             width[2]= width[2]-1;
         }
         if ( width[2]<0 ) {
-            int daysInMonth= TimeUtil.daysInMonth( range[COMPONENT_YEAR], range[COMPONENT_MONTH] );
+            int daysInMonth= TimeUtil.daysInMonth( timerange[COMPONENT_YEAR], timerange[COMPONENT_MONTH] );
             width[2]= width[2]+daysInMonth;
             width[1]= width[1]-1;
         }
@@ -1371,8 +1371,8 @@ public class TimeUtil {
             width[0]= width[0]-1;
         }
         // System.arraycopy( range, TimeUtil.TIME_DIGITS, result, 0, TimeUtil.TIME_DIGITS );
-        setStartTime( getStopTime(range), result ); // This creates an extra array, but let's not worry about that.
-        setStopTime( TimeUtil.add( getStopTime(range), width ), result );
+        setStartTime( getStopTime(timerange), result ); // This creates an extra array, but let's not worry about that.
+        setStopTime( TimeUtil.add( getStopTime(timerange), width ), result );
         return result;
     }
        
@@ -1383,14 +1383,14 @@ public class TimeUtil {
      * <li> must be only one component which increments (20 days, but not 20 days and 12 hours)
      * <li> increment must be a divisor of the component (e.g. months), so 1, 2, 3, 4, or 6 months is valid, but 5 months is not.
      * </ul>
-     * @param range 14-component time interval.
+     * @param timerange 14-component time interval.
      * @return 14-component time interval.
      */
-    public static int[] previousRange( int[] range ) {
+    public static int[] previousRange( int[] timerange ) {
         int[] result= new int[TimeUtil.TIME_RANGE_DIGITS];
         int[] width= new int[TimeUtil.TIME_DIGITS];
         for ( int i=0; i<TimeUtil.TIME_DIGITS; i++ ) {
-            width[ i ] = range[i+TimeUtil.TIME_DIGITS ] - range[i] ;
+            width[ i ] = timerange[i+TimeUtil.TIME_DIGITS ] - timerange[i] ;
         }
         if ( width[5]<0 ) {
             width[5]= width[5]+60;
@@ -1405,7 +1405,7 @@ public class TimeUtil {
             width[2]= width[2]-1;
         }
         if ( width[2]<0 ) {
-            int daysInMonth= TimeUtil.daysInMonth( range[COMPONENT_YEAR], range[COMPONENT_MONTH] );
+            int daysInMonth= TimeUtil.daysInMonth( timerange[COMPONENT_YEAR], timerange[COMPONENT_MONTH] );
             width[2]= width[2]+daysInMonth;
             width[1]= width[1]-1;
         }
@@ -1413,19 +1413,19 @@ public class TimeUtil {
             width[1]= width[1]+12;
             width[0]= width[0]-1;
         }
-        setStopTime( getStartTime(range), result );
-        setStartTime( TimeUtil.subtract(getStartTime(range), width ), result ); // This creates an extra array, but let's not worry about that.
+        setStopTime( getStartTime(timerange), result );
+        setStartTime( TimeUtil.subtract(getStartTime(timerange), width ), result ); // This creates an extra array, but let's not worry about that.
         return result;
     }
             
     /**
      * return true if this is a valid time range having a non-zero width.
-     * @param granule
+     * @param timerange
      * @return 
      */
-    public static boolean isValidTimeRange(int[] granule) {
-        int[] start= getStartTime(granule);
-        int[] stop= getStopTime(granule);
+    public static boolean isValidTimeRange(int[] timerange) {
+        int[] start= getStartTime(timerange);
+        int[] stop= getStopTime(timerange);
         
         return TimeUtil.isValidTime( start ) && TimeUtil.isValidTime( stop ) && gt( stop, start );
         
