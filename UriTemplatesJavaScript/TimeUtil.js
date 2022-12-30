@@ -508,7 +508,7 @@ class TimeUtil {
                 sb+= nn[i] + units[i];
             }
         }
-        if (nn.length > 5 && nn[5] > 0 || nn.length > 6 && nn[6] > 0 || sb.length() === 2) {
+        if (nn.length > 5 && nn[5] > 0 || nn.length > 6 && nn[6] > 0 || sb.length === 2) {
             if (needT) {
                 sb+= "T";
             }
@@ -529,7 +529,7 @@ class TimeUtil {
             }
             sb+= "S";
         }
-        if (sb.length() === 1) {
+        if (sb.length === 1) {
             if (nn.length > 3) {
                 sb+= "T0S";
             } else {
