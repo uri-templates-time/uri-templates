@@ -146,7 +146,11 @@ class TimeUtil:
     # @see #toMillisecondsSince1970(java.lang.String) 
     @staticmethod
     def fromMillisecondsSince1970(time):
-        return DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(time))
+        from datetime import datetime,timezone
+        dt = datetime.fromtimestamp(time/1000,timezone.utc)
+        s = dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+        millis = dt.microsecond / 1000
+        return s[0:-1] + '.%03dZ' % millis 
 
     # given the two times, return a 14 element time range.
     # @param t1 a seven digit time
