@@ -505,7 +505,7 @@ class TimeUtil {
                     sb+= "T";
                     needT = false;
                 }
-                sb+= str(nn[i]) + str(units[i]);
+                sb+= nn[i] + units[i];
             }
         }
         if (nn.length > 5 && nn[5] > 0 || nn.length > 6 && nn[6] > 0 || sb.length() === 2) {
@@ -515,15 +515,15 @@ class TimeUtil {
             var seconds = nn[5];
             var nanoseconds = nn.length === 7 ? nn[6] : 0;
             if (nanoseconds === 0) {
-                sb+= str(seconds);
+                sb+= seconds;
             } else {
                 if (nanoseconds % 1000000 === 0) {
-                    sb+= str(sprintf("%.3f",seconds + nanoseconds / 1e9));
+                    sb+= sprintf("%.3f",seconds + nanoseconds / 1e9);
                 } else {
                     if (nanoseconds % 1000 === 0) {
-                        sb+= str(sprintf("%.6f",seconds + nanoseconds / 1e9));
+                        sb+= sprintf("%.6f",seconds + nanoseconds / 1e9);
                     } else {
-                        sb+= str(sprintf("%.9f",seconds + nanoseconds / 1e9));
+                        sb+= sprintf("%.9f",seconds + nanoseconds / 1e9);
                     }
                 }
             }
