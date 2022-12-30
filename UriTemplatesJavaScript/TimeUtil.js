@@ -1,3 +1,15 @@
+// import sprintf.js
+function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
+    if (srcPts !== dstPts || dstOff >= srcOff + size) {
+        while (--size >= 0)
+            dstPts[dstOff++] = srcPts[srcOff++];
+    }
+    else {
+        var tmp = srcPts.slice(srcOff, srcOff + size);
+        for (var i = 0; i < size; i++)
+            dstPts[dstOff++] = tmp[i];
+    } 
+}
 /**
  * Utilities for times in IsoTime strings (limited set of ISO8601 times)
  * Examples of isoTime strings include:<ul>
@@ -10,107 +22,744 @@
  *
  * @author jbf
  */
+class TimeUtil {
+    /**
+     * Number of time components: year, month, day, hour, minute, second, nanosecond
+     */
+    static TIME_DIGITS = 7;
 
-/**
-  * Number of time digits: year, month, day, hour, minute, second, nanosecond
-  */
-TIME_DIGITS = 7;
-    
-/**
- * Number of digits in time representation: year, month, day
- */
-DATE_DIGITS = 3;
-    
-function format2( d ) { // private
-    if ( d<10 ) {
-        return '0'+d;
-    } else {
-        return ''+d;
+    /**
+     * Number of components in time representation: year, month, day
+     */
+    static DATE_DIGITS = 3;
+
+    /**
+     * Number of components in a time range, which is two times.
+     */
+    static TIME_RANGE_DIGITS = 14;
+
+    static COMPONENT_YEAR = 0;
+
+    static COMPONENT_MONTH = 1;
+
+    static COMPONENT_DAY = 2;
+
+    static COMPONENT_HOUR = 3;
+
+    static COMPONENT_MINUTE = 4;
+
+    static COMPONENT_SECOND = 5;
+
+    static COMPONENT_NANOSECOND = 6;
+
+    /**
+     * the number of days in each month.  DAYS_IN_MONTH[0][12] is number of days in December of a non-leap year
+     */
+    static DAYS_IN_MONTH = [[0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0], [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0]];
+
+    /**
+     * the number of days to the first of each month.  DAY_OFFSET[0][12] is offset to December 1st of a non-leap year
+     */
+    static DAY_OFFSET = [[0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365], [0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]];
+
+    /**
+     * fast parser requires that each character of string is a digit.
+     *
+     * @param s the number, containing 1 or more digits.
+     * @param deft the number to return when s is missing.
+     * @return the int value
+     */
+    static parseIntDeft(s, deft) {
+        if (s === undefined || s === null) {
+            return deft;
+        }
+        return parseInt(s);
     }
-}
 
-function format3( d ) { // private
-    if ( d<10 ) {
-        return '00'+d;
-    } else if ( d<100 ) {
-        return '0'+d;
-    } else {
-        return ''+d;
+    static parseDouble(val, deft) {
+        if (val === undefined || val === null) {
+            if (deft !== -99) {
+                return deft;
+            } else {
+                throw "bad digit";
+            }
+        }
+        var n = val.length - 1;
+        if (/[a-z]/i.test(val.charAt(n))) {
+            return parseFloat(val.substring(0, n));
+        } else {
+            return parseFloat(val);
+        }
     }
-}
 
-function format4( d ) { // private
-    if ( d<10 ) {
-        return '000'+d;
-    } else if ( d<100 ) {
-        return '00'+d;
-    } else if ( d<1000 ) {
-        return '0'+d;
-    } else {
-        return ''+d;
+    /**
+     * return the seven element start time from the time range.  Note
+     * it is fine to use a time range as the start time, because codes
+     * will only read the first seven components, and this is only added
+     * to make code more readable.
+     * @param range a fourteen-element time range.
+     * @return the start time.
+     */
+    static getStartTime(range) {
+        var result = [];
+        arraycopy( range, 0, result, 0, TimeUtil.TIME_DIGITS );
+        return result;
     }
-}
 
-function format9( d ) { // private
-    if ( d<10 ) {
-        return '00000000'+d;
-    } else if ( d<100 ) {
-        return '0000000'+d;
-    } else if ( d<1000 ) {
-        return '000000'+d;
-    } else if ( d<10000 ) {
-        return '00000'+d;
-    } else if ( d<100000 ) {
-        return '0000'+d;
-    } else if ( d<1000000 ) {
-        return '000'+d;
-    } else if ( d<10000000 ) {
-        return '00'+d;
-    } else if ( d<100000000 ) {
-        return '0'+d;
-    } else {
-        return ''+d;
+    /**
+     * return the seven element stop time from the time range.  Note
+     * it is fine to use a time range as the start time, because codes
+     * will only read the first seven components.
+     * @param range a fourteen-element time range.
+     * @return the stop time.
+     */
+    static getStopTime(range) {
+        var result = [];
+        arraycopy( range, TimeUtil.TIME_DIGITS, result, 0, TimeUtil.TIME_DIGITS );
+        return result;
     }
-}
 
-function format6( d ) { // private
-    if ( d<10 ) {
-        return '00000'+d;
-    } else if ( d<100 ) {
-        return '0000'+d;
-    } else if ( d<1000 ) {
-        return '000'+d;
-    } else if ( d<10000 ) {
-        return '00'+d;
-    } else if ( d<100000 ) {
-        return '0'+d;
-    } else {
-        return ''+d;
+    /**
+     * copy the components of time into the start position (indeces 7-14) of the time range.
+     * This one-line method was introduced to clarify code and make conversion to 
+     * other languages (in particular Python) easier.
+     * @param time the seven-element start time
+     * @param range the fourteen-element time range.
+     */
+    static setStartTime(time, range) {
+        arraycopy( time, 0, range, 0, TimeUtil.TIME_DIGITS );
     }
-}
 
-function startsWith( str, searchString, position ) { // private
-    if (position === void 0) { position = 0; }
-    return str.substr(position, searchString.length) === searchString;
-}
-
-function endsWith(str, searchString) { // private
-    var pos = str.length - searchString.length; 
-    var lastIndex = str.indexOf(searchString, pos); 
-    return lastIndex !== -1 && lastIndex === pos; 
-}
-        
-function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
-    if (srcPts !== dstPts || dstOff >= srcOff + size) {
-        while (--size >= 0)
-            dstPts[dstOff++] = srcPts[srcOff++];
+    /**
+     * copy the components of time into the stop position (indeces 7-14) of the time range.
+     * @param time the seven-element stop time
+     * @param range the fourteen-element time range.
+     */
+    static setStopTime(time, range) {
+        arraycopy( time, 0, range, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS );
     }
-    else {
-        var tmp = srcPts.slice(srcOff, srcOff + size);
-        for (var i = 0; i < size; i++)
-            dstPts[dstOff++] = tmp[i];
-    } 
-}
+
+    /**
+     * format the time as milliseconds since 1970-01-01T00:00Z into a string.  The
+     * number of milliseconds should not include leap seconds.
+     * 
+     * @param time the number of milliseconds since 1970-01-01T00:00Z
+     * @return the formatted time.
+     * @see DateTimeFormatter#parse
+     */
+    static fromMillisecondsSince1970(time) {
+        return DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(time));
+    }
+
+    /**
+     * given the two times, return a 14 element time range.
+     * @param t1 a seven digit time
+     * @param t2 a seven digit time after the first time.
+     * @return a fourteen digit time range.
+     * @throws IllegalArgumentException when the first time is greater than or equal to the second time.
+     */
+    static createTimeRange(t1, t2) {
+        if (!TimeUtil.gt(t2, t1)) {
+            throw "t1 is not smaller than t2";
+        }
+        var result = [];
+        TimeUtil.setStartTime(result, t1);
+        TimeUtil.setStopTime(result, t2);
+        return result;
+    }
+
+    /**
+     * true if the year between 1582 and 2400 is a leap year.
+     * @param year the year
+     * @return true if the year between 1582 and 2400 is a leap year.
+     */
+    static isLeapYear(year) {
+        if (year < 1582 || year > 2400) {
+            throw "year must be between 1582 and 2400";
+        }
+        return (year % 4) === 0 && (year % 400 === 0 || year % 100 !== 0);
+    }
+
+    static monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    /**
+     * return the English month name, abbreviated to three letters, for the
+     * month number.
+     *
+     * @param i month number, from 1 to 12.
+     * @return the month name, like "Jan" or "Dec"
+     */
+    static monthNameAbbrev(i) {
+        return TimeUtil.monthNames[i - 1];
+    }
+
+    /**
+     * return the month number for the English month name, such as "Jan" (1) or
+     * "December" (12). The first three letters are used to look up the number,
+     * and must be one of: "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+     * "Jul", "Aug", "Sep", "Oct", "Nov", or "Dec" (case insensitive).
+     * @param s the name (case-insensitive, only the first three letters are used.)
+     * @return the number, for example 1 for "January"
+     * @throws ParseException when month name is not recognized.
+     */
+    static monthNumber(s) {
+        if (s.length < 3) {
+            throw "need at least three letters";
+        }
+        s = s.substring(0, 3);
+        for ( var i = 0; i < 12; i++) {
+            if (s.toUpperCase()===TimeUtil.monthNames[i].toUpperCase()) {
+                return i + 1;
+            }
+        }
+        throw "Unable to parse month";
+    }
+
+    /**
+     * return the day of year for the given year, month, and day. For example, in
+     * Jython:
+     * <pre>
+     * {@code
+     * from org.hapiserver.TimeUtil import *
+     * print dayOfYear( 2020, 4, 21 ) # 112
+     * }
+     * </pre>
+     *
+     * @param year the year
+     * @param month the month, from 1 to 12.
+     * @param day the day in the month.
+     * @return the day of year.
+     */
+    static dayOfYear(year, month, day) {
+        if (month === 1) {
+            return day;
+        }
+        if (month < 1) {
+            throw "month must be greater than 0.";
+        }
+        if (month > 12) {
+            throw "month must be less than 12.";
+        }
+        if (day > 366) {
+            throw "day (" + day + ") must be less than 366.";
+        }
+        var leap = TimeUtil.isLeapYear(year) ? 1 : 0;
+        return TimeUtil.DAY_OFFSET[leap][month] + day;
+    }
+
+    /**
+     * return "2" (February) for 45 for example.
+     * @param year the year
+     * @param doy the day of year.
+     * @return the month 1-12 of the day.
+     */
+    static monthForDayOfYear(year, doy) {
+        var leap = TimeUtil.isLeapYear(year) ? 1 : 0;
+        var dayOffset = TimeUtil.DAY_OFFSET[leap];
+        if (doy < 1) throw "doy must be 1 or more";
+        if (doy > dayOffset[13]) {
+            throw "doy must be less than or equal to " + dayOffset[13];
+        }
+        for ( var i = 12; i > 1; i--) {
+            if (dayOffset[i] < doy) {
+                return i;
+            }
+        }
+        return 1;
+    }
+
+    /**
+     * This class is not to be instantiated.
+     */
+    constructor() {
+    }
+
+    /**
+     * count off the days between startTime and stopTime, but not including
+     * stopTime.  For example, countOffDays("1999-12-31Z", "2000-01-03Z")
+     * will return [ "1999-12-31Z", "2000-01-01Z", "2000-01-02Z" ].
+     *
+     * @param startTime an iso time string
+     * @param stopTime an iso time string
+     * @return array of times, complete days, in the form $Y-$m-$d
+     */
+    static countOffDays(startTime, stopTime) {
+        if (stopTime.length < 10 || /[0-9]/.test(stopTime.charAt(10))) {
+            throw "arguments must be $Y-$m-$dZ";
+        }
+        var t1
+        var t2;
+        try {
+            t1 = TimeUtil.parseISO8601Time(startTime);
+            t2 = TimeUtil.parseISO8601Time(stopTime);
+        } catch (ex) {
+            throw ex;
+        }
+        var j1 = TimeUtil.julianDay(t1[0], t1[1], t1[2]);
+        var j2 = TimeUtil.julianDay(t2[0], t2[1], t2[2]);
+        var result = [];
+        var time = TimeUtil.normalizeTimeString(startTime).substring(0, 10) + 'Z';
+        stopTime = TimeUtil.floor(stopTime).substring(0, 10) + 'Z';
+        var i = 0;
+        var nn = TimeUtil.isoTimeToArray(time);
+        while (time < stopTime) {
+            result[i] = time;
+            nn[2] = nn[2] + 1;
+            if (nn[2] > 28) TimeUtil.normalizeTime(nn);
+            time = sprintf("%04d-%02d-%02dZ",nn[0], nn[1], nn[2]);
+            i += 1;
+        }
+        return result;
+    }
+
+    /**
+     * return the next day boundary. Note hours, minutes, seconds and
+     * nanoseconds are ignored.
+     *
+     * @param day any isoTime format string.
+     * @return the next day in $Y-$m-$dZ
+     * @see #ceil(java.lang.String)
+     * @see #previousDay(java.lang.String)
+     */
+    static nextDay(day) {
+        var nn = TimeUtil.isoTimeToArray(day);
+        nn[2] = nn[2] + 1;
+        TimeUtil.normalizeTime(nn);
+        return sprintf("%04d-%02d-%02dZ",nn[0], nn[1], nn[2]);
+    }
+
+    /**
+     * return the previous day boundary. Note hours, minutes, seconds and
+     * nanoseconds are ignored.
+     *
+     * @param day any isoTime format string.
+     * @return the next day in $Y-$m-$dZ
+     * @see #floor(java.lang.String)
+     * @see #nextDay(java.lang.String)
+     */
+    static previousDay(day) {
+        var nn = TimeUtil.isoTimeToArray(day);
+        nn[2] = nn[2] - 1;
+        TimeUtil.normalizeTime(nn);
+        return sprintf("%04d-%02d-%02dZ",nn[0], nn[1], nn[2]);
+    }
+
+    /**
+     * return the $Y-$m-$dT00:00:00.000000000Z of the next boundary, or the same
+     * value (normalized) if we are already at a boundary.
+     *
+     * @param time any isoTime format string.
+     * @return the next midnight or the value if already at midnight.
+     */
+    static ceil(time) {
+        time = TimeUtil.normalizeTimeString(time);
+        if (time.substring(11)=="00:00:00.000000000Z") {
+            return time;
+        } else {
+            return TimeUtil.nextDay(time.substring(0, 11)).substring(0, 10) + "T00:00:00.000000000Z";
+        }
+    }
+
+    /**
+     * return the $Y-$m-$dT00:00:00.000000000Z of the next boundary, or the same
+     * value (normalized) if we are already at a boundary.
+     *
+     * @param time any isoTime format string.
+     * @return the previous midnight or the value if already at midnight.
+     */
+    static floor(time) {
+        time = TimeUtil.normalizeTimeString(time);
+        if (time.substring(11)=="00:00:00.000000000Z") {
+            return time;
+        } else {
+            return time.substring(0, 10) + "T00:00:00.000000000Z";
+        }
+    }
+
+    /**
+     * return $Y-$m-$dT$H:$M:$S.$(subsec,places=9)Z
+     *
+     * @param time any isoTime format string.
+     * @return the time in standard form.
+     */
+    static normalizeTimeString(time) {
+        var nn = TimeUtil.isoTimeToArray(time);
+        TimeUtil.normalizeTime(nn);
+        return sprintf("%d-%02d-%02dT%02d:%02d:%02d.%09dZ",nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6]);
+    }
+
+    /**
+     * return the time as milliseconds since 1970-01-01T00:00Z. This does not
+     * include leap seconds. For example, in Jython:
+     * <pre>
+     * {@code
+     * from org.hapiserver.TimeUtil import *
+     * x= toMillisecondsSince1970('2000-01-02T00:00:00.0Z')
+     * print x / 86400000   # 10958.0 days
+     * print x % 86400000   # and no milliseconds
+     * }
+     * </pre>
+     *
+     * @param time the isoTime, which is parsed using
+     * DateTimeFormatter.ISO_INSTANT.parse.
+     * @return number of non-leap-second milliseconds since 1970-01-01T00:00Z.
+     * @see DateTimeFormatter#parse
+     */
+    static toMillisecondsSince1970(time) {
+        time = TimeUtil.normalizeTimeString(time);
+        return new Date(time).getTime();
+    }
+
+    /**
+     * return the array formatted as ISO8601 time, formatted to nanoseconds.
+     * For example,  int[] nn = new int[] { 1999, 12, 31, 23, 0, 0, 0  } is
+     * formatted to "1999-12-31T23:00:00.000000000Z";
+     * @param nn the decomposed time
+     * @return the formatted time.
+     * @see #isoTimeToArray(java.lang.String)
+     */
+    static isoTimeFromArray(nn) {
+        if (nn[1] === 1 && nn[2] > 31) {
+            var month = TimeUtil.monthForDayOfYear(nn[0], nn[2]);
+            var dom1 = TimeUtil.dayOfYear(nn[0], month, 1);
+            nn[2] = nn[2] - dom1 + 1;
+            nn[1] = month;
+        }
+        return sprintf("%04d-%02d-%02dT%02d:%02d:%02d.%09dZ",nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6]);
+    }
+
+    /**
+     * format the time range components into iso8601 time range.  
+     * @param nn 14-element time range
+     * @return efficient representation of the time range
+     */
+    static formatIso8601TimeRange(nn) {
+        var ss1 = TimeUtil.formatIso8601TimeInTimeRange(nn, 0);
+        var ss2 = TimeUtil.formatIso8601TimeInTimeRange(nn, TimeUtil.TIME_DIGITS);
+        var firstNonZeroDigit = 7;
+        while (firstNonZeroDigit > 3 && nn[firstNonZeroDigit - 1] === 0 && nn[firstNonZeroDigit + TimeUtil.TIME_DIGITS - 1] === 0) {
+            firstNonZeroDigit -= 1;
+        }
+        switch (firstNonZeroDigit) {
+            case 2:
+                return ss1.substring(0, 10) + "/" + ss2.substring(0, 10);
+            case 3:
+                return ss1.substring(0, 10) + "/" + ss2.substring(0, 10);
+            case 4:
+                return ss1.substring(0, 16) + "Z/" + ss2.substring(0, 16) + "Z";
+            case 5:
+                return ss1.substring(0, 16) + "Z/" + ss2.substring(0, 16) + "Z";
+            case 6:
+                return ss1.substring(0, 19) + "Z/" + ss2.substring(0, 19) + "Z";
+            default:
+                return ss1 + "/" + ss2;
+        }
+    }
+
+    /**
+     * return the string as a formatted string, which can be at an offset of seven positions 
+     * to format the end date.
+     * @param nn fourteen-element array of [ Y m d H M S nanos Y m d H M S nanos ]
+     * @param offset 0 or 7 
+     * @return formatted time "1999-12-31T23:00:00.000000000Z"
+     * @see #isoTimeFromArray(int[]) 
+     */
+    static formatIso8601TimeInTimeRange(nn, offset) {
+        switch (offset) {
+            case 0:
+                return TimeUtil.isoTimeFromArray(nn);
+            case 7:
+                var copy = TimeUtil.getStopTime(nn);
+                return TimeUtil.isoTimeFromArray(copy);
+            default:
+                throw "offset must be 0 or 7";
+        }
+    }
+
+    /**
+     * return the string as a formatted string.
+     * @param nn seven-element array of [ Y m d H M S nanos ]
+     * @return formatted time "1999-12-31T23:00:00.000000000Z"
+     * @see #isoTimeFromArray(int[]) 
+     */
+    static formatIso8601Time(nn) {
+        return TimeUtil.isoTimeFromArray(nn);
+    }
+
+    /**
+     * format the duration into human-readable time, for example
+     * [ 0, 0, 7, 0, 0, 6 ] is formatted into "P7DT6S"
+     * @param nn seven-element array of [ Y m d H M S nanos ]
+     * @return ISO8601 duration
+     */
+    static formatIso8601Duration(nn) {
+        var units = ['Y', 'M', 'D', 'H', 'M', 'S'];
+        if (nn.length > 7) throw "decomposed time can have at most 7 digits";
+        var sb = "P";
+        var n = (nn.length < 5) ? nn.length : 5;
+        var needT = false;
+        for ( var i = 0; i < n; i++) {
+            if (i === 3) needT = true;
+            if (nn[i] > 0) {
+                if (needT) {
+                    sb+= "T";
+                    needT = false;
+                }
+                sb+= nn[i] + units[i];
+            }
+        }
+        if (nn.length > 5 && nn[5] > 0 || nn.length > 6 && nn[6] > 0 || sb.length === 2) {
+            if (needT) {
+                sb+= "T";
+            }
+            var seconds = nn[5];
+            var nanoseconds = nn.length === 7 ? nn[6] : 0;
+            if (nanoseconds === 0) {
+                sb+= seconds;
+            } else {
+                if (nanoseconds % 1000000 === 0) {
+                    sb+= sprintf("%.3f",seconds + nanoseconds / 1e9);
+                } else {
+                    if (nanoseconds % 1000 === 0) {
+                        sb+= sprintf("%.6f",seconds + nanoseconds / 1e9);
+                    } else {
+                        sb+= sprintf("%.9f",seconds + nanoseconds / 1e9);
+                    }
+                }
+            }
+            sb+= "S";
+        }
+        if (sb.length === 1) {
+            if (nn.length > 3) {
+                sb+= "T0S";
+            } else {
+                sb+= "0D";
+            }
+        }
+        return sb;
+    }
+
+    static iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?";
+
+    /**
+     * Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
+     */
+    static iso8601DurationPattern = new RegExp("P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?");
+
+    /**
+     * returns a 7 element array with [year,mon,day,hour,min,sec,nanos]. Note
+     * this does not allow fractional day, hours or minutes! Examples
+     * include:<ul>
+     * <li>P1D - one day
+     * <li>PT1M - one minute
+     * <li>PT0.5S - 0.5 seconds
+     * </ul>
+     * TODO: there exists more complete code elsewhere.
+     *
+     * @param stringIn theISO8601 duration.
+     * @return 7-element array with [year,mon,day,hour,min,sec,nanos]
+     * @throws ParseException if the string does not appear to be valid.
+     * @see #iso8601duration
+     * @see #TIME_DIGITS
+     *
+     */
+    static parseISO8601Duration(stringIn) {
+        var m = TimeUtil.iso8601DurationPattern.exec(stringIn);
+        if (m!=null) {
+            var dsec = TimeUtil.parseDouble(m[13], 0);
+            var sec = Math.trunc( dsec );
+            var nanosec = Math.trunc( ((dsec - sec) * 1e9) );
+            return [TimeUtil.parseIntDeft(m[2], 0), TimeUtil.parseIntDeft(m[4], 0), TimeUtil.parseIntDeft(m[6], 0), TimeUtil.parseIntDeft(m[9], 0), TimeUtil.parseIntDeft(m[11], 0), sec, nanosec];
+        } else {
+            if (stringIn.contains("P") && stringIn.contains("S") && !stringIn.contains("T")) {
+                throw "ISO8601 duration expected but not found.  Was the T missing before S?";
+            } else {
+                throw "ISO8601 duration expected but not found.";
+            }
+        }
+    }
+
+    /**
+     * return the UTC current time, to the millisecond, in seven components.
+     * @return the current time, to the millisecond
+     */
+    static now() {
+        var s = new Date().toISOString();
+        return [
+            parseInt(s.substring(0,4)),
+            parseInt(s.substring(5,7)),
+            parseInt(s.substring(8,10)),
+            parseInt(s.substring(11,13)),
+            parseInt(s.substring(14,16)),
+            parseInt(s.substring(17,19)),
+            parseInt(s.substring(20,23)) * 1000000 
+        ]
+    }
+
+    /**
+     * return seven-element array [ year, months, days, hours, minutes, seconds, nanoseconds ]
+     * preserving the day of year notation if this was used. See the class
+     * documentation for allowed time formats, which are a subset of ISO8601
+     * times.  This also supports "now", "now-P1D", and other simple extensions.  Note
+     * ISO8601-1:2019 disallows 24:00 to be used for the time, but this is still allowed here.
+     * The following are valid inputs:<ul>
+     * <li>2021
+     * <li>2020-01-01
+     * <li>2020-01-01Z
+     * <li>2020-01-01T00Z
+     * <li>2020-01-01T00:00Z
+     * <li>2022-W08
+     * <li>now
+     * <li>now-P1D
+     * <li>lastday-P1D
+     * <li>lasthour-PT1H
+     * </ul>
+     *
+     * @param time isoTime to decompose
+     * @return the decomposed time
+     * @throws IllegalArgumentException when the time cannot be parsed.
+     * @see #isoTimeFromArray(int[])
+     * @see #parseISO8601Time(java.lang.String) 
+     */
+    static isoTimeToArray(time) {
+        var result;
+        if (time.length === 4) {
+            result = [Integer.parseInt(time), 1, 1, 0, 0, 0, 0];
+        } else {
+            if (time.startsWith("now") || time.startsWith("last")) {
+                var n;
+                var remainder = null;
+                if (time.startsWith("now")) {
+                    n = TimeUtil.now();
+                    remainder = time.substring(3);
+                } else {
+                    var p = new RegExp("last([a-z]+)([\\+|\\-]P.*)?");
+                    var m = p.exec(time);
+                    if (m!=null) {
+                        n = TimeUtil.now();
+                        var unit = m[1];
+                        remainder = m[2];
+                        var idigit;
+                        switch (unit) {
+                            case "year":
+                                idigit = 1;
+                                break
+                            case "month":
+                                idigit = 2;
+                                break
+                            case "day":
+                                idigit = 3;
+                                break
+                            case "hour":
+                                idigit = 4;
+                                break
+                            case "minute":
+                                idigit = 5;
+                                break
+                            case "second":
+                                idigit = 6;
+                                break
+                            default:
+                                throw "unsupported unit: " + unit;
+                        }
+                        for ( var id = Math.max(1, idigit); id < TimeUtil.DATE_DIGITS; id++) {
+                            n[id] = 1;
+                        }
+                        for ( var id = Math.max(TimeUtil.DATE_DIGITS, idigit); id < TimeUtil.TIME_DIGITS; id++) {
+                            n[id] = 0;
+                        }
+                    } else {
+                        throw "expected lastday+P1D, etc";
+                    }
+                }
+                if ( remainder === undefined || remainder === null || remainder.length === 0) {
+                    return n;
+                } else {
+                    if (remainder.charAt(0) == '-') {
+                        try {
+                            return TimeUtil.subtract(n, TimeUtil.parseISO8601Duration(remainder.substring(1)));
+                        } catch (ex) {
+                            throw ex;
+                        }
+                    } else {
+                        if (remainder.charAt(0) == '+') {
+                            try {
+                                return TimeUtil.add(n, TimeUtil.parseISO8601Duration(remainder.substring(1)));
+                            } catch (ex) {
+                                throw ex;
+                            }
+                        }
+                    }
+                }
+                return TimeUtil.now();
+            } else {
+                if (time.length < 7) {
+                    throw "time must have 4 or greater than 7 elements";
+                }
+                if (time.length === 7) {
+                    if (time.charAt(4) == 'W') {
+                        // 2022W08
+                        var year = parseInt(time.substring(0, 4));
+                        var week = parseInt(time.substring(5));
+                        result = [year, 0, 0, 0, 0, 0, 0];
+                        TimeUtil.fromWeekOfYear(year, week, result);
+                        time = "";
+                    } else {
+                        result = [parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), 1, 0, 0, 0, 0];
+                        time = "";
+                    }
+                } else {
+                    if (time.length === 8) {
+                        if (time.charAt(5) == 'W') {
+                            // 2022-W08
+                            var year = parseInt(time.substring(0, 4));
+                            var week = parseInt(time.substring(6));
+                            result = [year, 0, 0, 0, 0, 0, 0];
+                            TimeUtil.fromWeekOfYear(year, week, result);
+                            time = "";
+                        } else {
+                            result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
+                            time = "";
+                        }
+                    } else {
+                        if (time.charAt(8) == 'T') {
+                            result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
+                            time = time.substring(9);
+                        } else {
+                            if (time.charAt(8) == 'Z') {
+                                result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
+                                time = time.substring(9);
+                            } else {
+                                result = [parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), parseInt(time.substring(8, 10)), 0, 0, 0, 0];
+                                if (time.length === 10) {
+                                    time = "";
+                                } else {
+                                    time = time.substring(11);
+                                }
+                            }
+                        }
+                    }
+                }
+                if (time.endsWith("Z")) {
+                    time = time.substring(0, time.length - 1);
+                }
+                if (time.length >= 2) {
+                    result[3] = parseInt(time.substring(0, 2));
+                }
+                if (time.length >= 5) {
+                    result[4] = parseInt(time.substring(3, 5));
+                }
+                if (time.length >= 8) {
+                    result[5] = parseInt(time.substring(6, 8));
+                }
+                if (time.length > 9) {
+                    result[6] = Math.trunc( (Math.pow(10, 18 - time.length)) ) * parseInt(time.substring(9));
+                }
+                TimeUtil.normalizeTime(result);
+            }
+        }
+        return result;
+    }
 
     /**
      * Rewrite the time using the format of the example time, which must start with
@@ -133,1004 +782,572 @@ function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
      * @param time the time in any allowed isoTime format
      * @return same time but in the same form as exampleForm.
      */
-function reformatIsoTime(exampleForm, time) {
-    var c = exampleForm.charAt(8);
-    var nn = isoTimeToArray(normalizeTimeString(time));
-    if ( c==='T' ) {
-        nn[2] = dayOfYear(nn[0], nn[1], nn[2]);
-        nn[1] = 1;
-        time = format4( nn[0] ) + "-" + format3(nn[2]) + 
-                "T" + format2( nn[3] ) +":" + format2( nn[4] ) + ":" + format2( nn[5] ) + '.' + format9(nn[6]) + "Z";
-    } else if ( c==='Z' ) {
-        nn[2] = dayOfYear(nn[0], nn[1], nn[2]);
-        nn[1] = 1;
-        time = format4( nn[0] ) + "-" + format3(nn[2]) +  "Z";
-    } else {
-        if (exampleForm.length === 10) {
-            c = 'Z';
-        } else {
-            c = exampleForm.charAt(10);
-        }
-        if ( c==='T' ) {
-            time = format4( nn[0] ) + "-" + format2( nn[1] ) + "-" + format2( nn[2] )
-            + "T" + format2( nn[3] ) +":" + format2( nn[4] ) + ":" + format2( nn[5] ) + '.' + format9(nn[6]) + "Z";
-        } else if ( c==='Z' ) {
-            time = "" + nn[0] + "-" + format2( nn[1] ) + '-' + format2( nn[2] ) + 'Z';
-        }                
-    }
-
-    if ( exampleForm.endsWith("Z") ) {
-        return time.substring(0, exampleForm.length - 1) + "Z";
-    }
-    else {
-        return time.substring(0, exampleForm.length);
-    }
-};
-
-monthNames = [
-    "jan", "feb", "mar", "apr", "may", "jun",
-    "jul", "aug", "sep", "oct", "nov", "dec"
-];
-
-/**
- * return the English month name, abbreviated to three letters, for the
- * month number.
- *
- * @param i month number, from 1 to 12.
- * @return the month name, like "Jan" or "Dec"
- */
-function monthNameAbbrev(i) {
-    return monthNames[i - 1];
-}
-
-/**
- * return the month number for the English month name, such as "Jan" (1) or
- * "December" (12). The first three letters are used to look up the number,
- * and must be one of: "Jan", "Feb", "Mar", "Apr", "May", "Jun",
- * "Jul", "Aug", "Sep", "Oct", "Nov", or "Dec" (case insensitive).
- * @param s the name (case-insensitive, only the first three letters are used.)
- * @return the number, for example 1 for "January"
- * @throws ParseException when month name is not recognized.
- */
-function monthNumber(s) {
-    if (s.length() < 3) {
-        throw "need at least three letters";
-    }
-    s = s.substring(0, 3).toLowerCase()
-    for (var i = 0; i < 12; i++) {
-        if (s==monthNames[i]) {
-            return i + 1;
-        }
-    }
-    throw "Unable to parse month"
-}
-    
-/**
- * the number of days in each month.
- */
-DAYS_IN_MONTH = [[0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0], 
-    [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0]];
-
-/**
-  * the number of days to the first of each month.
-  */
-DAY_OFFSET = [[0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365], 
-    [0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]];
-  
-/**
- * count off the days between startTime and stopTime, but not including
- * stopTime.
- *
- * @param {string} startTime an iso time string
- * @param {string} stopTime an iso time string
- * @return {java.lang.String[]} array of times, complete days, in the form $Y-$m-$d
- */
-function countOffDays(startTime, stopTime) {
-    if (stopTime.length < 10 || /* isDigit */ /\d/.test(stopTime.charAt(10)[0])) {
-        throw new Error("arguments must be $Y-$m-$dZ");
-    }
-    var result = ([]);
-    var time = normalizeTimeString(startTime).substring(0, 10) + 'Z';
-    stopTime = ceil(stopTime).substring(0, 10) + 'Z';
-    while (( /* compareTo */time.localeCompare(stopTime) < 0)) {
-        /* add */ (result.push(time.substring(0)) > 0);
-        time = nextDay(time);
-    }
-    return /* toArray */ result.slice(0);
-};
-
-/**
- * return the next day boundary. Note hours, minutes, seconds and
- * nanoseconds are ignored.
- *
- * @param {string} day any isoTime format string.
- * @return {string} the next day in $Y-$m-$dZ
- * @see #ceil(java.lang.String)
- * @see #previousDay(java.lang.String)
- */
-function nextDay(day) {
-    var nn = isoTimeToArray(day);
-    nn[2] = nn[2] + 1;
-    normalizeTime(nn);
-    return format4(nn[0])+'-'+format2(nn[1])+'-'+format2(nn[2])+'Z';
-};
-
-/**
- * return the previous day boundary. Note hours, minutes, seconds and
- * nanoseconds are ignored.
- *
- * @param {string} day any isoTime format string.
- * @return {string} the next day in $Y-$m-$dZ
- * @see #floor(java.lang.String)
- * @see #nextDay(java.lang.String)
- */
-function previousDay(day) {
-    var nn = isoTimeToArray(day);
-    nn[2] = nn[2] - 1;
-    normalizeTime(nn);
-    return format4(nn[0])+'-'+format2(nn[1])+'-'+format2(nn[2])+'Z';
-};
-
-/**
- * return the $Y-$m-$dT00:00:00.000000000Z of the next boundary, or the same
- * value (normalized) if we are already at a boundary.
- *
- * @param {string} time any isoTime format string.
- * @return {string} the next midnight or the value if already at midnight.
- */
-function ceil(time) {
-    time = normalizeTimeString(time);
-    if (time.substring(11) === ("00:00:00.000000000Z")) {
-        return time;
-    }
-    else {
-        return nextDay(time.substring(0, 11)).substring(0, 10) + "T00:00:00.000000000Z";
-    }
-};
-/**
- * return the $Y-$m-$dT00:00:00.000000000Z of the next boundary, or the same
- * value (normalized) if we are already at a boundary.
- *
- * @param {string} time any isoTime format string.
- * @return {string} the previous midnight or the value if already at midnight.
- */
-function floor(time) {
-    time = normalizeTimeString(time);
-    if (time.substring(11) === ("00:00:00.000000000Z")) {
-        return time;
-    }
-    else {
-        return time.substring(0, 10) + "T00:00:00.000000000Z";
-    }
-};
-
-/**
- * return $Y-$m-$dT$H:$M:$S.$(subsec,places=9)Z
- *
- * @param {string} time any isoTime format string.
- * @return {string} the time in standard form.
- */
-function normalizeTimeString(time) {
-    var nn = isoTimeToArray(time);
-    normalizeTime(nn);
-    return format4( nn[0] ) + "-" + format3(nn[2]) + 
-        "T" + format2( nn[3] ) +":" + format2( nn[4] ) + ":" + format2( nn[5] ) + '.' + format9(nn[6]) + "Z";
-};
-            
-/**
- * fast parser requires that each character of string is a digit.  Note this 
- * does not check the the numbers are digits!
- *
- * @param s string containing an integer
- * @return the integer
- */
-function parseInt(s) {
-    var result;
-    var len = s.length;
-    for (var i = 0; i < len; i++) {
-        var c = s.charAt(i);
-        if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(c) < 48 || (function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(c) >= 58) {
-            throw "only digits are allowed in string";
-        }
-    }
-    switch ((len)) {
-        case 2:
-            result = 10 * ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(0)) - 48) + ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(1)) - 48);
-            return result;
-        case 3:
-            result = 100 * ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(0)) - 48) + 10 * ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(1)) - 48) + ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(2)) - 48);
-            return result;
-        default:
-            result = 0;
-            for (var i = 0; i < s.length; i++) {
-                result = 10 * result + ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(i)) - 48);
-            }
-            return result;
-    }
-};
-  
-/**
- * fast parser requires that each character of string is a digit.
- *
- * @param s the number, containing 1 or more digits.
- * @return the int value
- */  
-function parseInt(s, deft) {
-    if (s == null) {
-        return deft;
-    }
-    var result;
-    for (var i = 0; i < s.length; i++) {
-        var c = s.charAt(i);
-        if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(c) < 48 || (function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(c) >= 58) {
-            throw Error("only digits are allowed in string");
-        }
-    }
-    switch ((s.length)) {
-        case 2:
-            result = 10 * ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(0)) - 48) + ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(1)) - 48);
-            return result;
-        case 3:
-            result = 100 * ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(0)) - 48) + 10 * ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(1)) - 48) + ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(2)) - 48);
-            return result;
-        default:
-            result = 0;
-            for (var i = 0; i < s.length; i++) {
-                result = 10 * result + ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(i)) - 48);
-            }
-            return result;
-    }
-};
-
-function parseDouble(val, deft) {
-    if (val == null) {
-        if (deft !== -99) {
-            return deft;
-        }
-        else {
-            throw Error("bad digit");
-        }
-    }
-    var n = val.length - 1;
-    if ( /* isLetter *//[a-zA-Z]/.test(val.charAt(n)[0])) {
-        return /* parseDouble */ parseFloat(val.substring(0, n));
-    }
-    else {
-        return /* parseDouble */ parseFloat(val);
-    }
-};
-
-/**
- * return the array formatted as ISO8601 time, formatted to nanoseconds.
- * For example,  int[] nn = new int[] { 1999, 12, 31, 23, 0, 0, 0  } is
- * formatted to "1999-12-31T23:00:00.000000000Z";
- * @param {int[]} nn the decomposed time
- * @return {string} the formatted time.
- * @see #isoTimeToArray(java.lang.String)
- */
-function isoTimeFromArray(nn) {
-    if (nn[1] === 1 && nn[2] > 31) {
-        var month = monthForDayOfYear(nn[0], nn[2]);
-        var dom1 = dayOfYear(nn[0], month, 1);
-        nn[2] = nn[2] - dom1 + 1;
-        nn[1] = month;
-    }
-    return "" + nn[0] + "-" + format2(nn[1]) + "-" + format2(nn[2]) + "T"
-          + format2(nn[3]) + ":" + format2(nn[4]) + ":" + format2(nn[5]) + "." + format9(nn[6]) + "Z";
-};
-   
-   
-/**
- * format the time range components into iso8601 time range.
- * @param {int[]} nn 14-element time range
- * @return {string} efficient representation of the time range
- */
-function formatIso8601TimeRange(nn) {
-    var ss1 = isoTimeFromArray(nn);
-    var ss2 = formatIso8601Time$int_A$int(nn, TIME_DIGITS);
-    var firstNonZeroDigit = 7;
-    while ((firstNonZeroDigit > 3 && nn[firstNonZeroDigit - 1] === 0 && nn[firstNonZeroDigit + TIME_DIGITS - 1] === 0)) {
-        firstNonZeroDigit--;
-    }
-    switch ((firstNonZeroDigit)) {
-        case 2:
-            return ss1.substring(0, 10) + "/" + ss2.substring(0, 10);
-        case 3:
-            return ss1.substring(0, 10) + "/" + ss2.substring(0, 10);
-        case 4:
-            return ss1.substring(0, 16) + "Z/" + ss2.substring(0, 16) + "Z";
-        case 5:
-            return ss1.substring(0, 16) + "Z/" + ss2.substring(0, 16) + "Z";
-        case 6:
-            return ss1.substring(0, 19) + "Z/" + ss2.substring(0, 19) + "Z";
-        default:
-            return ss1 + "/" + ss2;
-    }
-};
-            
-            function formatIso8601Time$int_A$int(nn, offset) {
-                switch ((offset)) {
-                    case 0:
-                        return isoTimeFromArray(nn);
-                    case 7:
-                        var copy = [0, 0, 0, 0, 0, 0, 0];
-                        /* arraycopy */ (function (srcPts, srcOff, dstPts, dstOff, size) { if (srcPts !== dstPts || dstOff >= srcOff + size) {
-                            while (--size >= 0)
-                                dstPts[dstOff++] = srcPts[srcOff++];
-                        }
-                        else {
-                            var tmp = srcPts.slice(srcOff, srcOff + size);
-                            for (var i = 0; i < size; i++)
-                                dstPts[dstOff++] = tmp[i];
-                        } })(nn, offset, copy, 0, 7);
-                        return isoTimeFromArray(copy);
-                    default:
-                        throw new Error("offset must be 0 or 7");
+    static reformatIsoTime(exampleForm, time) {
+        var c = exampleForm.charAt(8);
+        var nn = TimeUtil.isoTimeToArray(TimeUtil.normalizeTimeString(time));
+        switch (c) {
+            case 'T':
+                // $Y-$jT
+                nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2]);
+                nn[1] = 1;
+                time = sprintf("%d-%03dT%02d:%02d:%02d.%09dZ",nn[0], nn[2], nn[3], nn[4], nn[5], nn[6]);
+                break
+            case 'Z':
+                nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2]);
+                nn[1] = 1;
+                time = sprintf("%d-%03dZ",nn[0], nn[2]);
+                break
+            default:
+                if (exampleForm.length === 10) {
+                    c = 'Z';
+                } else {
+                    c = exampleForm.charAt(10);
                 }
-            };
-/**
- * return the string as a formatted string, which can be at an offset of seven positions
- * to format the end date.
- * @param {int[]} nn fourteen-element array of [ Y m d H M S nanos Y m d H M S nanos ]
- * @param {number} offset 0 or 7
- * @return {string} formatted time "1999-12-31T23:00:00.000000000Z"
- * @see #isoTimeFromArray(int[])
- */
-function formatIso8601Time(nn, offset) {
-    if (((nn != null && nn instanceof Array && (nn.length == 0 || nn[0] == null || (typeof nn[0] === 'number'))) || nn === null) && ((typeof offset === 'number') || offset === null)) {
-        return formatIso8601Time$int_A$int(nn, offset);
-    }
-    else if (((nn != null && nn instanceof Array && (nn.length == 0 || nn[0] == null || (typeof nn[0] === 'number'))) || nn === null) && offset === undefined) {
-        return isoTimeFromArray(nn);
-    }
-    else {
-        throw new Error('invalid overload');
-    }
-};
 
-/**
- * format the duration into human-readable time, for example
- * [ 0, 0, 7, 0, 0, 6 ] is formatted into "P7DT6S"
- * @param {int[]} nn seven-element array of [ Y m d H M S nanos ]
- * @return {string} ISO8601 duration
- */
-function formatIso8601Duration(nn) {
-    var units = ['Y', 'M', 'D', 'H', 'M', 'S'];
-    if (nn.length > 7)
-        throw new Error("decomposed time can have at most 7 digits");
-    var sb = { str: "P", toString: function () { return this.str; } };
-    var n = (nn.length < 5) ? nn.length : 5;
-    var needT = false;
-    var _loop_1 = function (i) {
-        {
-            if (i === 3)
-                needT = true;
-            if (nn[i] > 0) {
-                if (needT) {
-                    /* append */ (function (sb) { sb.str += "T"; return sb; })(sb);
-                    needT = false;
+                if (c == 'T') {
+                    // $Y-$jT
+                    time = sprintf("%d-%02d-%02dT%02d:%02d:%02d.%09dZ",nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6]);
+                } else {
+                    if (c == 'Z') {
+                        time = sprintf("%d-%02d-%02dZ",nn[0], nn[1], nn[2]);
+                    }
                 }
-                /* append */ (function (sb) { sb.str += units[i]; return sb; })(/* append */ (function (sb) { sb.str += nn[i]; return sb; })(sb));
+
+                break
+        }
+        if (exampleForm.endsWith("Z")) {
+            return time.substring(0, exampleForm.length - 1) + "Z";
+        } else {
+            return time.substring(0, exampleForm.length);
+        }
+    }
+
+    static VALID_FIRST_YEAR = 1900;
+
+    static VALID_LAST_YEAR = 2100;
+
+    /**
+     * this returns true or throws an IllegalArgumentException indicating the problem.
+     * @param time the seven-component time.
+     * @return true or throws an IllegalArgumentException
+     */
+    static isValidTime(time) {
+        var year = time[0];
+        if (year < TimeUtil.VALID_FIRST_YEAR) throw "invalid year at position 0";
+        if (year > TimeUtil.VALID_LAST_YEAR) throw "invalid year at position 0";
+        var month = time[1];
+        if (month < 1) throw "invalid month at position 1";
+        if (month > 12) throw "invalid month at position 1";
+        var leap = TimeUtil.isLeapYear(year) ? 1 : 0;
+        var dayOfMonth = time[2];
+        if (month > 1) {
+            if (dayOfMonth > TimeUtil.DAYS_IN_MONTH[leap][month]) {
+                throw "day of month is too large at position 2";
+            }
+        } else {
+            if (dayOfMonth > TimeUtil.DAY_OFFSET[leap][13]) {
+                throw "day of year is too large at position 2";
             }
         }
-        ;
-    };
-    for (var i = 0; i < n; i++) {
-        _loop_1(i);
+        if (dayOfMonth < 1) throw "day is less than 1 at position 2";
+        return true;
     }
-    if (nn.length > 5 && nn[5] > 0 || nn.length > 6 && nn[6] > 0 || /* length */ sb.str.length === 2) {
-        if (needT) {
-            /* append */ (function (sb) { sb.str += "T"; return sb; })(sb);
-        }
-        var seconds_1 = nn[5];
-        var nanoseconds_1 = nn.length === 7 ? nn[6] : 0;
-        if (nanoseconds_1 === 0) {
-            /* append */ (function (sb) { sb.str += seconds_1; return sb; })(sb);
-        }
-        else if (nanoseconds_1 % 1000000 === 0) {
-            /* append */ (function (sb) { sb.str += "" + seconds_1 + "." + format3( nanoseconds_1 / 1.0E6 | 0 ); return sb; })(sb);
-        }
-        else if (nanoseconds_1 % 1000 === 0) {
-            /* append */ (function (sb) { sb.str += "" + seconds_1 + "." + format6( nanoseconds_1 / 1.0E3 | 0 ); return sb; })(sb);
-        }
-        else {
-            /* append */ (function (sb) { sb.str += "" + seconds_1 + "." + format9( nanoseconds_1 ); return sb; })(sb);
-        }
-        /* append */ (function (sb) { sb.str += "S"; return sb; })(sb);
-    }
-    if ( /* length */sb.str.length === 1) {
-        if (nn.length > 3) {
-            /* append */ (function (sb) { sb.str += "T0S"; return sb; })(sb);
-        }
-        else {
-            /* append */ (function (sb) { sb.str += "0D"; return sb; })(sb);
-        }
-    }
-    return /* toString */ sb.str;
-};
 
+    /**
+     * return the number of days in the month.
+     * @param year the year 
+     * @param month the month
+     * @return the number of days in the month.
+     * @see #isLeapYear(int) 
+     */
+    static daysInMonth(year, month) {
+        var leap = TimeUtil.isLeapYear(year) ? 1 : 0;
+        return TimeUtil.DAYS_IN_MONTH[leap][month];
+    }
 
-const simpleFloat = new RegExp("\\d?\\.?\\d+");
-
-/**
-  * Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
- */
-const iso8601durationPattern = new RegExp("P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?");
-
-/**
- * returns a 7 element array with [year,mon,day,hour,min,sec,nanos]. Note
- * this does not allow fractional day, hours or minutes! Examples
- * include:<ul>
- * <li>P1D - one day
- * <li>PT1M - one minute
- * <li>PT0.5S - 0.5 seconds
- * </ul>
- * TODO: there exists more complete code elsewhere.
- *
- * @param {string} stringIn theISO8601 duration.
- * @return {int[]} 7-element array with [year,mon,day,hour,min,sec,nanos]
- * @throws ParseException if the string does not appear to be valid.
- * @see #iso8601duration
- * @see #TIME_DIGITS
- */
-function parseISO8601Duration(stringIn) {
-    const m= iso8601durationPattern.exec(stringIn);
-    if ( m ) {
-        var dsec = parseDouble(m[13], 0);
-        var sec = (dsec | 0);
-        var nanosec = (((dsec - sec) * 1.0E9) | 0);
-        return [ parseInt(m[2], 0), parseInt(m[4], 0), parseInt(m[6], 0), parseInt(m[9], 0), parseInt(m[11], 0), sec, nanosec];
-    } else {
-        if ( /* contains */(stringIn.indexOf("P") != -1) && /* contains */ (stringIn.indexOf("S") != -1) && !(stringIn.indexOf("T") != -1)) {
-            throw Error("ISO8601 duration expected but not found.  Was the T missing before S?");
-        } else {
-            throw Error("ISO8601 duration expected but not found.");
+    /**
+     * normalize the decomposed (seven digit) time by expressing day of year and month and day
+     * of month, and moving hour="24" into the next day. This also handles day
+     * increment or decrements, by:<ul>
+     * <li>handle day=0 by decrementing month and adding the days in the new
+     * month.
+     * <li>handle day=32 by incrementing month.
+     * <li>handle negative components by borrowing from the next significant.
+     * </ul>
+     * Note that [Y,1,dayOfYear,...] is accepted, but the result will be Y,m,d.
+     * @param time the seven-component time Y,m,d,H,M,S,nanoseconds
+     */
+    static normalizeTime(time) {
+        while (time[6] >= 1000000000) {
+            time[5] += 1;
+            time[6] -= 1000000000;
         }
-    }
-};
-
-/**
- * use consistent naming so that the parser is easier to find.
- * @param {string} string iso8601 time like "2022-03-12T11:17" (Z is assumed).
- * @return {int[]} seven-element decomposed time [ Y, m, d, H, M, S, N ]
- * @throws ParseException when the string cannot be parsed.
- * @see #isoTimeToArray(java.lang.String)
- */
-function parseISO8601Time(string) {
-    return isoTimeToArray(string);
-};
-
-/**
- * parse the ISO8601 time range, like "1998-01-02/1998-01-17", into
- * start and stop times, returned in a 14 element array of ints.
- * @param {string} stringIn string to parse, like "1998-01-02/1998-01-17"
- * @return {int[]} the time start and stop [ Y,m,d,H,M,S,nano, Y,m,d,H,M,S,nano ]
- * @throws ParseException when the string cannot be used
- */
-function parseISO8601TimeRange(stringIn) {
-    var ss = stringIn.split("/");
-    if (ss.length !== 2) {
-        throw new Error("expected one slash (/) splitting start and stop times.");
-    }
-    if (ss[0].length === 0 || !( /* isDigit *//\d/.test(ss[0].charAt(0)[0]) || (function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(ss[0].charAt(0)) == 'P'.charCodeAt(0) || startsWith(ss[0], "now"))) {
-        throw new Error("first time/duration is misformatted.  Should be ISO8601 time or duration like P1D.");
-    }
-    if (ss[1].length === 0 || !( /* isDigit *//\d/.test(ss[1].charAt(0)[0]) || (function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(ss[1].charAt(0)) == 'P'.charCodeAt(0) || startsWith(ss[1], "now"))) {
-        throw new Error("second time/duration is misformatted.  Should be ISO8601 time or duration like P1D.");
-    }
-    var result = (function (s) { var a = []; while (s-- > 0)
-        a.push(0); return a; })(14);
-    if ( startsWith(ss[0], "P") ) {
-        var duration = parseISO8601Duration(ss[0]);
-        var time = isoTimeToArray(ss[1]);
-        for (var i = 0; i < TIME_DIGITS; i++) {
-            result[i] = time[i] - duration[i];
+        while (time[5] > 59) {
+            // TODO: leap seconds?
+            time[4] += 1;
+            time[5] -= 60;
         }
-        normalizeTime(result);
-        arraycopy(time, 0, result, TIME_DIGITS, TIME_DIGITS);
-        return result;
-    }
-    else if ( startsWith(ss[1], "P") ) {
-        var time = isoTimeToArray(ss[0]);
-        var duration = parseISO8601Duration(ss[1]);
-        arraycopy(time, 0, result, 0, TIME_DIGITS);
-        var stoptime = (function (s) { var a = []; while (s-- > 0)
-            a.push(0); return a; })(TIME_DIGITS);
-        for (var i = 0; i < TIME_DIGITS; i++) {
-            stoptime[i] = time[i] + duration[i];
+        while (time[4] > 59) {
+            time[3] += 1;
+            time[4] -= 60;
         }
-        normalizeTime(stoptime);
-        arraycopy(stoptime, 0, result, TIME_DIGITS, TIME_DIGITS);
-        return result;
-    }
-    else {
-        var starttime = isoTimeToArray(ss[0]);
-        var stoptime = isoTimeToArray(ss[1]);
-        arraycopy(starttime, 0, result, 0, TIME_DIGITS);
-        arraycopy(stoptime, 0, result, TIME_DIGITS, TIME_DIGITS);
-        return result;
-    }
-};
-
-
-function isLeapYear(year) {
-    if (year < 1582 || year > 2400) {
-        throw "year must be between 1582 and 2400";
-    }
-    return (year % 4) === 0 && (year % 400 === 0 || year % 100 !== 0);
-};
-
-/**
- * return the time as milliseconds since 1970-01-01T00:00Z. This does not
- * include leap seconds. For example, in Jython:
- * <pre>
- * {@code
- * from org.hapiserver.TimeUtil import *
- * x= toMillisecondsSince1970('2000-01-02T00:00:00.0Z')
- * print x / 86400000   # 10958.0 days
- * print x % 86400000   # and no milliseconds
- * }
- * </pre>
- *
- * @param {string} time the isoTime, which is parsed using
- * DateTimeFormatter.ISO_INSTANT.parse.
- * @return {number} number of non-leap-second milliseconds since 1970-01-01T00:00Z.
- * @see DateTimeFormatter#parse
- */
-function toMillisecondsSince1970(time) {
-    dd= parseISO8601Time(time);
-    return Date.UTC( dd[0], dd[1]-1, dd[2], dd[3], dd[4], dd[5], dd[6]/1000000 ).valueOf();
-};
-
-/**
- * normalize the decomposed (seven digit) time by expressing day of year and month and day
- * of month, and moving hour="24" into the next day. This also handles day
- * increment or decrements, by:<ul>
- * <li>handle day=0 by decrementing month and adding the days in the new
- * month.
- * <li>handle day=32 by incrementing month.
- * <li>handle negative components by borrowing from the next significant.
- * </ul>
- * Note that [Y,1,dayOfYear,...] is accepted, but the result will be Y,m,d.
- * @param {int[]} time the seven-component time Y,m,d,H,M,S,nanoseconds
- */
-function normalizeTime(time) {
-    while ((time[3] >= 24)) {
-        time[2] += 1;
-        time[3] -= 24;
-    }
-    ;
-    if (time[6] < 0) {
-        time[5] -= 1;
-        time[6] += 1000000000;
-    }
-    if (time[5] < 0) {
-        time[4] -= 1;
-        time[5] += 60;
-    }
-    if (time[4] < 0) {
-        time[3] -= 1;
-        time[4] += 60;
-    }
-    if (time[3] < 0) {
-        time[2] -= 1;
-        time[3] += 24;
-    }
-    if (time[2] < 1) {
-        time[1] -= 1;
-        var daysInMonth = time[1] === 0 ? 31 : DAYS_IN_MONTH[isLeapYear(time[0]) ? 1 : 0][time[1]];
-        time[2] += daysInMonth;
-    }
-    if (time[1] < 1) {
-        time[0] -= 1;
-        time[1] += time[1] + 12;
-    }
-    if (time[3] > 24) {
-        throw Error("time[3] is greater than 24 (hours)");
-    }
-    if (time[1] > 12) {
-        time[0] = time[0] + 1;
-        time[1] = time[1] - 12;
-    }
-    if (time[1] === 12 && time[2] > 31 && time[2] < 62) {
-        time[0] = time[0] + 1;
-        time[1] = 1;
-        time[2] = time[2] - 31;
-        return;
-    }
-    var leap = isLeapYear(time[0]) ? 1 : 0;
-    if (time[2] === 0) {
-        time[1] = time[1] - 1;
-        if (time[1] === 0) {
-            time[0] = time[0] - 1;
-            time[1] = 12;
+        while (time[3] >= 24) {
+            time[2] += 1;
+            time[3] -= 24;
         }
-        time[2] = DAYS_IN_MONTH[leap][time[1]];
-    }
-    var d = DAYS_IN_MONTH[leap][time[1]];
-    while ((time[2] > d)) {
-        {
-            time[1]++;
+        if (time[6] < 0) {
+            time[5] -= 1;
+            time[6] += 1000000000;
+        }
+        if (time[5] < 0) {
+            time[4] -= 1;
+            // take a minute
+            time[5] += 60;
+        }
+        if (time[4] < 0) {
+            time[3] -= 1;
+            // take an hour
+            time[4] += 60;
+        }
+        if (time[3] < 0) {
+            time[2] -= 1;
+            // take a day
+            time[3] += 24;
+        }
+        if (time[2] < 1) {
+            time[1] -= 1;
+            // take a month
+            var daysInMonth;
+            if (time[1] === 0) {
+                daysInMonth = 31;
+            } else {
+                if (TimeUtil.isLeapYear(time[0])) {
+                    // This was  TimeUtil.DAYS_IN_MONTH[isLeapYear(time[0]) ? 1 : 0][time[1]] . TODO: review!
+                    daysInMonth = TimeUtil.DAYS_IN_MONTH[1][time[1]];
+                } else {
+                    daysInMonth = TimeUtil.DAYS_IN_MONTH[0][time[1]];
+                }
+            }
+            time[2] += daysInMonth;
+        }
+        if (time[1] < 1) {
+            time[0] -= 1;
+            // take a year
+            time[1] += 12;
+        }
+        if (time[3] > 24) {
+            throw "time[3] is greater than 24 (hours)";
+        }
+        if (time[1] > 12) {
+            time[0] += 1;
+            time[1] -= 12;
+        }
+        if (time[1] === 12 && time[2] > 31 && time[2] < 62) {
+            time[0] += 1;
+            time[1] = 1;
+            time[2] -= 31;
+            return;
+        }
+        var leap = TimeUtil.isLeapYear(time[0]) ? 1 : 0;
+        if (time[2] === 0) {
+            //TODO: tests don't hit this branch, and I'm not sure it can occur.
+            time[1] -= 1;
+            if (time[1] === 0) {
+                time[0] -= 1;
+                time[1] = 12;
+            }
+            time[2] = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
+        }
+        var d = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
+        while (time[2] > d) {
+            time[1] += 1;
             time[2] -= d;
-            d = DAYS_IN_MONTH[leap][time[1]];
+            d = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
             if (time[1] > 12) {
-                throw Error("time[2] is too big");
+                throw "time[2] is too big";
             }
         }
-    };
-    return time;
-}
+    }
 
-/**
- * calculate the day of week, where 0 means Monday, 1 means Tuesday, etc.  For example,
- * 2022-03-12 is a Saturday, so 5 is returned.
- * @param {number} year the year
- * @param {number} month the month
- * @param {number} day the day of the month
- * @return {number} the day of the week.
- */
-function dayOfWeek(year, month, day) {
-    var jd = julianDay(year, month, day);
-    var daysSince2022 = jd - julianDay(2022, 1, 1);
-    var mod7 = (daysSince2022 - 2) % 7;
-    if (mod7 < 0)
-        mod7 = mod7 + 7;
-    return mod7;
-};
-
-/**
- * calculate the week of year, inserting the month into time[1] and day into time[2]
- * for the Monday which is the first day of that week.  Note week 0 is excluded from
- * ISO8601, but since the Linux date command returns this in some cases, it is allowed to
- * mean the same as week 52 of the previous year.  See
- * <a href='https://en.wikipedia.org/wiki/ISO_8601#Week_dates' target='_blank'>Wikipedia ISO8601#Week_dates</a>.
- *
- * @param {number} year the year of the week.
- * @param {number} weekOfYear the week of the year, where week 01 is starting with the Monday in the period 29 December - 4 January.
- * @param {int[]} time the result is placed in here, where time[0] is the year provided, and the month and day are calculated.
- */
-function fromWeekOfYear(year, weekOfYear, time) {
-    time[0] = year;
-    var day = dayOfWeek(year, 1, 1);
-    var doy;
-    if (day < 4) {
-        doy = (weekOfYear * 7 - 7 - day) + 1;
-        if (doy < 1) {
-            time[0] = time[0] - 1;
-            doy = doy + (isLeapYear(time[0]) ? 366 : 365);
+    /**
+     * return the julianDay for the year month and day. This was verified
+     * against another calculation (julianDayWP, commented out above) from
+     * http://en.wikipedia.org/wiki/Julian_day. Both calculations have 20
+     * operations.
+     *
+     * @param year calendar year greater than 1582.
+     * @param month the month number 1 through 12.
+     * @param day day of month. For day of year, use month=1 and doy for day.
+     * @return the Julian day
+     * @see #fromJulianDay(int) 
+     */
+    static julianDay(year, month, day) {
+        if (year <= 1582) {
+            throw "year must be more than 1582";
         }
+        var jd = 367 * year - Math.floor(7 * (year + Math.floor((month + 9) / 12)) / 4) - Math.floor(3 * (Math.floor((year + Math.floor((month - 9) / 7)) / 100) + 1) / 4) + Math.floor(275 * month / 9) + day + 1721029;
+        return jd;
     }
-    else {
-        doy = weekOfYear * 7 - day + 1;
-    }
-    time[1] = 1;
-    time[2] = doy;
-    normalizeTime(time);
-};
 
-function now() {
-    var p = new Date( Date.now() );
-    return [ p.getUTCFullYear(), 
-        p.getUTCMonth()+1, 
-        p.getUTCDate(), 
-        p.getUTCHours(), 
-        p.getUTCMinutes(), 
-        p.getUTCSeconds(), 
-        p.getUTCMilliseconds() * 1e6 ];
-}
+    /**
+     * Break the Julian day apart into month, day year. This is based on
+     * http://en.wikipedia.org/wiki/Julian_day (GNU Public License), and was
+     * introduced when toTimeStruct failed when the year was 1886.
+     *
+     * @see #julianDay( int year, int mon, int day )
+     * @param julian the (integer) number of days that have elapsed since the
+     * initial epoch at noon Universal Time (UT) Monday, January 1, 4713 BC
+     * @return a TimeStruct with the month, day and year fields set.
+     */
+    static fromJulianDay(julian) {
+        var j = julian + 32044;
+        var g = Math.floor(j / 146097);
+        var dg = j % 146097;
+        var c = Math.floor((Math.floor(dg / 36524) + 1) * 3 / 4);
+        var dc = dg - c * 36524;
+        var b = Math.floor(dc / 1461);
+        var db = dc % 1461;
+        var a = Math.floor((Math.floor(db / 365) + 1) * 3 / 4);
+        var da = db - a * 365;
+        var y = g * 400 + c * 100 + b * 4 + a;
+        var m = Math.floor((da * 5 + 308) / 153) - 2;
+        var d = da - Math.floor((m + 4) * 153 / 5) + 122;
+        var Y = y - 4800 + Math.floor((m + 2) / 12);
+        var M = (m + 2) % 12 + 1;
+        var D = d + 1;
+        var result = [];
+        result[0] = Y;
+        result[1] = M;
+        result[2] = D;
+        result[3] = 0;
+        result[4] = 0;
+        result[5] = 0;
+        result[6] = 0;
+        return result;
+    }
 
-/**
- * return seven-element array [ year, months, days, hours, minutes, seconds, nanoseconds ]
- * preserving the day of year notation if this was used. See the class
- * documentation for allowed time formats, which are a subset of ISO8601
- * times.  This also supports "now", "now-P1D", and other simple extensions.  Note
- * ISO8601-1:2019 disallows 24:00 to be used for the time, but this is still allowed here.
- * The following are valid inputs:<ul>
- * <li>2021
- * <li>2020-01-01
- * <li>2020-01-01Z
- * <li>2020-01-01T00Z
- * <li>2020-01-01T00:00Z
- * <li>2022-W08
- * <li>now
- * <li>now-P1D
- * <li>lastday-P1D
- * <li>lasthour-PT1H
- * </ul>
- *
- * @param {string} time isoTime to decompose
- * @return {int[]} the decomposed time
- * @throws IllegalArgumentException when the time cannot be parsed.
- * @see #isoTimeFromArray(int[])
- * @see #parseISO8601Time(java.lang.String)
- */
-function isoTimeToArray(time) {
-    if ( typeof(time)!='string' ) {
-        throw new Error('time must be a string, it is '+time)
+    /**
+     * calculate the day of week, where 0 means Monday, 1 means Tuesday, etc.  For example,
+     * 2022-03-12 is a Saturday, so 5 is returned.
+     * @param year the year
+     * @param month the month
+     * @param day the day of the month
+     * @return the day of the week.
+     */
+    static dayOfWeek(year, month, day) {
+        var jd = TimeUtil.julianDay(year, month, day);
+        var daysSince2022 = jd - TimeUtil.julianDay(2022, 1, 1);
+        var mod7 = (daysSince2022 - 2) % 7;
+        if (mod7 < 0) mod7 = mod7 + 7;
+        return mod7;
     }
-    var result;
-    if (time.length === 4) {
-        result = [ parseInt(time), 1, 1, 0, 0, 0, 0];
-    }
-    else if ( startsWith(time, "now") || startsWith(time, "last") ) {
-        var n = void 0;
-        var remainder = void 0;
-        if ( startsWith(time, "now")) {
-            n = now();
-            remainder = time.substring(3);
-        }
-        else {
-            var re = new RegExp("last([a-z]+)([\\+|\\-]P.*)?");
-            var m = re.exec(time);
-            if (m) {
-                n = now();
-                var unit = m[1];
-                remainder = m[2];
-                var idigit = 0;
-                switch (unit) {
-                    case "year":
-                        idigit = 1;
-                        break;
-                    case "month":
-                        idigit = 2;
-                        break;
-                    case "day":
-                        idigit = 3;
-                        break;
-                    case "hour":
-                        idigit = 4;
-                        break;
-                    case "minute":
-                        idigit = 5;
-                        break;
-                    case "second":
-                        idigit = 6;
-                        break;
-                    default:
-                        throw Error("unsupported unit: " + unit);
-                }
-                for (var id = Math.max(1, idigit); id < DATE_DIGITS; id++) {
-                    n[id] = 1;
-                }
-                for (var id = Math.max( DATE_DIGITS, idigit); id < TIME_DIGITS; id++) {
-                    n[id] = 0;
+
+    /**
+     * calculate the week of year, inserting the month into time[1] and day into time[2]
+     * for the Monday which is the first day of that week.  Note week 0 is excluded from
+     * ISO8601, but since the Linux date command returns this in some cases, it is allowed to
+     * mean the same as week 52 of the previous year.  See 
+     * <a href='https://en.wikipedia.org/wiki/ISO_8601#Week_dates' target='_blank'>Wikipedia ISO8601#Week_dates</a>.
+     * 
+     * @param year the year of the week.
+     * @param weekOfYear the week of the year, where week 01 is starting with the Monday in the period 29 December - 4 January.
+     * @param time the result is placed in here, where time[0] is the year provided, and the month and day are calculated.
+     */
+    static fromWeekOfYear(year, weekOfYear, time) {
+        time[0] = year;
+        var day = TimeUtil.dayOfWeek(year, 1, 1);
+        var doy;
+        if (day < 4) {
+            doy = (weekOfYear * 7 - 7 - day) + 1;
+            if (doy < 1) {
+                time[0] = time[0] - 1;
+                if (TimeUtil.isLeapYear(time[0])) {
+                    // was  doy= doy + ( isLeapYear(time[0]) ? 366 : 365 );  TODO: verify
+                    doy = doy + 366;
+                } else {
+                    doy = doy + 365;
                 }
             }
-            else {
-                throw Error("expected lastday+P1D, etc");
-            }
+        } else {
+            doy = weekOfYear * 7 - day + 1;
         }
-        if (remainder == null || remainder.length === 0) {
-            return n;
-        }
-        else if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(remainder.charAt(0)) == '-'.charCodeAt(0)) {
-            try {
-                return subtract(n, parseISO8601Duration(remainder.substring(1)));
-            }
-            catch (ex) {
-                throw new Error(ex.message);
-            }
-        }
-        else if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(remainder.charAt(0)) == '+'.charCodeAt(0)) {
-            try {
-                return add(n, parseISO8601Duration(remainder.substring(1)));
-            }
-            catch (ex) {
-                throw new Error(ex.message);
-            }
-        }
-        return now();
+        time[1] = 1;
+        time[2] = doy;
+        TimeUtil.normalizeTime(time);
     }
-    else {
-        if (time.length < 7) {
-            throw new Error("time must have 4 or greater than 7 elements");
-        }
-        if (time.length === 7) {
-            if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(time.charAt(4)) == 'W'.charCodeAt(0)) {
-                var year = parseInt(time.substring(0, 4));
-                var week = parseInt(time.substring(5));
-                result = [year, 0, 0, 0, 0, 0, 0];
-                fromWeekOfYear(year, week, result);
-                time = "";
-            }
-            else {
-                result = [parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), 1, 0, 0, 0, 0];
-                time = "";
-            }
-        }
-        else if (time.length === 8) {
-            if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(time.charAt(5)) == 'W'.charCodeAt(0)) {
-                var year = parseInt(time.substring(0, 4));
-                var week = parseInt(time.substring(6));
-                result = [year, 0, 0, 0, 0, 0, 0];
-                fromWeekOfYear(year, week, result);
-                time = "";
-            }
-            else {
-                result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
-                time = "";
-            }
-        }
-        else if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(time.charAt(8)) == 'T'.charCodeAt(0)) {
-            result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
-            time = time.substring(9);
-        }
-        else if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(time.charAt(8)) == 'Z'.charCodeAt(0)) {
-            result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
-            time = time.substring(9);
-        }
-        else {
-            result = [parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), parseInt(time.substring(8, 10)), 0, 0, 0, 0];
-            if (time.length === 10) {
-                time = "";
-            }
-            else {
-                time = time.substring(11);
-            }
-        }
-        if ( endsWith(time, "Z") ) {
-            time = time.substring(0, time.length - 1);
-        }
-        if (time.length >= 2) {
-            result[3] = parseInt(time.substring(0, 2));
-        }
-        if (time.length >= 5) {
-            result[4] = parseInt(time.substring(3, 5));
-        }
-        if (time.length >= 8) {
-            result[5] = parseInt(time.substring(6, 8));
-        }
-        if (time.length > 9) {
-            result[6] = ((Math.pow(10, 18 - time.length)) | 0) * parseInt(time.substring(9));
-        }
-        normalizeTime(result);
-    }
-    return result;
-};
 
-/**
- * return the day of year for the given year, month, and day. For example, in
- * Jython:
- * <pre>
- * {@code
- * from org.hapiserver.TimeUtil import *
- * print dayOfYear( 2020, 4, 21 ) # 112
- * }
- * </pre>
- *
- * @param {number} year the year
- * @param {number} month the month, from 1 to 12.
- * @param {number} day the day in the month.
- * @return {number} the day of year.
- */
-function dayOfYear(year, month, day) {
-    if (month === 1) {
-        return day;
+    /**
+     * use consistent naming so that the parser is easier to find.
+     * @param string iso8601 time like "2022-03-12T11:17" (Z is assumed).
+     * @return seven-element decomposed time [ Y, m, d, H, M, S, N ]
+     * @throws ParseException when the string cannot be parsed.
+     * @see #isoTimeToArray(java.lang.String) 
+     */
+    static parseISO8601Time(string) {
+        return TimeUtil.isoTimeToArray(string);
     }
-    if (month < 1) {
-        throw new Error("month must be greater than 0.");
+
+    /**
+     * parse the ISO8601 time range, like "1998-01-02/1998-01-17", into
+     * start and stop times, returned in a 14 element array of ints.
+     * @param stringIn string to parse, like "1998-01-02/1998-01-17"
+     * @return the time start and stop [ Y,m,d,H,M,S,nano, Y,m,d,H,M,S,nano ]
+     * @throws ParseException when the string cannot be used
+     */
+    static parseISO8601TimeRange(stringIn) {
+        var ss = stringIn.split("/");
+        if (ss.length !== 2) {
+            throw "expected one slash (/) splitting start and stop times.";
+        }
+        if (ss[0].length === 0 || !(/[0-9]/.test(ss[0].charAt(0)) || ss[0].charAt(0) == 'P' || ss[0].startsWith("now"))) {
+            throw "first time/duration is misformatted.  Should be ISO8601 time or duration like P1D.";
+        }
+        if (ss[1].length === 0 || !(/[0-9]/.test(ss[1].charAt(0)) || ss[1].charAt(0) == 'P' || ss[1].startsWith("now"))) {
+            throw "second time/duration is misformatted.  Should be ISO8601 time or duration like P1D.";
+        }
+        var result = [0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+        if (ss[0].startsWith("P")) {
+            var duration = TimeUtil.parseISO8601Duration(ss[0]);
+            var time = TimeUtil.isoTimeToArray(ss[1]);
+            for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
+                result[i] = time[i] - duration[i];
+            }
+            TimeUtil.normalizeTime(result);
+            TimeUtil.setStopTime(time, result);
+            return result;
+        } else {
+            if (ss[1].startsWith("P")) {
+                var time = TimeUtil.isoTimeToArray(ss[0]);
+                var duration = TimeUtil.parseISO8601Duration(ss[1]);
+                TimeUtil.setStartTime(time, result);
+                var stoptime = [];
+                for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
+                    stoptime[i] = time[i] + duration[i];
+                }
+                TimeUtil.normalizeTime(stoptime);
+                TimeUtil.setStopTime(stoptime, result);
+                return result;
+            } else {
+                var starttime = TimeUtil.isoTimeToArray(ss[0]);
+                var stoptime = TimeUtil.isoTimeToArray(ss[1]);
+                TimeUtil.setStartTime(starttime, result);
+                TimeUtil.setStopTime(stoptime, result);
+                return result;
+            }
+        }
     }
-    if (month > 12) {
-        throw new Error("month must be less than 12.");
+
+    /**
+     * subtract the offset from the base time.
+     *
+     * @param base a time
+     * @param offset offset in each component.
+     * @return a time
+     */
+    static subtract(base, offset) {
+        var result = [];
+        for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
+            result[i] = base[i] - offset[i];
+        }
+        if (result[0] > 400) {
+            TimeUtil.normalizeTime(result);
+        }
+        return result;
     }
-    if (day > 366) {
-        throw new Error("day (" + day + ") must be less than 366.");
+
+    /**
+     * add the offset to the base time. This should not be used to combine two
+     * offsets, because the code has not been verified for this use.
+     *
+     * @param base a time
+     * @param offset offset in each component.
+     * @return a time
+     */
+    static add(base, offset) {
+        var result = [];
+        for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
+            result[i] = base[i] + offset[i];
+        }
+        TimeUtil.normalizeTime(result);
+        return result;
     }
-    var leap = isLeapYear(year) ? 1 : 0;
-    return DAY_OFFSET[leap][month] + day;
+
+    /**
+     * true if t1 is after t2.
+     * @param t1 seven-component time
+     * @param t2 seven-component time
+     * @return true if t1 is after t2.
+     */
+    static gt(t1, t2) {
+        TimeUtil.normalizeTime(t1);
+        TimeUtil.normalizeTime(t2);
+        for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
+            if (t1[i] > t2[i]) {
+                return true;
+            } else {
+                if (t1[i] < t2[i]) {
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * true if t1 is equal to t2.
+     * @param t1 seven-component time
+     * @param t2 seven-component time
+     * @return true if t1 is equal to t2.
+     */
+    static eq(t1, t2) {
+        TimeUtil.normalizeTime(t1);
+        TimeUtil.normalizeTime(t2);
+        for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
+            if (t1[i] !== t2[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * format the time, but omit trailing zeros.  $Y-$m-$dT$H:$M is the coursest resolution returned.
+     * @param time seven element time range
+     * @return formatted time, possibly truncated to minutes, seconds, milliseconds, or microseconds
+     * @see #formatIso8601TimeInTimeRangeBrief(int[] time, int offset ) 
+     */
+    static formatIso8601TimeBrief(time) {
+        return TimeUtil.formatIso8601TimeInTimeRangeBrief(time, 0);
+    }
+
+    /**
+     * format the time, but omit trailing zeros.  $Y-$m-$dT$H:$M is the coursest resolution returned.
+     * @param time seven element time range
+     * @param offset the offset into the time array (7 for stop time in 14-element range array).
+     * @return formatted time, possibly truncated to minutes, seconds, milliseconds, or microseconds
+     * @see #formatIso8601TimeBrief(int[]) 
+     */
+    static formatIso8601TimeInTimeRangeBrief(time, offset) {
+        var stime = TimeUtil.formatIso8601TimeInTimeRange(time, offset);
+        var nanos = time[TimeUtil.COMPONENT_NANOSECOND + offset];
+        var micros = nanos % 1000;
+        var millis = nanos % 10000000;
+        if (nanos === 0) {
+            if (time[5 + offset] === 0) {
+                return stime.substring(0, 16) + "Z";
+            } else {
+                return stime.substring(0, 19) + "Z";
+            }
+        } else {
+            if (millis === 0) {
+                return stime.substring(0, 23) + "Z";
+            } else {
+                if (micros === 0) {
+                    return stime.substring(0, 26) + "Z";
+                } else {
+                    return stime;
+                }
+            }
+        }
+    }
+
+    /**
+     * return the next interval, given the 14-component time interval.  This
+     * has the restrictions:<ul>
+     * <li> can only handle intervals of at least one second
+     * <li> must be only one component which increments (20 days, but not 20 days and 12 hours)
+     * <li> increment must be a divisor of the component (e.g. months), so 1, 2, 3, 4, or 6 months is valid, but 5 months is not.
+     * </ul>
+     * @param range 14-component time interval.
+     * @return 14-component time interval.
+     */
+    static nextRange(range) {
+        var result = [];
+        var width = [];
+        for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
+            width[i] = range[i + TimeUtil.TIME_DIGITS] - range[i];
+        }
+        if (width[5] < 0) {
+            width[5] = width[5] + 60;
+            width[4] = width[4] - 1;
+        }
+        if (width[4] < 0) {
+            width[4] = width[4] + 60;
+            width[3] = width[3] - 1;
+        }
+        if (width[3] < 0) {
+            width[3] = width[3] + 24;
+            width[2] = width[2] - 1;
+        }
+        if (width[2] < 0) {
+            var daysInMonth = TimeUtil.daysInMonth(range[TimeUtil.COMPONENT_YEAR], range[TimeUtil.COMPONENT_MONTH]);
+            width[2] = width[2] + daysInMonth;
+            width[1] = width[1] - 1;
+        }
+        if (width[1] < 0) {
+            width[1] = width[1] + 12;
+            width[0] = width[0] - 1;
+        }
+        // System.arraycopy( range, TimeUtil.TIME_DIGITS, result, 0, TimeUtil.TIME_DIGITS );
+        TimeUtil.setStartTime(TimeUtil.getStopTime(range), result);
+        // This creates an extra array, but let's not worry about that.
+        TimeUtil.setStopTime(TimeUtil.add(TimeUtil.getStopTime(range), width), result);
+        return result;
+    }
+
+    /**
+     * return the previous interval, given the 14-component time interval.  This
+     * has the restrictions:<ul>
+     * <li> can only handle intervals of at least one second
+     * <li> must be only one component which increments (20 days, but not 20 days and 12 hours)
+     * <li> increment must be a divisor of the component (e.g. months), so 1, 2, 3, 4, or 6 months is valid, but 5 months is not.
+     * </ul>
+     * @param range 14-component time interval.
+     * @return 14-component time interval.
+     */
+    static previousRange(range) {
+        var result = [];
+        var width = [];
+        for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
+            width[i] = range[i + TimeUtil.TIME_DIGITS] - range[i];
+        }
+        if (width[5] < 0) {
+            width[5] = width[5] + 60;
+            width[4] = width[4] - 1;
+        }
+        if (width[4] < 0) {
+            width[4] = width[4] + 60;
+            width[3] = width[3] - 1;
+        }
+        if (width[3] < 0) {
+            width[3] = width[3] + 24;
+            width[2] = width[2] - 1;
+        }
+        if (width[2] < 0) {
+            var daysInMonth = TimeUtil.daysInMonth(range[TimeUtil.COMPONENT_YEAR], range[TimeUtil.COMPONENT_MONTH]);
+            width[2] = width[2] + daysInMonth;
+            width[1] = width[1] - 1;
+        }
+        if (width[1] < 0) {
+            width[1] = width[1] + 12;
+            width[0] = width[0] - 1;
+        }
+        TimeUtil.setStopTime(TimeUtil.getStartTime(range), result);
+        TimeUtil.setStartTime(TimeUtil.subtract(TimeUtil.getStartTime(range), width), result);
+        return result;
+    }
+
+    /**
+     * return true if this is a valid time range having a non-zero width.
+     * @param granule
+     * @return 
+     */
+    static isValidTimeRange(granule) {
+        var start = TimeUtil.getStartTime(granule);
+        var stop = TimeUtil.getStopTime(granule);
+        return TimeUtil.isValidTime(start) && TimeUtil.isValidTime(stop) && TimeUtil.gt(stop, start);
+    }
+
 }
 
-/**
- * return "2" (February) for 45 for example.
- * @param {number} year the year
- * @param {number} doy the day of year.
- * @return {number} the month 1-12 of the day.
- */
-function monthForDayOfYear(year, doy) {
-    var leap = isLeapYear(year) ? 1 : 0;
-    var dayOffset = DAY_OFFSET[leap];
-    if (doy < 1)
-        throw new Error("doy must be 1 or more");
-    if (doy > dayOffset[13]) {
-        throw new Error("doy must be less than or equal to " + dayOffset[13]);
-    }
-    for (var i = 12; i > 1; i--) {
-        if (dayOffset[i] < doy) {
-            return i;
-        }
-    }
-    return 1;
-}
 
-/**
- * return the julianDay for the year month and day. This was verified
- * against another calculation (julianDayWP, commented out above) from
- * http://en.wikipedia.org/wiki/Julian_day. Both calculations have 20
- * operations.
- *
- * @param {number} year calendar year greater than 1582.
- * @param {number} month the month number 1 through 12.
- * @param {number} day day of month. For day of year, use month=1 and doy for day.
- * @return {number} the Julian day
- * @see #fromJulianDay(int)
- */
-function julianDay(year, month, day) {
-    if (year <= 1582) {
-        throw Error("year must be more than 1582");
-    }
-    var jd = 367 * year - (7 * (year + ((month + 9) / 12 | 0)) / 4 | 0) 
-            - (3 * (((year + ((month - 9) / 7 | 0)) / 100 | 0) + 1) / 4 | 0) 
-            + (275 * month / 9 | 0) + day + 1721029;
-    return jd;
-};
-
-/**
- * Break the Julian day apart into month, day year. This is based on
- * http://en.wikipedia.org/wiki/Julian_day (GNU Public License), and was
- * introduced when toTimeStruct failed when the year was 1886.
- *
- * @see #julianDay( int year, int mon, int day )
- * @param {number} julian the (integer) number of days that have elapsed since the
- * initial epoch at noon Universal Time (UT) Monday, January 1, 4713 BC
- * @return {int[]} a TimeStruct with the month, day and year fields set.
- */
-function fromJulianDay(julian) {
-    var j = julian + 32044;
-    var g = (j / 146097 | 0);
-    var dg = j % 146097;
-    var c = (((dg / 36524 | 0) + 1) * 3 / 4 | 0);
-    var dc = dg - c * 36524;
-    var b = (dc / 1461 | 0);
-    var db = dc % 1461;
-    var a = (((db / 365 | 0) + 1) * 3 / 4 | 0);
-    var da = db - a * 365;
-    var y = g * 400 + c * 100 + b * 4 + a;
-    var m = ((da * 5 + 308) / 153 | 0) - 2;
-    var d = da - ((m + 4) * 153 / 5 | 0) + 122;
-    var Y = y - 4800 + ((m + 2) / 12 | 0);
-    var M = (m + 2) % 12 + 1;
-    var D = d + 1;
-    var result = (function (s) { var a = []; while (s-- > 0)
-        a.push(0); return a; })(TIME_DIGITS);
-    result[0] = Y;
-    result[1] = M;
-    result[2] = D;
-    return result;
-};
-            
-/**
- * subtract the offset from the base time.
- *
- * @param {int[]} base a time
- * @param {int[]} offset offset in each component.
- * @return {int[]} a time
- */
-function subtract(base, offset) {
-    var result = (function (s) { var a = []; while (s-- > 0)
-        a.push(0); return a; })(TIME_DIGITS);
-    for (var i = 0; i < TIME_DIGITS; i++) {
-        result[i] = base[i] - offset[i];
-    }
-    if (result[0] > 400) {
-        normalizeTime(result);
-    }
-    return result;
-};
-
-/**
- * add the offset to the base time. This should not be used to combine two
- * offsets, because the code has not been verified for this use.
- *
- * @param {int[]} base a time
- * @param {int[]} offset offset in each component.
- * @return {int[]} a time
- */
-function add(base, offset) {
-    var result = (function (s) { var a = []; while (s-- > 0)
-        a.push(0); return a; })(TIME_DIGITS);
-    for (var i = 0; i < TIME_DIGITS; i++) {
-        result[i] = base[i] + offset[i];
-    }
-    normalizeTime(result);
-    return result;
-};

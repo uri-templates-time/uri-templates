@@ -48,60 +48,170 @@ public class TimeUtil {
     public static final int COMPONENT_NANOSECOND=6;
     
     /**
-     * Rewrite the time using the format of the example time, which must start with
-     * $Y-$jT, $Y-$jZ, or $Y-$m-$d. For example,
-     * <pre>
-     * {@code
-     * from org.hapiserver.TimeUtil import *
-     * print rewriteIsoTime( '2020-01-01T00:00Z', '2020-112Z' ) # ->  '2020-04-21T00:00Z'
-     * }
-     * </pre> This allows direct comparisons of times for sorting. 
-     * This works by looking at the character in the 8th position (starting with zero) of the 
-     * exampleForm to see if a T or Z is present (YYYY-jjjTxxx).
-     *
-     * TODO: there's
-     * an optimization here, where if input and output are both $Y-$j or both
-     * $Y-$m-$d, then we need not break apart and recombine the time
-     * (isoTimeToArray call can be avoided).
-     *
-     * @param exampleForm isoTime string.
-     * @param time the time in any allowed isoTime format
-     * @return same time but in the same form as exampleForm.
+     * the number of days in each month.  DAYS_IN_MONTH[0][12] is number of days in December of a non-leap year
      */
-    public static String reformatIsoTime(String exampleForm, String time) {
-        char c = exampleForm.charAt(8);
-        int[] nn = TimeUtil.isoTimeToArray(TimeUtil.normalizeTimeString(time));
-        switch (c) {
-            case 'T':
-                // $Y-$jT
-                nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2]);
-                nn[1] = 1;
-                time = String.format("%d-%03dT%02d:%02d:%02d.%09dZ", nn[0], nn[2], nn[3], nn[4], nn[5], nn[6]);
-                break;
-            case 'Z':
-                nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2]);
-                nn[1] = 1;
-                time = String.format("%d-%03dZ", nn[0], nn[2]);
-                break;
+    private final static int[][] DAYS_IN_MONTH = {
+        {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0},
+        {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0}
+    };
+
+    /**
+     * the number of days to the first of each month.  DAY_OFFSET[0][12] is offset to December 1st of a non-leap year
+     */
+    private final static int[][] DAY_OFFSET = {
+        {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365},
+        {0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366}
+    };
+    
+    /**
+     * fast parser requires that each character of string is a digit.  Note this 
+     * does not check the the numbers are digits!
+     *
+     * @param s string containing an integer
+     * @return the integer
+     */
+    private static int parseInt(String s) {
+        int result;
+        int len= s.length();
+        for (int i = 0; i < len; i++) {
+            char c = s.charAt(i);
+            if (c < 48 || c >= 58) {
+                throw new IllegalArgumentException("only digits are allowed in string");
+            }
+        }
+        switch (len) {
+            case 2:
+                result = 10 * (s.charAt(0) - 48) + (s.charAt(1) - 48);
+                return result;
+            case 3:
+                result = 100 * (s.charAt(0) - 48) + 10 * (s.charAt(1) - 48) + (s.charAt(2) - 48);
+                return result;
             default:
-                if (exampleForm.length() == 10) {
-                    c = 'Z';
-                } else {
-                    c = exampleForm.charAt(10);
+                result = 0;
+                for (int i = 0; i < s.length(); i++) {
+                    result = 10 * result + (s.charAt(i) - 48);
                 }
-                if (c == 'T') {
-                    // $Y-$jT
-                    time = String.format("%d-%02d-%02dT%02d:%02d:%02d.%09dZ", nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6]);
-                } else if (c == 'Z') {
-                    time = String.format("%d-%02d-%02dZ", nn[0], nn[1], nn[2]);
-                }
-                break;
+                return result;
         }
-        if (exampleForm.endsWith("Z")) {
-            return time.substring(0, exampleForm.length() - 1) + "Z";
+    }
+
+    /**
+     * fast parser requires that each character of string is a digit.
+     *
+     * @param s the number, containing 1 or more digits.
+     * @param deft the number to return when s is missing.
+     * @return the int value
+     */
+    private static int parseIntDeft(String s, int deft) {
+        if (s == null) {
+            return deft;
+        }
+        return parseInt( s );
+    }
+
+    private static double parseDouble(String val, double deft) {
+        if (val == null) {
+            if (deft != -99) {
+                return deft;
+            } else {
+                throw new IllegalArgumentException("bad digit");
+            }
+        }
+        int n = val.length() - 1;
+        if (Character.isLetter(val.charAt(n))) {
+            return Double.parseDouble(val.substring(0, n));
         } else {
-            return time.substring(0, exampleForm.length());
+            return Double.parseDouble(val);
         }
+    }
+    
+    /**
+     * return the seven element start time from the time range.  Note
+     * it is fine to use a time range as the start time, because codes
+     * will only read the first seven components, and this is only added
+     * to make code more readable.
+     * @param range a fourteen-element time range.
+     * @return the start time.
+     */
+    public static int[] getStartTime( int [] range ) {
+        int[] result= new int[ TimeUtil.TIME_DIGITS ];
+        System.arraycopy( range, 0, result, 0, TimeUtil.TIME_DIGITS  );
+        return result;
+    }
+    
+    /**
+     * return the seven element stop time from the time range.  Note
+     * it is fine to use a time range as the start time, because codes
+     * will only read the first seven components.
+     * @param range a fourteen-element time range.
+     * @return the stop time.
+     */
+    public static int[] getStopTime( int [] range ) {
+        int[] result= new int[ TimeUtil.TIME_DIGITS ];
+        System.arraycopy( range, TimeUtil.TIME_DIGITS , result, 0, TimeUtil.TIME_DIGITS  );
+        return result;
+    }
+    
+    /**
+     * copy the components of time into the start position (indeces 7-14) of the time range.
+     * This one-line method was introduced to clarify code and make conversion to 
+     * other languages (in particular Python) easier.
+     * @param time the seven-element start time
+     * @param range the fourteen-element time range.
+     */
+    public static void setStartTime( int[] time, int[] range ) {
+        System.arraycopy( time, 0, range, 0, TimeUtil.TIME_DIGITS  );
+    }
+    
+    
+    /**
+     * copy the components of time into the stop position (indeces 7-14) of the time range.
+     * @param time the seven-element stop time
+     * @param range the fourteen-element time range.
+     */
+    public static void setStopTime( int[] time, int[] range ) {
+        System.arraycopy( time, 0, range, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS  );
+    }
+    
+    /**
+     * format the time as milliseconds since 1970-01-01T00:00Z into a string.  The
+     * number of milliseconds should not include leap seconds.
+     * 
+     * @param time the number of milliseconds since 1970-01-01T00:00Z
+     * @return the formatted time.
+     * @see DateTimeFormatter#parse
+     */
+    public static String fromMillisecondsSince1970(long time) {
+        return DateTimeFormatter.ISO_INSTANT.format( Instant.ofEpochMilli(time) );
+    }
+
+    /**
+     * given the two times, return a 14 element time range.
+     * @param t1 a seven digit time
+     * @param t2 a seven digit time after the first time.
+     * @return a fourteen digit time range.
+     * @throws IllegalArgumentException when the first time is greater than or equal to the second time.
+     */
+    public static int[] createTimeRange( int[] t1, int[] t2 ) {
+        if ( !gt(t2,t1) ) {
+            throw new IllegalArgumentException("t1 is not smaller than t2");
+        }
+        int[] result= new int[TimeUtil.TIME_DIGITS*2];
+        setStartTime( result, t1 );
+        setStopTime( result, t2 );
+        return result;
+    }
+    
+    /**
+     * true if the year between 1582 and 2400 is a leap year.
+     * @param year the year
+     * @return true if the year between 1582 and 2400 is a leap year.
+     */
+    private static boolean isLeapYear(int year) {
+        if (year < 1582 || year > 2400) {
+            throw new IllegalArgumentException("year must be between 1582 and 2400");
+        }
+        return (year % 4) == 0 && (year % 400 == 0 || year % 100 != 0);
     }
 
     private static String[] monthNames = {
@@ -142,25 +252,65 @@ public class TimeUtil {
         throw new ParseException("Unable to parse month", 0);
     }
 
-    private TimeUtil() {
-        // this class is not instanciated.
+    /**
+     * return the day of year for the given year, month, and day. For example, in
+     * Jython:
+     * <pre>
+     * {@code
+     * from org.hapiserver.TimeUtil import *
+     * print dayOfYear( 2020, 4, 21 ) # 112
+     * }
+     * </pre>
+     *
+     * @param year the year
+     * @param month the month, from 1 to 12.
+     * @param day the day in the month.
+     * @return the day of year.
+     */
+    public static int dayOfYear(int year, int month, int day) {
+        if (month == 1) {
+            return day;
+        }
+        if (month < 1) {
+            throw new IllegalArgumentException("month must be greater than 0.");
+        }
+        if (month > 12) {
+            throw new IllegalArgumentException("month must be less than 12.");
+        }
+        if (day > 366) {
+            throw new IllegalArgumentException("day (" + day + ") must be less than 366.");
+        }
+        int leap = isLeapYear(year) ? 1 : 0;
+        return DAY_OFFSET[leap][month] + day;
+    }
+    
+    /**
+     * return "2" (February) for 45 for example.
+     * @param year the year
+     * @param doy the day of year.
+     * @return the month 1-12 of the day.
+     */
+    public static int monthForDayOfYear( int year, int doy ) {
+        int leap = isLeapYear(year) ? 1 : 0;
+        int[] dayOffset= DAY_OFFSET[leap];
+        if ( doy<1 ) throw new IllegalArgumentException("doy must be 1 or more");
+        if ( doy>dayOffset[13] ) {
+            throw new IllegalArgumentException("doy must be less than or equal to "+dayOffset[13]);
+        }        
+        for ( int i=12; i>1; i-- ) {
+            if ( dayOffset[i]<doy ) {
+                return i;
+            }
+        }
+        return 1;
     }
 
     /**
-     * the number of days in each month.  DAYS_IN_MONTH[0][12] is number of days in December of a non-leap year
+     * This class is not to be instantiated.
      */
-    private final static int[][] DAYS_IN_MONTH = {
-        {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0},
-        {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0}
-    };
-
-    /**
-     * the number of days to the first of each month.  DAY_OFFSET[0][12] is offset to December 1st of a non-leap year
-     */
-    private final static int[][] DAY_OFFSET = {
-        {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365},
-        {0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366}
-    };
+    private TimeUtil() {
+        
+    }
 
     /**
      * count off the days between startTime and stopTime, but not including
@@ -197,18 +347,6 @@ public class TimeUtil {
             i += 1;
         }
         return result;
-    }
-
-    /**
-     * true if the year between 1582 and 2400 is a leap year.
-     * @param year the year
-     * @return true if the year between 1582 and 2400 is a leap year.
-     */
-    private static boolean isLeapYear(int year) {
-        if (year < 1582 || year > 2400) {
-            throw new IllegalArgumentException("year must be between 1582 and 2400");
-        }
-        return (year % 4) == 0 && (year % 400 == 0 || year % 100 != 0);
     }
 
     /**
@@ -288,64 +426,28 @@ public class TimeUtil {
     }
 
     /**
-     * fast parser requires that each character of string is a digit.  Note this 
-     * does not check the the numbers are digits!
+     * return the time as milliseconds since 1970-01-01T00:00Z. This does not
+     * include leap seconds. For example, in Jython:
+     * <pre>
+     * {@code
+     * from org.hapiserver.TimeUtil import *
+     * x= toMillisecondsSince1970('2000-01-02T00:00:00.0Z')
+     * print x / 86400000   # 10958.0 days
+     * print x % 86400000   # and no milliseconds
+     * }
+     * </pre>
      *
-     * @param s string containing an integer
-     * @return the integer
+     * @param time the isoTime, which is parsed using
+     * DateTimeFormatter.ISO_INSTANT.parse.
+     * @return number of non-leap-second milliseconds since 1970-01-01T00:00Z.
+     * @see DateTimeFormatter#parse
      */
-    private static int parseInt(String s) {
-        int result;
-        int len= s.length();
-        for (int i = 0; i < len; i++) {
-            char c = s.charAt(i);
-            if (c < 48 || c >= 58) {
-                throw new IllegalArgumentException("only digits are allowed in string");
-            }
-        }
-        switch (len) {
-            case 2:
-                result = 10 * (s.charAt(0) - 48) + (s.charAt(1) - 48);
-                return result;
-            case 3:
-                result = 100 * (s.charAt(0) - 48) + 10 * (s.charAt(1) - 48) + (s.charAt(2) - 48);
-                return result;
-            default:
-                result = 0;
-                for (int i = 0; i < s.length(); i++) {
-                    result = 10 * result + (s.charAt(i) - 48);
-                }
-                return result;
-        }
-    }
-
-    /**
-     * fast parser requires that each character of string is a digit.
-     *
-     * @param s the number, containing 1 or more digits.
-     * @return the int value
-     */
-    private static int parseIntDeft(String s, int deft) {
-        if (s == null) {
-            return deft;
-        }
-        return parseInt( s );
-    }
-
-    private static double parseDouble(String val, double deft) {
-        if (val == null) {
-            if (deft != -99) {
-                return deft;
-            } else {
-                throw new IllegalArgumentException("bad digit");
-            }
-        }
-        int n = val.length() - 1;
-        if (Character.isLetter(val.charAt(n))) {
-            return Double.parseDouble(val.substring(0, n));
-        } else {
-            return Double.parseDouble(val);
-        }
+    public static long toMillisecondsSince1970(String time) {
+        time = normalizeTimeString(time);
+        TemporalAccessor ta = DateTimeFormatter.ISO_INSTANT.parse(time);
+        Instant i = Instant.from(ta);
+        Date d = Date.from(i);
+        return d.getTime();
     }
 
     /**
@@ -492,7 +594,49 @@ public class TimeUtil {
         
         return sb.toString();
     }
+        
+    public static final String iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?";
     
+    /**
+     * Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
+     */
+    public static final Pattern iso8601DurationPattern = // repeated for Java to Jython conversion.
+            Pattern.compile("P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?");
+
+    /**
+     * returns a 7 element array with [year,mon,day,hour,min,sec,nanos]. Note
+     * this does not allow fractional day, hours or minutes! Examples
+     * include:<ul>
+     * <li>P1D - one day
+     * <li>PT1M - one minute
+     * <li>PT0.5S - 0.5 seconds
+     * </ul>
+     * TODO: there exists more complete code elsewhere.
+     *
+     * @param stringIn theISO8601 duration.
+     * @return 7-element array with [year,mon,day,hour,min,sec,nanos]
+     * @throws ParseException if the string does not appear to be valid.
+     * @see #iso8601duration
+     * @see #TIME_DIGITS
+     *
+     */
+    public static int[] parseISO8601Duration(String stringIn) throws ParseException {
+        Matcher m = iso8601DurationPattern.matcher(stringIn);
+        if (m.matches()) {
+            double dsec = parseDouble(m.group(13), 0);
+            int sec = (int) dsec;
+            int nanosec = (int) ((dsec - sec) * 1e9);
+            return new int[]{
+                parseIntDeft(m.group(2), 0), parseIntDeft(m.group(4), 0), parseIntDeft(m.group(6), 0),
+                parseIntDeft(m.group(9), 0), parseIntDeft(m.group(11), 0), sec, nanosec};
+        } else {
+            if (stringIn.contains("P") && stringIn.contains("S") && !stringIn.contains("T")) {
+                throw new ParseException("ISO8601 duration expected but not found.  Was the T missing before S?", 0);
+            } else {
+                throw new ParseException("ISO8601 duration expected but not found.", 0);
+            }
+        }
+    }
     /**
      * return the UTC current time, to the millisecond, in seven components.
      * @return the current time, to the millisecond
@@ -539,7 +683,7 @@ public class TimeUtil {
             result = new int[]{Integer.parseInt(time), 1, 1, 0, 0, 0, 0};
         } else if ( time.startsWith("now") || time.startsWith("last") ) {
             int[] n;
-            String remainder;
+            String remainder=null;
             if ( time.startsWith("now") ) {
                 n= now();
                 remainder= time.substring(3);
@@ -668,81 +812,60 @@ public class TimeUtil {
     }
 
     /**
-     * return the day of year for the given year, month, and day. For example, in
-     * Jython:
+     * Rewrite the time using the format of the example time, which must start with
+     * $Y-$jT, $Y-$jZ, or $Y-$m-$d. For example,
      * <pre>
      * {@code
      * from org.hapiserver.TimeUtil import *
-     * print dayOfYear( 2020, 4, 21 ) # 112
+     * print rewriteIsoTime( '2020-01-01T00:00Z', '2020-112Z' ) # ->  '2020-04-21T00:00Z'
      * }
-     * </pre>
+     * </pre> This allows direct comparisons of times for sorting. 
+     * This works by looking at the character in the 8th position (starting with zero) of the 
+     * exampleForm to see if a T or Z is present (YYYY-jjjTxxx).
      *
-     * @param year the year
-     * @param month the month, from 1 to 12.
-     * @param day the day in the month.
-     * @return the day of year.
-     */
-    public static int dayOfYear(int year, int month, int day) {
-        if (month == 1) {
-            return day;
-        }
-        if (month < 1) {
-            throw new IllegalArgumentException("month must be greater than 0.");
-        }
-        if (month > 12) {
-            throw new IllegalArgumentException("month must be less than 12.");
-        }
-        if (day > 366) {
-            throw new IllegalArgumentException("day (" + day + ") must be less than 366.");
-        }
-        int leap = isLeapYear(year) ? 1 : 0;
-        return DAY_OFFSET[leap][month] + day;
-    }
-    
-    /**
-     * return "2" (February) for 45 for example.
-     * @param year the year
-     * @param doy the day of year.
-     * @return the month 1-12 of the day.
-     */
-    public static int monthForDayOfYear( int year, int doy ) {
-        int leap = isLeapYear(year) ? 1 : 0;
-        int[] dayOffset= DAY_OFFSET[leap];
-        if ( doy<1 ) throw new IllegalArgumentException("doy must be 1 or more");
-        if ( doy>dayOffset[13] ) {
-            throw new IllegalArgumentException("doy must be less than or equal to "+dayOffset[13]);
-        }        
-        for ( int i=12; i>1; i-- ) {
-            if ( dayOffset[i]<doy ) {
-                return i;
-            }
-        }
-        return 1;
-    }
-
-    /**
-     * return the time as milliseconds since 1970-01-01T00:00Z. This does not
-     * include leap seconds. For example, in Jython:
-     * <pre>
-     * {@code
-     * from org.hapiserver.TimeUtil import *
-     * x= toMillisecondsSince1970('2000-01-02T00:00:00.0Z')
-     * print x / 86400000   # 10958.0 days
-     * print x % 86400000   # and no milliseconds
-     * }
-     * </pre>
+     * TODO: there's
+     * an optimization here, where if input and output are both $Y-$j or both
+     * $Y-$m-$d, then we need not break apart and recombine the time
+     * (isoTimeToArray call can be avoided).
      *
-     * @param time the isoTime, which is parsed using
-     * DateTimeFormatter.ISO_INSTANT.parse.
-     * @return number of non-leap-second milliseconds since 1970-01-01T00:00Z.
-     * @see DateTimeFormatter#parse
+     * @param exampleForm isoTime string.
+     * @param time the time in any allowed isoTime format
+     * @return same time but in the same form as exampleForm.
      */
-    public static long toMillisecondsSince1970(String time) {
-        time = normalizeTimeString(time);
-        TemporalAccessor ta = DateTimeFormatter.ISO_INSTANT.parse(time);
-        Instant i = Instant.from(ta);
-        Date d = Date.from(i);
-        return d.getTime();
+    public static String reformatIsoTime(String exampleForm, String time) {
+        char c = exampleForm.charAt(8);
+        int[] nn = TimeUtil.isoTimeToArray(TimeUtil.normalizeTimeString(time));
+        switch (c) {
+            case 'T':
+                // $Y-$jT
+                nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2]);
+                nn[1] = 1;
+                time = String.format("%d-%03dT%02d:%02d:%02d.%09dZ", nn[0], nn[2], nn[3], nn[4], nn[5], nn[6]);
+                break;
+            case 'Z':
+                nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2]);
+                nn[1] = 1;
+                time = String.format("%d-%03dZ", nn[0], nn[2]);
+                break;
+            default:
+                if (exampleForm.length() == 10) {
+                    c = 'Z';
+                } else {
+                    c = exampleForm.charAt(10);
+                }
+                if (c == 'T') {
+                    // $Y-$jT
+                    time = String.format("%d-%02d-%02dT%02d:%02d:%02d.%09dZ", nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6]);
+                } else if (c == 'Z') {
+                    time = String.format("%d-%02d-%02dZ", nn[0], nn[1], nn[2]);
+                }
+                break;
+        }
+        if (exampleForm.endsWith("Z")) {
+            return time.substring(0, exampleForm.length() - 1) + "Z";
+        } else {
+            return time.substring(0, exampleForm.length());
+        }
     }
     
     public static int VALID_FIRST_YEAR=1900;
@@ -884,6 +1007,65 @@ public class TimeUtil {
     }
     
     /**
+     * return the julianDay for the year month and day. This was verified
+     * against another calculation (julianDayWP, commented out above) from
+     * http://en.wikipedia.org/wiki/Julian_day. Both calculations have 20
+     * operations.
+     *
+     * @param year calendar year greater than 1582.
+     * @param month the month number 1 through 12.
+     * @param day day of month. For day of year, use month=1 and doy for day.
+     * @return the Julian day
+     * @see #fromJulianDay(int) 
+     */
+    public static int julianDay(int year, int month, int day) {
+        if (year <= 1582) {
+            throw new IllegalArgumentException("year must be more than 1582");
+        }
+        int jd = 367 * year - 7 * (year + (month + 9) / 12) / 4
+                - 3 * ((year + (month - 9) / 7) / 100 + 1) / 4
+                + 275 * month / 9 + day + 1721029;
+        return jd;
+    }
+
+    /**
+     * Break the Julian day apart into month, day year. This is based on
+     * http://en.wikipedia.org/wiki/Julian_day (GNU Public License), and was
+     * introduced when toTimeStruct failed when the year was 1886.
+     *
+     * @see #julianDay( int year, int mon, int day )
+     * @param julian the (integer) number of days that have elapsed since the
+     * initial epoch at noon Universal Time (UT) Monday, January 1, 4713 BC
+     * @return a TimeStruct with the month, day and year fields set.
+     */
+    public static int[] fromJulianDay(int julian) {
+        int j = julian + 32044;
+        int g = j / 146097;
+        int dg = j % 146097;
+        int c = (dg / 36524 + 1) * 3 / 4;
+        int dc = dg - c * 36524;
+        int b = dc / 1461;
+        int db = dc % 1461;
+        int a = (db / 365 + 1) * 3 / 4;
+        int da = db - a * 365;
+        int y = g * 400 + c * 100 + b * 4 + a;
+        int m = (da * 5 + 308) / 153 - 2;
+        int d = da - (m + 4) * 153 / 5 + 122;
+        int Y = y - 4800 + (m + 2) / 12;
+        int M = (m + 2) % 12 + 1;
+        int D = d + 1;
+        int[] result = new int[TIME_DIGITS];
+        result[0] = Y;
+        result[1] = M;
+        result[2] = D;
+        result[3] = 0;
+        result[4] = 0;
+        result[5] = 0;
+        result[6] = 0;
+        return result;
+    }    
+    
+    /**
      * calculate the day of week, where 0 means Monday, 1 means Tuesday, etc.  For example,
      * 2022-03-12 is a Saturday, so 5 is returned.
      * @param year the year
@@ -897,7 +1079,7 @@ public class TimeUtil {
         int mod7= ( daysSince2022 - 2 ) % 7; 
         if ( mod7<0 ) mod7= mod7 + 7;
         return mod7;
-    }
+    }    
     
     /**
      * calculate the week of year, inserting the month into time[1] and day into time[2]
@@ -930,49 +1112,6 @@ public class TimeUtil {
         time[1]= 1;
         time[2]= doy;
         normalizeTime(time);
-    }
-
-    public static final String iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?";
-    
-    /**
-     * Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
-     */
-    public static final Pattern iso8601DurationPattern = // repeated for Java to Jython conversion.
-            Pattern.compile("P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?");
-
-    /**
-     * returns a 7 element array with [year,mon,day,hour,min,sec,nanos]. Note
-     * this does not allow fractional day, hours or minutes! Examples
-     * include:<ul>
-     * <li>P1D - one day
-     * <li>PT1M - one minute
-     * <li>PT0.5S - 0.5 seconds
-     * </ul>
-     * TODO: there exists more complete code elsewhere.
-     *
-     * @param stringIn theISO8601 duration.
-     * @return 7-element array with [year,mon,day,hour,min,sec,nanos]
-     * @throws ParseException if the string does not appear to be valid.
-     * @see #iso8601duration
-     * @see #TIME_DIGITS
-     *
-     */
-    public static int[] parseISO8601Duration(String stringIn) throws ParseException {
-        Matcher m = iso8601DurationPattern.matcher(stringIn);
-        if (m.matches()) {
-            double dsec = parseDouble(m.group(13), 0);
-            int sec = (int) dsec;
-            int nanosec = (int) ((dsec - sec) * 1e9);
-            return new int[]{
-                parseIntDeft(m.group(2), 0), parseIntDeft(m.group(4), 0), parseIntDeft(m.group(6), 0),
-                parseIntDeft(m.group(9), 0), parseIntDeft(m.group(11), 0), sec, nanosec};
-        } else {
-            if (stringIn.contains("P") && stringIn.contains("S") && !stringIn.contains("T")) {
-                throw new ParseException("ISO8601 duration expected but not found.  Was the T missing before S?", 0);
-            } else {
-                throw new ParseException("ISO8601 duration expected but not found.", 0);
-            }
-        }
     }
 
     /**
@@ -1032,61 +1171,6 @@ public class TimeUtil {
             setStopTime( stoptime, result );
             return result;
         }
-    }
-    
-    /**
-     * return the julianDay for the year month and day. This was verified
-     * against another calculation (julianDayWP, commented out above) from
-     * http://en.wikipedia.org/wiki/Julian_day. Both calculations have 20
-     * operations.
-     *
-     * @param year calendar year greater than 1582.
-     * @param month the month number 1 through 12.
-     * @param day day of month. For day of year, use month=1 and doy for day.
-     * @return the Julian day
-     * @see #fromJulianDay(int) 
-     */
-    public static int julianDay(int year, int month, int day) {
-        if (year <= 1582) {
-            throw new IllegalArgumentException("year must be more than 1582");
-        }
-        int jd = 367 * year - 7 * (year + (month + 9) / 12) / 4
-                - 3 * ((year + (month - 9) / 7) / 100 + 1) / 4
-                + 275 * month / 9 + day + 1721029;
-        return jd;
-    }
-
-    /**
-     * Break the Julian day apart into month, day year. This is based on
-     * http://en.wikipedia.org/wiki/Julian_day (GNU Public License), and was
-     * introduced when toTimeStruct failed when the year was 1886.
-     *
-     * @see #julianDay( int year, int mon, int day )
-     * @param julian the (integer) number of days that have elapsed since the
-     * initial epoch at noon Universal Time (UT) Monday, January 1, 4713 BC
-     * @return a TimeStruct with the month, day and year fields set.
-     */
-    public static int[] fromJulianDay(int julian) {
-        int j = julian + 32044;
-        int g = j / 146097;
-        int dg = j % 146097;
-        int c = (dg / 36524 + 1) * 3 / 4;
-        int dc = dg - c * 36524;
-        int b = dc / 1461;
-        int db = dc % 1461;
-        int a = (db / 365 + 1) * 3 / 4;
-        int da = db - a * 365;
-        int y = g * 400 + c * 100 + b * 4 + a;
-        int m = (da * 5 + 308) / 153 - 2;
-        int d = da - (m + 4) * 153 / 5 + 122;
-        int Y = y - 4800 + (m + 2) / 12;
-        int M = (m + 2) % 12 + 1;
-        int D = d + 1;
-        int[] result = new int[TIME_DIGITS];
-        result[0] = Y;
-        result[1] = M;
-        result[2] = D;
-        return result;
     }
 
     /**
@@ -1158,83 +1242,6 @@ public class TimeUtil {
             }
         }
         return true; // they are equal
-    }
-    
-    /**
-     * given the two times, return a 14 element time range.
-     * @param t1 a seven digit time
-     * @param t2 a seven digit time after the first time.
-     * @return a fourteen digit time range.
-     * @throws IllegalArgumentException when the first time is greater than or equal to the second time.
-     */
-    public static int[] createTimeRange( int[] t1, int[] t2 ) {
-        if ( !gt(t2,t1) ) {
-            throw new IllegalArgumentException("t1 is not smaller than t2");
-        }
-        int[] result= new int[TimeUtil.TIME_DIGITS*2];
-        setStartTime( result, t1 );
-        setStopTime( result, t2 );
-        return result;
-    }
-
-    /**
-     * return the seven element start time from the time range.  Note
-     * it is fine to use a time range as the start time, because codes
-     * will only read the first seven components, and this is only added
-     * to make code more readable.
-     * @param range a fourteen-element time range.
-     * @return the start time.
-     */
-    public static int[] getStartTime( int [] range ) {
-        int[] result= new int[ TimeUtil.TIME_DIGITS ];
-        System.arraycopy( range, 0, result, 0, TimeUtil.TIME_DIGITS  );
-        return result;
-    }
-    
-    /**
-     * return the seven element stop time from the time range.  Note
-     * it is fine to use a time range as the start time, because codes
-     * will only read the first seven components.
-     * @param range a fourteen-element time range.
-     * @return the stop time.
-     */
-    public static int[] getStopTime( int [] range ) {
-        int[] result= new int[ TimeUtil.TIME_DIGITS ];
-        System.arraycopy( range, TimeUtil.TIME_DIGITS , result, 0, TimeUtil.TIME_DIGITS  );
-        return result;
-    }
-    
-    /**
-     * copy the components of time into the start position (indeces 7-14) of the time range.
-     * This one-line method was introduced to clarify code and make conversion to 
-     * other languages (in particular Python) easier.
-     * @param time the seven-element start time
-     * @param range the fourteen-element time range.
-     */
-    public static void setStartTime( int[] time, int[] range ) {
-        System.arraycopy( time, 0, range, 0, TimeUtil.TIME_DIGITS  );
-    }
-    
-    
-    /**
-     * copy the components of time into the stop position (indeces 7-14) of the time range.
-     * @param time the seven-element stop time
-     * @param range the fourteen-element time range.
-     */
-    public static void setStopTime( int[] time, int[] range ) {
-        System.arraycopy( time, 0, range, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS  );
-    }
-    
-    /**
-     * format the time as milliseconds since 1970-01-01T00:00Z into a string.  The
-     * number of milliseconds should not include leap seconds.
-     * 
-     * @param time the number of milliseconds since 1970-01-01T00:00Z
-     * @return the formatted time.
-     * @see DateTimeFormatter#parse
-     */
-    public static String fromMillisecondsSince1970(long time) {
-        return DateTimeFormatter.ISO_INSTANT.format( Instant.ofEpochMilli(time) );
     }
 
     /**
