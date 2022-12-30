@@ -56,7 +56,7 @@ class TimeUtil:
     # @param s string containing an integer
     # @return the integer
     @staticmethod
-    def parseInt(s):
+    def parseInteger(s):
         length = len(s)
         for i in range(0, length):
             c = s[i]
@@ -81,10 +81,10 @@ class TimeUtil:
     # @param deft the number to return when s is missing.
     # @return the int value
     @staticmethod
-    def parseIntDeft(s, deft):
+    def parseIntegerDeft(s, deft):
         if s is None:
             return deft
-        return TimeUtil.parseInt(s)
+        return int(s)
 
     @staticmethod
     def parseDouble(val, deft):
@@ -460,11 +460,11 @@ class TimeUtil:
             if nanoseconds == 0:
                 sb+= str(seconds)
             elif nanoseconds % 1000000 == 0:
-                sb+= '%.3f' % (seconds + nanoseconds / 1e9)
+                sb+= '%.3f' % ( seconds + nanoseconds / 1e9)
             elif nanoseconds % 1000 == 0:
-                sb+= '%.6f' % (seconds + nanoseconds / 1e9)
+                sb+= '%.6f' % ( seconds + nanoseconds / 1e9)
             else:
-                sb+= '%.9f' % (seconds + nanoseconds / 1e9)
+                sb+= '%.9f' % ( seconds + nanoseconds / 1e9)
             sb+= 'S'
         if len(sb) == 1:
             if len(nn) > 3:
@@ -500,7 +500,7 @@ class TimeUtil:
             dsec = TimeUtil.parseDouble(m.group(13), 0)
             sec = int(dsec)
             nanosec = int(((dsec - sec) * 1e9))
-            return [ TimeUtil.parseIntDeft(m.group(2), 0), TimeUtil.parseIntDeft(m.group(4), 0), TimeUtil.parseIntDeft(m.group(6), 0), TimeUtil.parseIntDeft(m.group(9), 0), TimeUtil.parseIntDeft(m.group(11), 0), sec, nanosec ]
+            return [ TimeUtil.parseIntegerDeft(m.group(2), 0), TimeUtil.parseIntegerDeft(m.group(4), 0), TimeUtil.parseIntegerDeft(m.group(6), 0), TimeUtil.parseIntegerDeft(m.group(9), 0), TimeUtil.parseIntegerDeft(m.group(11), 0), sec, nanosec ]
         else:
             if 'P' in stringIn and 'S' in stringIn and not 'T' in stringIn:
                 raise Exception('ISO8601 duration expected but not found.  Was the T missing before S?')
@@ -593,33 +593,33 @@ class TimeUtil:
             if len(time) == 7:
                 if time[4] == 'W':
                     # 2022W08
-                    year = TimeUtil.parseInt(time[0:4])
-                    week = TimeUtil.parseInt(time[5:])
+                    year = TimeUtil.parseInteger(time[0:4])
+                    week = TimeUtil.parseInteger(time[5:])
                     result = [ year, 0, 0, 0, 0, 0, 0 ]
                     TimeUtil.fromWeekOfYear(year, week, result)
                     time = ''
                 else:
-                    result = [ TimeUtil.parseInt(time[0:4]), TimeUtil.parseInt(time[5:7]), 1, 0, 0, 0, 0 ]
+                    result = [ TimeUtil.parseInteger(time[0:4]), TimeUtil.parseInteger(time[5:7]), 1, 0, 0, 0, 0 ]
                     time = ''
             elif len(time) == 8:
                 if time[5] == 'W':
                     # 2022-W08
-                    year = TimeUtil.parseInt(time[0:4])
-                    week = TimeUtil.parseInt(time[6:])
+                    year = TimeUtil.parseInteger(time[0:4])
+                    week = TimeUtil.parseInteger(time[6:])
                     result = [ year, 0, 0, 0, 0, 0, 0 ]
                     TimeUtil.fromWeekOfYear(year, week, result)
                     time = ''
                 else:
-                    result = [ TimeUtil.parseInt(time[0:4]), 1, TimeUtil.parseInt(time[5:8]), 0, 0, 0, 0 ]
+                    result = [ TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0 ]
                     time = ''
             elif time[8] == 'T':
-                result = [ TimeUtil.parseInt(time[0:4]), 1, TimeUtil.parseInt(time[5:8]), 0, 0, 0, 0 ]
+                result = [ TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0 ]
                 time = time[9:]
             elif time[8] == 'Z':
-                result = [ TimeUtil.parseInt(time[0:4]), 1, TimeUtil.parseInt(time[5:8]), 0, 0, 0, 0 ]
+                result = [ TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0 ]
                 time = time[9:]
             else:
-                result = [ TimeUtil.parseInt(time[0:4]), TimeUtil.parseInt(time[5:7]), TimeUtil.parseInt(time[8:10]), 0, 0, 0, 0 ]
+                result = [ TimeUtil.parseInteger(time[0:4]), TimeUtil.parseInteger(time[5:7]), TimeUtil.parseInteger(time[8:10]), 0, 0, 0, 0 ]
                 if len(time) == 10:
                     time = ''
                 else:
@@ -627,13 +627,13 @@ class TimeUtil:
             if time.endswith('Z'):
                 time = time[0:len(time) - 1]
             if len(time) >= 2:
-                result[3] = TimeUtil.parseInt(time[0:2])
+                result[3] = TimeUtil.parseInteger(time[0:2])
             if len(time) >= 5:
-                result[4] = TimeUtil.parseInt(time[3:5])
+                result[4] = TimeUtil.parseInteger(time[3:5])
             if len(time) >= 8:
-                result[5] = TimeUtil.parseInt(time[6:8])
+                result[5] = TimeUtil.parseInteger(time[6:8])
             if len(time) > 9:
-                result[6] = int((10**(18 - len(time)))) * TimeUtil.parseInt(time[9:])
+                result[6] = int((10**(18 - len(time)))) * TimeUtil.parseInteger(time[9:])
             TimeUtil.normalizeTime(result)
         return result
 
