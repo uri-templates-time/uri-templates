@@ -16,3 +16,8 @@ bits to equivalent Python.
 This also relies on sprintf.js, a code at Github: https://github.com/alexei/sprintf.js and more precisely
 https://github.com/alexei/sprintf.js/blob/master/src/sprintf.js.
 
+So the procedure is as follows:
+* Using https://cottagesystems.com/JavaJythonConverter/ConvertJavaToJavascriptServlet, convert TimeUtil.java to TimeUtil.js
+* manually install new fromMillisecondsSince1970, toMillisecondsSince1970, and now functions.  (Git is useful for maintaining these changes.)
+* Using the converter, convert the unit test  TimeUtilTest.java to make TimeUtilTest.js.
+* load the web page which runs the unit tests and verify the results in the console.
