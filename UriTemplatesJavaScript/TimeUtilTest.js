@@ -1,6 +1,6 @@
 // cheesy unittest temporary
 function assertEquals(a,b) {
-    if ( a!==b ) throw 'a!==b : ' + a + ' !== ' + b;
+     if ( a!==b ) throw 'a!==b : ' + a + ' !== ' + b;
 }
 function assertArrayEquals(a,b) {
     if ( a.length===b.length ) {
@@ -299,6 +299,17 @@ class TimeUtilTest {
     }
 
     /**
+     * Test of fromJulianDay method, of class TimeUtil.
+     */
+    testFromMillisecondsSince1970() {
+        console.info("fromMillisecondsSince1970");
+        var s = TimeUtil.fromMillisecondsSince1970(0);
+        assertEquals(s, "1970-01-01T00:00:00Z");
+        s = TimeUtil.fromMillisecondsSince1970(2208988800000);
+        assertEquals(s, "2040-01-01T00:00:00Z");
+    }
+
+    /**
      * Test of subtract method, of class TimeUtil.
      */
     testSubtract() {
@@ -521,6 +532,7 @@ test.testParseISO8601Duration();
 test.testJulianDay();
 test.testMonthForDayOfYear();
 test.testFromJulianDay();
+test.testFromMillisecondsSince1970();
 test.testSubtract();
 test.testAdd();
 test.testFormatIso8601Duration();
