@@ -38,18 +38,39 @@ class TimeUtil {
      */
     static TIME_RANGE_DIGITS = 14;
 
+    /**
+     * When array of components represents a time, the zeroth component is the year.
+     */
     static COMPONENT_YEAR = 0;
 
+    /**
+     * When array of components represents a time, the first component is the month.
+     */
     static COMPONENT_MONTH = 1;
 
+    /**
+     * When array of components represents a time, the second component is the day of month.
+     */
     static COMPONENT_DAY = 2;
 
+    /**
+     * When array of components represents a time, the third component is the hour of day.
+     */
     static COMPONENT_HOUR = 3;
 
+    /**
+     * When array of components represents a time, the fourth component is the minute of hour.
+     */
     static COMPONENT_MINUTE = 4;
 
+    /**
+     * When array of components represents a time, the fifth component is the second of minute (0 to 61).
+     */
     static COMPONENT_SECOND = 5;
 
+    /**
+     * When array of components represents a time, the sixth component is the nanosecond of the second (0 to 99999999).
+     */
     static COMPONENT_NANOSECOND = 6;
 
     /**
@@ -61,6 +82,11 @@ class TimeUtil {
      * the number of days to the first of each month.  DAY_OFFSET[0][12] is offset to December 1st of a non-leap year
      */
     static DAY_OFFSET = [[0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365], [0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]];
+
+    /**
+     * short English abbreviations for month names.  Note monthNames[0] is "Jan", not monthNames[1].
+     */
+    static MONTH_NAMES = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     /**
      * fast parser requires that each character of string is a digit.
@@ -97,12 +123,12 @@ class TimeUtil {
      * it is fine to use a time range as the start time, because codes
      * will only read the first seven components, and this is only added
      * to make code more readable.
-     * @param range a fourteen-element time range.
+     * @param timerange a fourteen-element time range.
      * @return the start time.
      */
-    static getStartTime(range) {
+    static getStartTime(timerange) {
         var result = [];
-        arraycopy( range, 0, result, 0, TimeUtil.TIME_DIGITS );
+        arraycopy( timerange, 0, result, 0, TimeUtil.TIME_DIGITS );
         return result;
     }
 
@@ -110,12 +136,12 @@ class TimeUtil {
      * return the seven element stop time from the time range.  Note
      * it is fine to use a time range as the start time, because codes
      * will only read the first seven components.
-     * @param range a fourteen-element time range.
+     * @param timerange a fourteen-element time range.
      * @return the stop time.
      */
-    static getStopTime(range) {
+    static getStopTime(timerange) {
         var result = [];
-        arraycopy( range, TimeUtil.TIME_DIGITS, result, 0, TimeUtil.TIME_DIGITS );
+        arraycopy( timerange, TimeUtil.TIME_DIGITS, result, 0, TimeUtil.TIME_DIGITS );
         return result;
     }
 
@@ -124,28 +150,28 @@ class TimeUtil {
      * This one-line method was introduced to clarify code and make conversion to 
      * other languages (in particular Python) easier.
      * @param time the seven-element start time
-     * @param range the fourteen-element time range.
+     * @param timerange the fourteen-element time range.
      */
-    static setStartTime(time, range) {
-        arraycopy( time, 0, range, 0, TimeUtil.TIME_DIGITS );
+    static setStartTime(time, timerange) {
+        arraycopy( time, 0, timerange, 0, TimeUtil.TIME_DIGITS );
     }
 
     /**
      * copy the components of time into the stop position (indeces 7-14) of the time range.
      * @param time the seven-element stop time
-     * @param range the fourteen-element time range.
+     * @param timerange the fourteen-element time range.
      */
-    static setStopTime(time, range) {
-        arraycopy( time, 0, range, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS );
+    static setStopTime(time, timerange) {
+        arraycopy( time, 0, timerange, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS );
     }
 
     /**
-     * format the time as milliseconds since 1970-01-01T00:00Z into a string.  The
-     * number of milliseconds should not include leap seconds.
+     * format the time as (non-leap) milliseconds since 1970-01-01T00:00.000Z into a string.  The
+     * number of milliseconds should not include leap seconds.  The milliseconds are always present.
      * 
-     * @param time the number of milliseconds since 1970-01-01T00:00Z
+     * @param time the number of milliseconds since 1970-01-01T00:00.000Z
      * @return the formatted time.
-     * @see DateTimeFormatter#parse
+     * @see #toMillisecondsSince1970(java.lang.String) 
      */
     static fromMillisecondsSince1970(time) {
         return new Date(time).toISOString();
@@ -180,8 +206,6 @@ class TimeUtil {
         return (year % 4) === 0 && (year % 400 === 0 || year % 100 !== 0);
     }
 
-    static monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
     /**
      * return the English month name, abbreviated to three letters, for the
      * month number.
@@ -190,7 +214,7 @@ class TimeUtil {
      * @return the month name, like "Jan" or "Dec"
      */
     static monthNameAbbrev(i) {
-        return TimeUtil.monthNames[i - 1];
+        return TimeUtil.MONTH_NAMES[i];
     }
 
     /**
@@ -207,9 +231,9 @@ class TimeUtil {
             throw "need at least three letters";
         }
         s = s.substring(0, 3);
-        for ( var i = 0; i < 12; i++) {
-            if (s.toUpperCase()===TimeUtil.monthNames[i].toUpperCase()) {
-                return i + 1;
+        for ( var i = 1; i < 13; i++) {
+            if (s.toUpperCase()===TimeUtil.MONTH_NAMES[i].toUpperCase()) {
+                return i;
             }
         }
         throw "Unable to parse month";
@@ -403,7 +427,7 @@ class TimeUtil {
      * @param time the isoTime, which is parsed using
      * DateTimeFormatter.ISO_INSTANT.parse.
      * @return number of non-leap-second milliseconds since 1970-01-01T00:00Z.
-     * @see DateTimeFormatter#parse
+     * @see #fromMillisecondsSince1970(long) 
      */
     static toMillisecondsSince1970(time) {
         time = TimeUtil.normalizeTimeString(time);
@@ -430,14 +454,14 @@ class TimeUtil {
 
     /**
      * format the time range components into iso8601 time range.  
-     * @param nn 14-element time range
+     * @param timerange 14-element time range
      * @return efficient representation of the time range
      */
-    static formatIso8601TimeRange(nn) {
-        var ss1 = TimeUtil.formatIso8601TimeInTimeRange(nn, 0);
-        var ss2 = TimeUtil.formatIso8601TimeInTimeRange(nn, TimeUtil.TIME_DIGITS);
+    static formatIso8601TimeRange(timerange) {
+        var ss1 = TimeUtil.formatIso8601TimeInTimeRange(timerange, 0);
+        var ss2 = TimeUtil.formatIso8601TimeInTimeRange(timerange, TimeUtil.TIME_DIGITS);
         var firstNonZeroDigit = 7;
-        while (firstNonZeroDigit > 3 && nn[firstNonZeroDigit - 1] === 0 && nn[firstNonZeroDigit + TimeUtil.TIME_DIGITS - 1] === 0) {
+        while (firstNonZeroDigit > 3 && timerange[firstNonZeroDigit - 1] === 0 && timerange[firstNonZeroDigit + TimeUtil.TIME_DIGITS - 1] === 0) {
             firstNonZeroDigit -= 1;
         }
         switch (firstNonZeroDigit) {
@@ -1258,14 +1282,14 @@ class TimeUtil {
      * <li> must be only one component which increments (20 days, but not 20 days and 12 hours)
      * <li> increment must be a divisor of the component (e.g. months), so 1, 2, 3, 4, or 6 months is valid, but 5 months is not.
      * </ul>
-     * @param range 14-component time interval.
+     * @param timerange 14-component time interval.
      * @return 14-component time interval.
      */
-    static nextRange(range) {
+    static nextRange(timerange) {
         var result = [];
         var width = [];
         for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
-            width[i] = range[i + TimeUtil.TIME_DIGITS] - range[i];
+            width[i] = timerange[i + TimeUtil.TIME_DIGITS] - timerange[i];
         }
         if (width[5] < 0) {
             width[5] = width[5] + 60;
@@ -1280,7 +1304,7 @@ class TimeUtil {
             width[2] = width[2] - 1;
         }
         if (width[2] < 0) {
-            var daysInMonth = TimeUtil.daysInMonth(range[TimeUtil.COMPONENT_YEAR], range[TimeUtil.COMPONENT_MONTH]);
+            var daysInMonth = TimeUtil.daysInMonth(timerange[TimeUtil.COMPONENT_YEAR], timerange[TimeUtil.COMPONENT_MONTH]);
             width[2] = width[2] + daysInMonth;
             width[1] = width[1] - 1;
         }
@@ -1289,9 +1313,9 @@ class TimeUtil {
             width[0] = width[0] - 1;
         }
         // System.arraycopy( range, TimeUtil.TIME_DIGITS, result, 0, TimeUtil.TIME_DIGITS );
-        TimeUtil.setStartTime(TimeUtil.getStopTime(range), result);
+        TimeUtil.setStartTime(TimeUtil.getStopTime(timerange), result);
         // This creates an extra array, but let's not worry about that.
-        TimeUtil.setStopTime(TimeUtil.add(TimeUtil.getStopTime(range), width), result);
+        TimeUtil.setStopTime(TimeUtil.add(TimeUtil.getStopTime(timerange), width), result);
         return result;
     }
 
@@ -1302,14 +1326,14 @@ class TimeUtil {
      * <li> must be only one component which increments (20 days, but not 20 days and 12 hours)
      * <li> increment must be a divisor of the component (e.g. months), so 1, 2, 3, 4, or 6 months is valid, but 5 months is not.
      * </ul>
-     * @param range 14-component time interval.
+     * @param timerange 14-component time interval.
      * @return 14-component time interval.
      */
-    static previousRange(range) {
+    static previousRange(timerange) {
         var result = [];
         var width = [];
         for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
-            width[i] = range[i + TimeUtil.TIME_DIGITS] - range[i];
+            width[i] = timerange[i + TimeUtil.TIME_DIGITS] - timerange[i];
         }
         if (width[5] < 0) {
             width[5] = width[5] + 60;
@@ -1324,7 +1348,7 @@ class TimeUtil {
             width[2] = width[2] - 1;
         }
         if (width[2] < 0) {
-            var daysInMonth = TimeUtil.daysInMonth(range[TimeUtil.COMPONENT_YEAR], range[TimeUtil.COMPONENT_MONTH]);
+            var daysInMonth = TimeUtil.daysInMonth(timerange[TimeUtil.COMPONENT_YEAR], timerange[TimeUtil.COMPONENT_MONTH]);
             width[2] = width[2] + daysInMonth;
             width[1] = width[1] - 1;
         }
@@ -1332,19 +1356,19 @@ class TimeUtil {
             width[1] = width[1] + 12;
             width[0] = width[0] - 1;
         }
-        TimeUtil.setStopTime(TimeUtil.getStartTime(range), result);
-        TimeUtil.setStartTime(TimeUtil.subtract(TimeUtil.getStartTime(range), width), result);
+        TimeUtil.setStopTime(TimeUtil.getStartTime(timerange), result);
+        TimeUtil.setStartTime(TimeUtil.subtract(TimeUtil.getStartTime(timerange), width), result);
         return result;
     }
 
     /**
      * return true if this is a valid time range having a non-zero width.
-     * @param granule
+     * @param timerange
      * @return 
      */
-    static isValidTimeRange(granule) {
-        var start = TimeUtil.getStartTime(granule);
-        var stop = TimeUtil.getStopTime(granule);
+    static isValidTimeRange(timerange) {
+        var start = TimeUtil.getStartTime(timerange);
+        var stop = TimeUtil.getStopTime(timerange);
         return TimeUtil.isValidTime(start) && TimeUtil.isValidTime(stop) && TimeUtil.gt(stop, start);
     }
 
