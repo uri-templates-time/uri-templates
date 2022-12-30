@@ -148,7 +148,7 @@ class TimeUtil {
      * @see DateTimeFormatter#parse
      */
     static fromMillisecondsSince1970(time) {
-        return DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(time));
+        new Date(time).toISOString();
     }
 
     /**
