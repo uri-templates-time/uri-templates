@@ -89,17 +89,28 @@ class TimeUtil {
     static MONTH_NAMES = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     /**
+     * fast parser requires that each character of string is a digit.  Note this 
+     * does not check the the numbers are digits!
+     *
+     * @param s string containing an integer
+     * @return the integer
+     */
+    static parseInteger(s) {
+        return parseInt(s,10);
+    }
+
+    /**
      * fast parser requires that each character of string is a digit.
      *
      * @param s the number, containing 1 or more digits.
      * @param deft the number to return when s is missing.
      * @return the int value
      */
-    static parseIntDeft(s, deft) {
+    static parseIntegerDeft(s, deft) {
         if (s === undefined || s === null) {
             return deft;
         }
-        return parseInt(s);
+        return parseInt(s, 10);
     }
 
     static parseDouble(val, deft) {
@@ -593,7 +604,7 @@ class TimeUtil {
             var dsec = TimeUtil.parseDouble(m[13], 0);
             var sec = Math.trunc( dsec );
             var nanosec = Math.trunc( ((dsec - sec) * 1e9) );
-            return [TimeUtil.parseIntDeft(m[2], 0), TimeUtil.parseIntDeft(m[4], 0), TimeUtil.parseIntDeft(m[6], 0), TimeUtil.parseIntDeft(m[9], 0), TimeUtil.parseIntDeft(m[11], 0), sec, nanosec];
+            return [TimeUtil.parseIntegerDeft(m[2], 0), TimeUtil.parseIntegerDeft(m[4], 0), TimeUtil.parseIntegerDeft(m[6], 0), TimeUtil.parseIntegerDeft(m[9], 0), TimeUtil.parseIntegerDeft(m[11], 0), sec, nanosec];
         } else {
             if (stringIn.contains("P") && stringIn.contains("S") && !stringIn.contains("T")) {
                 throw "ISO8601 duration expected but not found.  Was the T missing before S?";
@@ -723,38 +734,38 @@ class TimeUtil {
                 if (time.length === 7) {
                     if (time.charAt(4) == 'W') {
                         // 2022W08
-                        var year = parseInt(time.substring(0, 4));
-                        var week = parseInt(time.substring(5));
+                        var year = TimeUtil.parseInteger(time.substring(0, 4));
+                        var week = TimeUtil.parseInteger(time.substring(5));
                         result = [year, 0, 0, 0, 0, 0, 0];
                         TimeUtil.fromWeekOfYear(year, week, result);
                         time = "";
                     } else {
-                        result = [parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), 1, 0, 0, 0, 0];
+                        result = [TimeUtil.parseInteger(time.substring(0, 4)), TimeUtil.parseInteger(time.substring(5, 7)), 1, 0, 0, 0, 0];
                         time = "";
                     }
                 } else {
                     if (time.length === 8) {
                         if (time.charAt(5) == 'W') {
                             // 2022-W08
-                            var year = parseInt(time.substring(0, 4));
-                            var week = parseInt(time.substring(6));
+                            var year = TimeUtil.parseInteger(time.substring(0, 4));
+                            var week = TimeUtil.parseInteger(time.substring(6));
                             result = [year, 0, 0, 0, 0, 0, 0];
                             TimeUtil.fromWeekOfYear(year, week, result);
                             time = "";
                         } else {
-                            result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
+                            result = [TimeUtil.parseInteger(time.substring(0, 4)), 1, TimeUtil.parseInteger(time.substring(5, 8)), 0, 0, 0, 0];
                             time = "";
                         }
                     } else {
                         if (time.charAt(8) == 'T') {
-                            result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
+                            result = [TimeUtil.parseInteger(time.substring(0, 4)), 1, TimeUtil.parseInteger(time.substring(5, 8)), 0, 0, 0, 0];
                             time = time.substring(9);
                         } else {
                             if (time.charAt(8) == 'Z') {
-                                result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
+                                result = [TimeUtil.parseInteger(time.substring(0, 4)), 1, TimeUtil.parseInteger(time.substring(5, 8)), 0, 0, 0, 0];
                                 time = time.substring(9);
                             } else {
-                                result = [parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), parseInt(time.substring(8, 10)), 0, 0, 0, 0];
+                                result = [TimeUtil.parseInteger(time.substring(0, 4)), TimeUtil.parseInteger(time.substring(5, 7)), TimeUtil.parseInteger(time.substring(8, 10)), 0, 0, 0, 0];
                                 if (time.length === 10) {
                                     time = "";
                                 } else {
@@ -768,16 +779,16 @@ class TimeUtil {
                     time = time.substring(0, time.length - 1);
                 }
                 if (time.length >= 2) {
-                    result[3] = parseInt(time.substring(0, 2));
+                    result[3] = TimeUtil.parseInteger(time.substring(0, 2));
                 }
                 if (time.length >= 5) {
-                    result[4] = parseInt(time.substring(3, 5));
+                    result[4] = TimeUtil.parseInteger(time.substring(3, 5));
                 }
                 if (time.length >= 8) {
-                    result[5] = parseInt(time.substring(6, 8));
+                    result[5] = TimeUtil.parseInteger(time.substring(6, 8));
                 }
                 if (time.length > 9) {
-                    result[6] = Math.trunc( (Math.pow(10, 18 - time.length)) ) * parseInt(time.substring(9));
+                    result[6] = Math.trunc( (Math.pow(10, 18 - time.length)) ) * TimeUtil.parseInteger(time.substring(9));
                 }
                 TimeUtil.normalizeTime(result);
             }
