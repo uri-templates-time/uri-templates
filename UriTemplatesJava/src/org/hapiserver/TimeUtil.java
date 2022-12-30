@@ -174,7 +174,7 @@ public class TimeUtil {
     }
     
     /**
-     * format the time as milliseconds since 1970-01-01T00:00Z into a string.  The
+     * format the time as (non-leap) milliseconds since 1970-01-01T00:00Z into a string.  The
      * number of milliseconds should not include leap seconds.
      * 
      * @param time the number of milliseconds since 1970-01-01T00:00Z
