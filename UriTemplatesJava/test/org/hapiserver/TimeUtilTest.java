@@ -320,6 +320,18 @@ public class TimeUtilTest {
     }
 
     /**
+     * Test of fromJulianDay method, of class TimeUtil.
+     */
+    @Test
+    public void testFromMillisecondsSince1970() {
+        System.out.println("fromMillisecondsSince1970");
+        String s= TimeUtil.fromMillisecondsSince1970(0);
+        assertEquals( s, "1970-01-01T00:00:00Z");
+        s= TimeUtil.fromMillisecondsSince1970(2208988800000L);
+        assertEquals( s, "2040-01-01T00:00:00Z");
+    }
+    
+    /**
      * Test of subtract method, of class TimeUtil.
      */
     @Test
