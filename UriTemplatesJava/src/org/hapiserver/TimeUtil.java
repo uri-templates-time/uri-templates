@@ -39,18 +39,45 @@ public class TimeUtil {
      */
     public static final int TIME_RANGE_DIGITS=14;
     
+    /**
+     * When array of components represents a time, the zeroth component is the year.
+     */
     public static final int COMPONENT_YEAR=0;
+
+    /**
+     * When array of components represents a time, the first component is the month.
+     */
     public static final int COMPONENT_MONTH=1;
+
+    /**
+     * When array of components represents a time, the second component is the day of month.
+     */
     public static final int COMPONENT_DAY=2;
+    
+    /**
+     * When array of components represents a time, the third component is the hour of day.
+     */
     public static final int COMPONENT_HOUR=3;
+
+    /**
+     * When array of components represents a time, the fourth component is the minute of hour.
+     */
     public static final int COMPONENT_MINUTE=4;
+    
+    /**
+     * When array of components represents a time, the fifth component is the second of minute (0 to 61).
+     */    
     public static final int COMPONENT_SECOND=5;
+
+    /**
+     * When array of components represents a time, the sixth component is the nanosecond of the second (0 to 99999999).
+     */    
     public static final int COMPONENT_NANOSECOND=6;
     
     /**
      * the number of days in each month.  DAYS_IN_MONTH[0][12] is number of days in December of a non-leap year
      */
-    private final static int[][] DAYS_IN_MONTH = {
+    private static final int[][] DAYS_IN_MONTH = {
         {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0},
         {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0}
     };
@@ -58,10 +85,19 @@ public class TimeUtil {
     /**
      * the number of days to the first of each month.  DAY_OFFSET[0][12] is offset to December 1st of a non-leap year
      */
-    private final static int[][] DAY_OFFSET = {
+    private static final int[][] DAY_OFFSET = {
         {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365},
         {0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366}
     };
+    
+    /**
+     * short English abbreviations for month names.  Note monthNames[0] is "Jan", not monthNames[1].
+     */
+    private static final String[] MONTH_NAMES = { "",
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    };
+
     
     /**
      * fast parser requires that each character of string is a digit.  Note this 
@@ -179,7 +215,7 @@ public class TimeUtil {
      * 
      * @param time the number of milliseconds since 1970-01-01T00:00Z
      * @return the formatted time.
-     * @see DateTimeFormatter#parse
+     * @see #toMillisecondsSince1970(java.lang.String) 
      */
     public static String fromMillisecondsSince1970(long time) {
         return DateTimeFormatter.ISO_INSTANT.format( Instant.ofEpochMilli(time) );
@@ -214,11 +250,6 @@ public class TimeUtil {
         return (year % 4) == 0 && (year % 400 == 0 || year % 100 != 0);
     }
 
-    private static String[] monthNames = {
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-    };
-
     /**
      * return the English month name, abbreviated to three letters, for the
      * month number.
@@ -227,7 +258,7 @@ public class TimeUtil {
      * @return the month name, like "Jan" or "Dec"
      */
     public static String monthNameAbbrev(int i) {
-        return monthNames[i - 1];
+        return MONTH_NAMES[i];
     }
 
     /**
@@ -244,9 +275,9 @@ public class TimeUtil {
             throw new ParseException("need at least three letters", 0);
         }
         s = s.substring(0, 3);
-        for (int i = 0; i < 12; i++) {
-            if (s.equalsIgnoreCase(monthNames[i])) {
-                return i + 1;
+        for (int i = 1; i < 13; i++) {
+            if (s.equalsIgnoreCase(MONTH_NAMES[i])) {
+                return i;
             }
         }
         throw new ParseException("Unable to parse month", 0);
@@ -440,7 +471,7 @@ public class TimeUtil {
      * @param time the isoTime, which is parsed using
      * DateTimeFormatter.ISO_INSTANT.parse.
      * @return number of non-leap-second milliseconds since 1970-01-01T00:00Z.
-     * @see DateTimeFormatter#parse
+     * @see #fromMillisecondsSince1970(long) 
      */
     public static long toMillisecondsSince1970(String time) {
         time = normalizeTimeString(time);
