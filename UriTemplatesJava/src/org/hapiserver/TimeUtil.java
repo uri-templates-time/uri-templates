@@ -107,7 +107,7 @@ public class TimeUtil {
      * @param s string containing an integer
      * @return the integer
      */
-    private static int parseInt(String s) {
+    private static int parseInteger(String s) {
         int result;
         int length= s.length();
         for (int i = 0; i < length; i++) {
@@ -139,11 +139,11 @@ public class TimeUtil {
      * @param deft the number to return when s is missing.
      * @return the int value
      */
-    private static int parseIntDeft(String s, int deft) {
+    private static int parseIntegerDeft(String s, int deft) {
         if (s == null) {
             return deft;
         }
-        return parseInt( s );
+        return Integer.parseInt( s,10 );
     }
 
     private static double parseDouble(String val, double deft) {
@@ -661,8 +661,8 @@ public class TimeUtil {
             int sec = (int) dsec;
             int nanosec = (int) ((dsec - sec) * 1e9);
             return new int[]{
-                parseIntDeft(m.group(2), 0), parseIntDeft(m.group(4), 0), parseIntDeft(m.group(6), 0),
-                parseIntDeft(m.group(9), 0), parseIntDeft(m.group(11), 0), sec, nanosec};
+                parseIntegerDeft(m.group(2), 0), parseIntegerDeft(m.group(4), 0), parseIntegerDeft(m.group(6), 0),
+                parseIntegerDeft(m.group(9), 0), parseIntegerDeft(m.group(11), 0), sec, nanosec};
         } else {
             if (stringIn.contains("P") && stringIn.contains("S") && !stringIn.contains("T")) {
                 throw new ParseException("ISO8601 duration expected but not found.  Was the T missing before S?", 0);
@@ -785,39 +785,39 @@ public class TimeUtil {
             // first, parse YMD part, and leave remaining components in time.
             if ( time.length()==7 ) {
                 if ( time.charAt(4)=='W' ) { // 2022W08
-                    int year= parseInt(time.substring(0, 4));
-                    int week= parseInt(time.substring(5));
+                    int year= parseInteger(time.substring(0, 4));
+                    int week= parseInteger(time.substring(5));
                     result= new int[] { year, 0, 0, 0, 0, 0, 0 };
                     fromWeekOfYear( year, week, result );
                     time= "";
                 } else {
-                    result = new int[]{ parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), 1, // days
+                    result = new int[]{ parseInteger(time.substring(0, 4)), parseInteger(time.substring(5, 7)), 1, // days
                         0, 0, 0, 0 };
                     time = "";
                 }
             } else if (time.length() == 8) {
                 if ( time.charAt(5)=='W' ) { // 2022-W08
-                    int year= parseInt(time.substring(0, 4));
-                    int week= parseInt(time.substring(6));
+                    int year= parseInteger(time.substring(0, 4));
+                    int week= parseInteger(time.substring(6));
                     result= new int[] { year, 0, 0, 0, 0, 0, 0 };
                     fromWeekOfYear( year, week, result );
                     time= "";
                 } else {
-                    result = new int[]{parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), // days
+                    result = new int[]{parseInteger(time.substring(0, 4)), 1, parseInteger(time.substring(5, 8)), // days
                         0, 0, 0, 0};
                     time = "";
                 }
             } else if (time.charAt(8) == 'T') {
-                result = new int[]{parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), // days
+                result = new int[]{parseInteger(time.substring(0, 4)), 1, parseInteger(time.substring(5, 8)), // days
                     0, 0, 0, 0};
                 time = time.substring(9);
             } else if (time.charAt(8) == 'Z') {
-                result = new int[]{parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), // days
+                result = new int[]{parseInteger(time.substring(0, 4)), 1, parseInteger(time.substring(5, 8)), // days
                     0, 0, 0, 0};
                 time = time.substring(9);
             } else {
                 result = new int[]{
-                    parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), parseInt(time.substring(8, 10)), 0, 0, 0, 0};
+                    parseInteger(time.substring(0, 4)), parseInteger(time.substring(5, 7)), parseInteger(time.substring(8, 10)), 0, 0, 0, 0};
                 if (time.length() == 10) {
                     time = "";
                 } else {
@@ -829,16 +829,16 @@ public class TimeUtil {
                 time = time.substring(0, time.length() - 1);
             }
             if (time.length() >= 2) {
-                result[3] = parseInt(time.substring(0, 2));
+                result[3] = parseInteger(time.substring(0, 2));
             }
             if (time.length() >= 5) {
-                result[4] = parseInt(time.substring(3, 5));
+                result[4] = parseInteger(time.substring(3, 5));
             }
             if (time.length() >= 8) {
-                result[5] = parseInt(time.substring(6, 8));
+                result[5] = parseInteger(time.substring(6, 8));
             }
             if (time.length() > 9) {
-                result[6] = (int) (Math.pow(10, 18 - time.length())) * parseInt(time.substring(9));
+                result[6] = (int) (Math.pow(10, 18 - time.length())) * parseInteger(time.substring(9));
             }
             normalizeTime(result);
         }
