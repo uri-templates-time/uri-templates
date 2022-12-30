@@ -109,14 +109,14 @@ public class TimeUtil {
      */
     private static int parseInt(String s) {
         int result;
-        int len= s.length();
-        for (int i = 0; i < len; i++) {
+        int length= s.length();
+        for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
             if (c < 48 || c >= 58) {
                 throw new IllegalArgumentException("only digits are allowed in string");
             }
         }
-        switch (len) {
+        switch (length) {
             case 2:
                 result = 10 * (s.charAt(0) - 48) + (s.charAt(1) - 48);
                 return result;
