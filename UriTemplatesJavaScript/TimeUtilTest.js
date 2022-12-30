@@ -304,9 +304,11 @@ class TimeUtilTest {
     testFromMillisecondsSince1970() {
         console.info("fromMillisecondsSince1970");
         var s = TimeUtil.fromMillisecondsSince1970(0);
-        assertEquals(s, "1970-01-01T00:00:00Z");
+        assertEquals(s, "1970-01-01T00:00:00.000Z");
         s = TimeUtil.fromMillisecondsSince1970(2208988800000);
-        assertEquals(s, "2040-01-01T00:00:00Z");
+        assertEquals(s, "2040-01-01T00:00:00.000Z");
+        s = TimeUtil.fromMillisecondsSince1970(1);
+        assertEquals(s, "1970-01-01T00:00:00.001Z");
     }
 
     /**
