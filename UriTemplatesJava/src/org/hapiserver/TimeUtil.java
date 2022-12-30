@@ -3,6 +3,7 @@ package org.hapiserver;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.TemporalAccessor;
 import java.util.Calendar;
 import java.util.Date;
@@ -209,16 +210,18 @@ public class TimeUtil {
         System.arraycopy( time, 0, range, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS  );
     }
     
+    private static final DateTimeFormatter FORMATTER_MS_1970 = new DateTimeFormatterBuilder().appendInstant(3).toFormatter();
+    
     /**
-     * format the time as (non-leap) milliseconds since 1970-01-01T00:00Z into a string.  The
-     * number of milliseconds should not include leap seconds.
+     * format the time as (non-leap) milliseconds since 1970-01-01T00:00.000Z into a string.  The
+     * number of milliseconds should not include leap seconds.  The milliseconds are always present.
      * 
-     * @param time the number of milliseconds since 1970-01-01T00:00Z
+     * @param time the number of milliseconds since 1970-01-01T00:00.000Z
      * @return the formatted time.
      * @see #toMillisecondsSince1970(java.lang.String) 
      */
     public static String fromMillisecondsSince1970(long time) {
-        return DateTimeFormatter.ISO_INSTANT.format( Instant.ofEpochMilli(time) );
+        return FORMATTER_MS_1970.format( Instant.ofEpochMilli(time) );
     }
 
     /**
