@@ -158,7 +158,7 @@ class HrintervalFieldHandler extends FieldHandler {
 }
 /**
  * regular intervals are numbered:
- * $(periodic;offset=0;start=2000-001;period=P1D) "0" â "2000-001"
+ * $(periodic;offset=0;start=2000-001;period=P1D) "0" ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ "2000-001"
  */
 class PeriodicFieldHandler extends FieldHandler {
     offset;
@@ -705,19 +705,19 @@ class URITemplate {
         var oldSpec2 = p.exec(formatString)!=null;
         if (formatString.startsWith("$") && !wildcard && !oldSpec && !oldSpec2) return formatString;
         if (formatString.indexOf("%")!==-1 && !formatString.indexOf("$")!==-1) {
-            formatString = formatString.replaceAll("\\%", "\\$");
+            formatString = formatString.replaceAll("%", "$");
         }
         oldSpec = formatString.indexOf("${")!==-1;
         if (oldSpec && !formatString.indexOf("$(")!==-1) {
-            formatString = formatString.replaceAll("\\$\\{", "\\$(");
-            formatString = formatString.replaceAll("\\}", "\\)");
+            formatString = formatString.replaceAll("${", "$(");
+            formatString = formatString.replaceAll("}", ")");
         }
         if (oldSpec2 && !formatString.indexOf("$(")!==-1) {
-            formatString = formatString.replaceAll("\\$([0-9]+)\\{", "\\$$1(");
-            formatString = formatString.replaceAll("\\}", "\\)");
+            formatString = formatString.replaceAll("$([0-9]+){", "$$1(");
+            formatString = formatString.replaceAll("}", ")");
         }
         if (wildcard) {
-            formatString = formatString.replaceAll("\\*", "\\$x");
+            formatString = formatString.replaceAll("*", "$x");
         }
         var i = 1;
         if (i < formatString.length && formatString.charAt(i) == '(') {
@@ -740,19 +740,19 @@ class URITemplate {
      */
     static makeQualifiersCanonical(qualifiers) {
         var noDelimiters = true;
-        for ( var i = 0; noDelimiters && i < URITemplate.qualifiers.length; i++) {
-            if (URITemplate.qualifiers.charAt(i) == ',' || URITemplate.qualifiers.charAt(i) == ';') {
+        for ( var i = 0; noDelimiters && i < qualifiers.length; i++) {
+            if (qualifiers.charAt(i) == ',' || qualifiers.charAt(i) == ';') {
                 noDelimiters = false;
             }
         }
-        if (noDelimiters) return URITemplate.qualifiers;
+        if (noDelimiters) return qualifiers;
         var result = [];
         var istart;
         // If it is, then assume the qualifiers are properly formatted.
-        result[0] = URITemplate.qualifiers.charAt(0);
-        for ( istart = 1; istart < URITemplate.qualifiers.length; istart++) {
-            var ch = URITemplate.qualifiers.charAt(istart);
-            if (ch == ';') return URITemplate.qualifiers;
+        result[0] = qualifiers.charAt(0);
+        for ( istart = 1; istart < qualifiers.length; istart++) {
+            var ch = qualifiers.charAt(istart);
+            if (ch == ';') return qualifiers;
             if (ch == ',') {
                 result[istart] = ';';
                 break
@@ -762,14 +762,14 @@ class URITemplate {
             }
         }
         var expectSemi = false;
-        for ( var i = URITemplate.qualifiers.length - 1; i > istart; i--) {
-            result[i] = URITemplate.qualifiers.charAt(i);
-            var ch = URITemplate.qualifiers.charAt(i);
+        for ( var i = qualifiers.length - 1; i > istart; i--) {
+            result[i] = qualifiers.charAt(i);
+            var ch = qualifiers.charAt(i);
             if (ch == '=') expectSemi = true;
         }
         var rr = ''.join( result);
-        if (!result==URITemplate.qualifiers) {
-            logger.log(Level.FINE, "qualifiers are made canonical: {0}->{1}", [URITemplate.qualifiers, rr]);
+        if (!result==qualifiers) {
+            logger.log(Level.FINE, "qualifiers are made canonical: {0}->{1}", [qualifiers, rr]);
         }
         return rr;
     }
@@ -865,7 +865,7 @@ class URITemplate {
         var delim = [];
         URITemplate.ndigits = ss.length;
         var regex1 = "";
-        regex1+= str(ss[0].replaceAll("\\+", "\\\\+"));
+        regex1+= str(ss[0].replaceAll("+", "+"));
         //TODO: I thought we did this already.
         URITemplate.lengths = [];
         for ( var i = 0; i < URITemplate.lengths.length; i++) {
@@ -1259,7 +1259,7 @@ class URITemplate {
             } else {
                 regex1+= "(" + dots.substring(0, URITemplate.lengths[i]) + ")";
             }
-            regex1+= str(delim[i].replaceAll("\\+", "\\\\+"));
+            regex1+= str(delim[i].replaceAll("+", "+"));
         }
         switch (URITemplate.lsd) {
             case 0:
@@ -1702,7 +1702,7 @@ class URITemplate {
             if (idigit === URITemplate.stopTimeDigit) {
                 timel = stopTime;
             }
-            result = result.substring(0,offs)+this.delims[idigit - 1]+result.substring(offs)  // J2J expr -> assignment;
+            result = result.substring(0,offs)+this.delims[idigit - 1]+result.substring(offs);  // J2J expr -> assignment;
             if (URITemplate.offsets[idigit] !== -1) {
                 // note offsets[0] is always known
                 offs = URITemplate.offsets[idigit];
@@ -1793,51 +1793,51 @@ class URITemplate {
                 }
                 if (length < 0) {
                     var ss = String.valueOf(digit);
-                    result = result.substring(0,offs)+ss+result.substring(offs)  // J2J expr -> assignment;
+                    result = result.substring(0,offs)+ss+result.substring(offs);  // J2J expr -> assignment;
                     offs += ss.length;
                 } else {
                     if (this.qualifiersMaps[idigit] !== null) {
                         // TODO: suboptimal
                         var pad = URITemplate.getArg(this.qualifiersMaps[idigit], "pad", null);
                         if (pad === null || pad=="zero") {
-                            result = result.substring(0,offs)+sprintf(nf[length],digit)+result.substring(offs)  // J2J expr -> assignment;
+                            result = result.substring(0,offs)+sprintf(nf[length],digit)+result.substring(offs);  // J2J expr -> assignment;
                             offs += length;
                         } else {
                             if (digit < 10) {
                                 switch (pad) {
                                     case "space":
-                                        result = result.substring(0,offs)+" "+result.substring(offs)  // J2J expr -> assignment;
-                                        result = result.substring(0,offs)+String.valueOf(digit)+result.substring(offs)  // J2J expr -> assignment;
+                                        result = result.substring(0,offs)+" "+result.substring(offs);  // J2J expr -> assignment;
+                                        result = result.substring(0,offs)+String.valueOf(digit)+result.substring(offs);  // J2J expr -> assignment;
                                         offs += 2;
                                         break
                                     case "underscore":
-                                        result = result.substring(0,offs)+"_"+result.substring(offs)  // J2J expr -> assignment;
-                                        result = result.substring(0,offs)+String.valueOf(digit)+result.substring(offs)  // J2J expr -> assignment;
+                                        result = result.substring(0,offs)+"_"+result.substring(offs);  // J2J expr -> assignment;
+                                        result = result.substring(0,offs)+String.valueOf(digit)+result.substring(offs);  // J2J expr -> assignment;
                                         offs += 2;
                                         break
                                     case "none":
-                                        result = result.substring(0,offs)+String.valueOf(digit)+result.substring(offs)  // J2J expr -> assignment;
+                                        result = result.substring(0,offs)+String.valueOf(digit)+result.substring(offs);  // J2J expr -> assignment;
                                         offs += 1;
                                         break
                                     default:
-                                        result = result.substring(0,offs)+sprintf(nf[length],digit)+result.substring(offs)  // J2J expr -> assignment;
+                                        result = result.substring(0,offs)+sprintf(nf[length],digit)+result.substring(offs);  // J2J expr -> assignment;
                                         offs += length;
                                         break
                                 }
                             } else {
-                                result = result.substring(0,offs)+sprintf(nf[length],digit)+result.substring(offs)  // J2J expr -> assignment;
+                                result = result.substring(0,offs)+sprintf(nf[length],digit)+result.substring(offs);  // J2J expr -> assignment;
                                 offs += length;
                             }
                         }
                     } else {
-                        result = result.substring(0,offs)+sprintf(nf[length],digit)+result.substring(offs)  // J2J expr -> assignment;
+                        result = result.substring(0,offs)+sprintf(nf[length],digit)+result.substring(offs);  // J2J expr -> assignment;
                         offs += length;
                     }
                 }
             } else {
                 if (URITemplate.handlers[idigit] === 13) {
                     // month names
-                    result = result.substring(0,offs)+TimeUtil.monthNameAbbrev(timel[1])+result.substring(offs)  // J2J expr -> assignment;
+                    result = result.substring(0,offs)+TimeUtil.monthNameAbbrev(timel[1])+result.substring(offs);  // J2J expr -> assignment;
                     offs += length;
                 } else {
                     if (URITemplate.handlers[idigit] === 12 || URITemplate.handlers[idigit] === 14) {
@@ -1851,7 +1851,7 @@ class URITemplate {
                                     if (length > 20) throw "version lengths>20 not supported";
                                     ins = "00000000000000000000".substring(0, length);
                                 }
-                                result = result.substring(0,offs)+ins+result.substring(offs)  // J2J expr -> assignment;
+                                result = result.substring(0,offs)+ins+result.substring(offs);  // J2J expr -> assignment;
                                 offs += ins.length;
                             } else {
                                 var fh1 = URITemplate.fieldHandlers.get(URITemplate.fc[idigit]);
