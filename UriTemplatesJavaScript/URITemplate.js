@@ -107,7 +107,7 @@ class HrintervalFieldHandler extends FieldHandler {
         var vs = URITemplate.getArg(args, "values", null);
         if (vs === null) vs = URITemplate.getArg(args, "names", null);
         if (vs === null) return "values must be specified for hrinterval";
-        var values1 = vs.split(",", -2);
+        var values1 = vs.split(",");
         URITemplate.mult = 24 / values1.length;
         if (24 - URITemplate.mult * values1.length !== 0) {
             throw "only 1,2,3,4,6,8 or 12 intervals";
@@ -272,9 +272,9 @@ class EnumFieldHandler extends FieldHandler {
         URITemplate.values = new Set();
         var svalues = URITemplate.getArg(args, "values", null);
         if (svalues === null) return "need values";
-        var ss = svalues.split(",", -2);
+        var ss = svalues.split(",");
         if (ss.length === 1) {
-            var ss2 = svalues.split("|", -2);
+            var ss2 = svalues.split("|");
             if (ss2.length > 1) {
                 logger.fine("supporting legacy value containing pipes for values");
                 ss = ss2;
@@ -367,7 +367,7 @@ class IgnoreFieldHandler extends FieldHandler {
 
 }
 
-class VersioningType {
+    class VersioningType {
     constructor( c ) {
         this.compare= c;
     }
@@ -401,7 +401,7 @@ class VersioningType {
         }
         return ss1.length - ss2.length;
     });
-}
+    }
 
     /**
      * Version field handler.  Versions are codes with special sort orders.
@@ -846,7 +846,6 @@ class URITemplate {
         this.fieldHandlers.set("enum", URITemplate.EnumFieldHandler());
         this.fieldHandlers.set("x", URITemplate.IgnoreFieldHandler());
         this.fieldHandlers.set("v", URITemplate.VersionFieldHandler());
-        logger.log(Level.FINE, "new TimeParser({0},...)", formatString);
         var startTime = [];
         startTime[0] = URITemplate.MIN_VALID_YEAR;
         startTime[1] = 1;
@@ -860,7 +859,7 @@ class URITemplate {
         this.fieldHandlersById = new Map();
         formatString = URITemplate.makeCanonical(formatString);
         //this.formatString = formatString;
-        var ss = formatString.split("\\$");
+        var ss = formatString.split("$");
         URITemplate.fc = [];
         URITemplate.qualifiers = [];
         var delim = [];
@@ -962,7 +961,7 @@ class URITemplate {
                     var args = URITemplate.qualifiers[i];
                     var argv = new Map();
                     if (args !== null) {
-                        var ss2 = args.split(";", -2);
+                        var ss2 = args.split(";");
                         ss2.forEach( function ( ss21 ) {
                              var i3 = ss21.indexOf("=");
                             if (i3 === -1) {
@@ -1624,17 +1623,17 @@ class URITemplate {
             s1 = ut.format(sptr, sptr, extra);
             var tta = ut.parse(s1, new Map());
             if (firstLoop) {
-                sptr = TimeUtil.isoTimeFromArray(tta[0:7]);
+                sptr = TimeUtil.isoTimeFromArray(tta.slice(0,7));
                 s1 = ut.format(sptr, sptr, extra);
                 firstLoop = false;
             }
-            if (tta[0:7]==tta[7:14]) {
+            if (tta.slice(0,7)==tta.slice(7,14)) {
                 result.push(ut.format(startTimeStr, stopTimeStr));
                 break
             } else {
                 result.push(s1);
             }
-            sptr = TimeUtil.isoTimeFromArray(tta[7:14]);
+            sptr = TimeUtil.isoTimeFromArray(tta.slice(7,14));
             if (sptr0==sptr) {
                 throw "template fails to advance";
             }
@@ -1944,7 +1943,7 @@ class URITemplate {
                     while (tr1 !== null) {
                         var itimeRange;
                         itimeRange = TimeUtil.parseISO8601TimeRange(tr1);
-                        var result = URITemplate.formatRange(template, TimeUtil.isoTimeFromArray(itimeRange[0:7]), TimeUtil.isoTimeFromArray(itimeRange[7:14]));
+                        var result = URITemplate.formatRange(template, TimeUtil.isoTimeFromArray(itimeRange.slice(0,7)), TimeUtil.isoTimeFromArray(itimeRange.slice(7,14)));
                         result.forEach( function ( s ) {
                              console.info(s);
                         } )
@@ -1955,15 +1954,11 @@ class URITemplate {
                     console.error("range is misformatted: " + tr1);
                     System.exit(-3);
                 }
-                } catch (ex) {
-                    console.error("IOException");
-                    System.exit(-4);
-                }
             } else {
                 var itimeRange;
                 try {
                     itimeRange = TimeUtil.parseISO8601TimeRange(timeRange);
-                    var result = URITemplate.formatRange(template, TimeUtil.isoTimeFromArray(itimeRange[0:7]), TimeUtil.isoTimeFromArray(itimeRange[7:14]));
+                    var result = URITemplate.formatRange(template, TimeUtil.isoTimeFromArray(itimeRange.slice(0,7)), TimeUtil.isoTimeFromArray(itimeRange.slice(7,14)));
                     result.forEach( function ( s ) {
                          console.info(s);
                     } )
@@ -1995,13 +1990,11 @@ class URITemplate {
                         while (filen1 !== null) {
                             var ut = new URITemplate(template);
                             var itimeRange = ut.parse(filen1, argsm);
-                            console.info(TimeUtil.isoTimeFromArray(itimeRange[0:7]));
+                            console.info(TimeUtil.isoTimeFromArray(itimeRange.slice(0,7)));
                             console.info("/");
-                            console.info(TimeUtil.isoTimeFromArray(itimeRange[7:14]));
+                            console.info(TimeUtil.isoTimeFromArray(itimeRange.slice(7,14)));
                             filen1 = r.readLine();
                         }
-                    } catch (ex) {
-                    }
                     } catch (ex) {
                         URITemplate.printUsage();
                         console.error("parseException from " + filen1);
@@ -2011,9 +2004,9 @@ class URITemplate {
                     try {
                         var ut = new URITemplate(template);
                         var itimeRange = ut.parse(name, argsm);
-                        console.info(TimeUtil.isoTimeFromArray(itimeRange[0:7]));
+                        console.info(TimeUtil.isoTimeFromArray(itimeRange.slice(0,7)));
                         console.info("/");
-                        console.info(TimeUtil.isoTimeFromArray(itimeRange[7:14]));
+                        console.info(TimeUtil.isoTimeFromArray(itimeRange.slice(7,14)));
                     } catch (ex) {
                         URITemplate.printUsage();
                         console.error("parseException from ?");
