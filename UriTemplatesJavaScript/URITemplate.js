@@ -699,20 +699,20 @@ class URITemplate {
      * @return formatString containing canonical spec, $() and $x instead of *, like $(Y,m=02)$x.dat
      */
     static makeCanonical(formatString) {
-        var wildcard = formatString.contains("*");
-        var oldSpec = formatString.contains("${");
+        var wildcard = formatString.indexOf("*")!==-1;
+        var oldSpec = formatString.indexOf("${")!==-1;
         var p = new RegExp("\\$[0-9]+\\{");
         var oldSpec2 = p.exec(formatString)!=null;
         if (formatString.startsWith("$") && !wildcard && !oldSpec && !oldSpec2) return formatString;
-        if (formatString.contains("%") && !formatString.contains("$")) {
+        if (formatString.indexOf("%")!==-1 && !formatString.indexOf("$")!==-1) {
             formatString = formatString.replaceAll("\\%", "\\$");
         }
-        oldSpec = formatString.contains("${");
-        if (oldSpec && !formatString.contains("$(")) {
+        oldSpec = formatString.indexOf("${")!==-1;
+        if (oldSpec && !formatString.indexOf("$(")!==-1) {
             formatString = formatString.replaceAll("\\$\\{", "\\$(");
             formatString = formatString.replaceAll("\\}", "\\)");
         }
-        if (oldSpec2 && !formatString.contains("$(")) {
+        if (oldSpec2 && !formatString.indexOf("$(")!==-1) {
             formatString = formatString.replaceAll("\\$([0-9]+)\\{", "\\$$1(");
             formatString = formatString.replaceAll("\\}", "\\)");
         }
@@ -1872,7 +1872,7 @@ class URITemplate {
                                 if (length > -1 && ins.length !== length) {
                                     throw "length of fh is incorrect, should be " + length + ", got \"" + ins + "\"";
                                 }
-                                result = result.substring(0,offs)+ins+result.substring(offs)  // J2J expr -> assignment;
+                                result = result.substring(0,offs)+ins+result.substring(offs);  // J2J expr -> assignment;
                                 offs += ins.length;
                             }
                         } else {
@@ -1888,135 +1888,9 @@ class URITemplate {
                 }
             }
         }
-        result = result.substring(0,offs)+this.delims[URITemplate.ndigits - 1]+result.substring(offs)  // J2J expr -> assignment;
+        result = result.substring(0,offs)+this.delims[URITemplate.ndigits - 1]+result.substring(offs);  // J2J expr -> assignment;
         return result.trim();
-    }
-
-    static printUsage() {
-        console.error("Usage: ");
-        console.error("java -jar UriTemplatesJava.jar [--formatRange|--parse] [--range=<ISO8601 range>] --template=<URI template> [--name=<name>]");
-        console.error("java -jar UriTemplatesJava.jar --formatRange --range=1999-01-01/1999-01-03 --template='http://example.com/data_$(d;pad=none).dat'");
-        //example.com/data_$(d;pad=none).dat'");
-        console.error("java -jar UriTemplatesJava.jar --parse --template='data_$(d;pad=none;Y=1999; m=5).dat' --name=data_1.dat");
-        console.error("   --formatRange time ranges will be formatted into names");
-        console.error("   --parse names will be parsed into time ranges");
-        console.error("   --range is an iso8601 range, or - for ranges from stdin");
-        console.error("   --name is has been formatted by the template, or - for names from stdin");
-    }
-
-    /**
-     * Usage: java -jar dist/UriTemplatesJava.jar --formatRange --range='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'
-     * @param args the command line arguments.
-     */
-    static main(args) {
-        if (args.length === 0 || args[1]=="--help") {
-            URITemplate.printUsage();
-            System.exit(-1);
-        }
-        var argsm = new Map();
-        args.forEach( function ( a ) {
-             var aa = a.split("=", 2);
-            if (aa.length === 1) {
-                argsm.set(aa[0], "");
-            } else {
-                argsm.set(aa[0], aa[1]);
-            }
-        } )
-        if (argsm.has("--formatRange")) {
-            argsm.delete("--formatRange");
-            var template = argsm.delete("--template");
-            if (template === null) {
-                URITemplate.printUsage();
-                console.error("need --template parameter");
-                System.exit(-2);
-            }
-            var timeRange = argsm.delete("--range");
-            if (timeRange === null) {
-                URITemplate.printUsage();
-                console.error("need --range parameter");
-                System.exit(-3);
-            }
-            if (timeRange=="-") {
-                var tr1 = null;
-                try {
-                    tr1 = r.readLine();
-                    while (tr1 !== null) {
-                        var itimeRange;
-                        itimeRange = TimeUtil.parseISO8601TimeRange(tr1);
-                        var result = URITemplate.formatRange(template, TimeUtil.isoTimeFromArray(itimeRange.slice(0,7)), TimeUtil.isoTimeFromArray(itimeRange.slice(7,14)));
-                        result.forEach( function ( s ) {
-                             console.info(s);
-                        } )
-                        tr1 = r.readLine();
-                    }
-                } catch (ex) {
-                    URITemplate.printUsage();
-                    console.error("range is misformatted: " + tr1);
-                    System.exit(-3);
-                }
-            } else {
-                var itimeRange;
-                try {
-                    itimeRange = TimeUtil.parseISO8601TimeRange(timeRange);
-                    var result = URITemplate.formatRange(template, TimeUtil.isoTimeFromArray(itimeRange.slice(0,7)), TimeUtil.isoTimeFromArray(itimeRange.slice(7,14)));
-                    result.forEach( function ( s ) {
-                         console.info(s);
-                    } )
-                } catch (ex) {
-                    URITemplate.printUsage();
-                    console.error("range is misformatted");
-                    System.exit(-3);
-                }
-            }
-        } else {
-            if (argsm.has("--parse")) {
-                argsm.delete("--parse");
-                var template = argsm.delete("--template");
-                if (template === null) {
-                    URITemplate.printUsage();
-                    console.error("need --template parameter");
-                    System.exit(-2);
-                }
-                var name = argsm.delete("--name");
-                if (name === null) {
-                    URITemplate.printUsage();
-                    console.error("need --name parameter");
-                    System.exit(-3);
-                }
-                if (name=="-") {
-                    var filen1 = null;
-                    try {
-                        filen1 = r.readLine();
-                        while (filen1 !== null) {
-                            var ut = new URITemplate(template);
-                            var itimeRange = ut.parse(filen1, argsm);
-                            console.info(TimeUtil.isoTimeFromArray(itimeRange.slice(0,7)));
-                            console.info("/");
-                            console.info(TimeUtil.isoTimeFromArray(itimeRange.slice(7,14)));
-                            filen1 = r.readLine();
-                        }
-                    } catch (ex) {
-                        URITemplate.printUsage();
-                        console.error("parseException from " + filen1);
-                        System.exit(-3);
-                    }
-                } else {
-                    try {
-                        var ut = new URITemplate(template);
-                        var itimeRange = ut.parse(name, argsm);
-                        console.info(TimeUtil.isoTimeFromArray(itimeRange.slice(0,7)));
-                        console.info("/");
-                        console.info(TimeUtil.isoTimeFromArray(itimeRange.slice(7,14)));
-                    } catch (ex) {
-                        URITemplate.printUsage();
-                        console.error("parseException from ?");
-                        System.exit(-3);
-                    }
-                }
-            }
-        }
     }
 
 }
 
-URITemplate.main([])
