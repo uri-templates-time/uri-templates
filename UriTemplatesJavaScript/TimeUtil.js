@@ -442,10 +442,7 @@ class TimeUtil {
      */
     static toMillisecondsSince1970(time) {
         time = TimeUtil.normalizeTimeString(time);
-        var ta = DateTimeFormatter.ISO_INSTANT.parse(time);
-        var i = Instant.from(ta);
-        var d = Date.from(i);
-        return d.getTime();
+        return new Date(time).getTime();
     }
 
     /**
@@ -553,7 +550,7 @@ class TimeUtil {
             var seconds = nn[5];
             var nanoseconds = nn.length === 7 ? nn[6] : 0;
             if (nanoseconds === 0) {
-                sb+= str(seconds);
+                sb+= seconds;
             } else {
                 if (nanoseconds % 1000000 === 0) {
                     sb+= sprintf("%.3f",seconds + nanoseconds / 1e9);
