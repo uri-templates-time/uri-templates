@@ -64,29 +64,29 @@ class SubsecFieldHandler extends FieldHandler {
     formatStr;
 
     configure(args) {
-        places = parseInt(URITemplate.getArg(args, "places", null));
-        if (places > 9) throw "only nine places allowed.";
-        nanosecondsFactor = Math.trunc( (Math.pow(10, (9 - places))) );
-        formatStr = "%0" + places + "d";
+        this.places = parseInt(URITemplate.getArg(args, "places", null));
+        if (this.places > 9) throw "only nine places allowed.";
+        this.nanosecondsFactor = Math.trunc( (Math.pow(10, (9 - this.places))) );
+        this.formatStr = "%0" + this.places + "d";
         return null;
     }
 
     getRegex() {
         var b = "";
-        for ( var i = 0; i < places; i++)                b+= "[0-9]";
+        for ( var i = 0; i < this.places; i++)                b+= "[0-9]";
         return b;
     }
 
     parse(fieldContent, startTime, timeWidth, extra) {
         var value = parseFloat(fieldContent);
-        startTime[6] = Math.trunc( (value * nanosecondsFactor) );
+        startTime[6] = Math.trunc( (value * this.nanosecondsFactor) );
         timeWidth[5] = 0;
-        timeWidth[6] = nanosecondsFactor;
+        timeWidth[6] = this.nanosecondsFactor;
     }
 
     format(startTime, timeWidth, length, extra) {
-        var nn = Math.floor(startTime[6] / nanosecondsFactor);
-        return sprintf(formatStr,Math.trunc( Math.round(nn) ));
+        var nn = Math.floor(startTime[6] / this.nanosecondsFactor);
+        return sprintf(this.formatStr,Math.trunc( Math.round(nn) ));
     }
 
 }
@@ -108,21 +108,21 @@ class HrintervalFieldHandler extends FieldHandler {
         if (vs === null) vs = URITemplate.getArg(args, "names", null);
         if (vs === null) return "values must be specified for hrinterval";
         var values1 = vs.split(",");
-        mult = 24 / values1.length;
-        if (24 - mult * values1.length !== 0) {
+        this.mult = 24 / values1.length;
+        if (24 - this.mult * values1.length !== 0) {
             throw "only 1,2,3,4,6,8 or 12 intervals";
         }
-        values = new Map();
-        revvalues = new Map();
+        this.values = new Map();
+        this.revvalues = new Map();
         for ( var i = 0; i < values1.length; i++) {
-            values.set(values1[i], i);
-            revvalues.set(i, values1[i]);
+            this.values.set(values1[i], i);
+            this.revvalues.set(i, values1[i]);
         }
         return null;
     }
 
     getRegex() {
-        var vv = values.keySet().iterator();
+        var vv = this.values.keySet().iterator();
         var r = str(vv.next());
         while (vv.hasNext()) {
             r+= "|" + str(vv.next());
@@ -132,23 +132,23 @@ class HrintervalFieldHandler extends FieldHandler {
 
     parse(fieldContent, startTime, timeWidth, extra) {
         var ii;
-        if (values.has(fieldContent)) {
-            ii = values.get(fieldContent);
+        if (this.values.has(fieldContent)) {
+            ii = this.values.get(fieldContent);
         } else {
             throw "expected one of " + this.getRegex();
         }
-        var hour = mult * ii;
+        var hour = this.mult * ii;
         startTime[3] = hour;
-        timeWidth[3] = mult;
+        timeWidth[3] = this.mult;
         timeWidth[0] = 0;
         timeWidth[1] = 0;
         timeWidth[2] = 0;
     }
 
     format(startTime, timeWidth, length, extra) {
-        var key = Math.floor(startTime[3] / mult);
-        if (revvalues.has(key)) {
-            var v = revvalues.get(key);
+        var key = Math.floor(startTime[3] / this.mult);
+        if (this.revvalues.has(key)) {
+            var v = this.revvalues.get(key);
             return v;
         } else {
             throw "unable to identify enum for hour " + startTime[3];
@@ -177,16 +177,16 @@ class PeriodicFieldHandler extends FieldHandler {
         if (s === null) {
             return "periodic field needs start";
         }
-        start = TimeUtil.isoTimeToArray(s);
-        julday = TimeUtil.julianDay(start[0], start[1], start[2]);
-        start[0] = 0;
-        start[1] = 0;
-        start[2] = 0;
+        this.start = TimeUtil.isoTimeToArray(s);
+        this.julday = TimeUtil.julianDay(this.start[0], this.start[1], this.start[2]);
+        this.start[0] = 0;
+        this.start[1] = 0;
+        this.start[2] = 0;
         s = URITemplate.getArg(args, "offset", null);
         if (s === null) {
             return "periodic field needs offset";
         }
-        offset = parseInt(s);
+        this.offset = parseInt(s);
         s = URITemplate.getArg(args, "period", null);
         if (s === null) {
             return "periodic field needs period";
@@ -202,7 +202,7 @@ class PeriodicFieldHandler extends FieldHandler {
             }
         }
         try {
-            period = TimeUtil.parseISO8601Duration(s);
+            this.period = TimeUtil.parseISO8601Duration(s);
         } catch (ex) {
             return "unable to parse period: " + s + "\n" + (ex.getMessage());
         }
@@ -215,24 +215,24 @@ class PeriodicFieldHandler extends FieldHandler {
 
     parse(fieldContent, startTime, timeWidth, extra) {
         var i = parseInt(fieldContent);
-        var addOffset = i - offset;
+        var addOffset = i - this.offset;
         var t = [];
         var limits = [-1, -1, 0, 24, 60, 60, 1000000000];
         timeWidth[0] = 0;
         timeWidth[1] = 0;
-        timeWidth[2] = period[2];
+        timeWidth[2] = this.period[2];
         for ( i = 6; i > 2; i--) {
-            t[i] = start[i] + addOffset * period[i];
+            t[i] = this.start[i] + addOffset * this.period[i];
             while (t[i] > limits[i]) {
                 t[i - 1] += 1;
                 t[i] -= limits[i];
             }
         }
-        timeWidth[3] = period[3];
-        timeWidth[4] = period[4];
-        timeWidth[5] = period[5];
-        timeWidth[6] = period[6];
-        var ts = TimeUtil.fromJulianDay(julday + timeWidth[2] * addOffset + t[2]);
+        timeWidth[3] = this.period[3];
+        timeWidth[4] = this.period[4];
+        timeWidth[5] = this.period[5];
+        timeWidth[6] = this.period[6];
+        var ts = TimeUtil.fromJulianDay(this.julday + timeWidth[2] * addOffset + t[2]);
         startTime[0] = ts[0];
         startTime[1] = ts[1];
         startTime[2] = ts[2];
@@ -244,10 +244,10 @@ class PeriodicFieldHandler extends FieldHandler {
 
     format(startTime, timeWidth, length, extra) {
         var jd = TimeUtil.julianDay(startTime[0], startTime[1], startTime[2]);
-        if (period[1] !== 0 || period[3] !== 0 || period[4] !== 0 || period[5] !== 0 || period[6] !== 0) {
+        if (this.period[1] !== 0 || this.period[3] !== 0 || this.period[4] !== 0 || this.period[5] !== 0 || this.period[6] !== 0) {
             throw "under implemented, only integer number of days supported for formatting.";
         }
-        var deltad = Math.trunc( (Math.floor((jd - this.julday) / period[2])) ) + offset;
+        var deltad = Math.trunc( (Math.floor((jd - this.julday) / this.period[2])) ) + this.offset;
         var result = sprintf("%d",deltad);
         if (length > 16) {
             throw "length>16 not supported";
@@ -269,7 +269,7 @@ class EnumFieldHandler extends FieldHandler {
     id;
 
     configure(args) {
-        values = new Set();
+        this.values = new Set();
         var svalues = URITemplate.getArg(args, "values", null);
         if (svalues === null) return "need values";
         var ss = svalues.split(",");
@@ -280,13 +280,13 @@ class EnumFieldHandler extends FieldHandler {
                 ss = ss2;
             }
         }
-        values.addAll(ss);
-        id = URITemplate.getArg(args, "id", "unindentifiedEnum");
+        this.values.addAll(ss);
+        this.id = URITemplate.getArg(args, "id", "unindentifiedEnum");
         return null;
     }
 
     getRegex() {
-        var it = values.iterator();
+        var it = this.values.iterator();
         var b = "[".append(it.next());
         while (it.hasNext()) {
             b+= "|" + str(re.escape(it.next()));
@@ -296,21 +296,21 @@ class EnumFieldHandler extends FieldHandler {
     }
 
     parse(fieldContent, startTime, timeWidth, extra) {
-        if (!values.has(fieldContent)) {
+        if (!this.values.has(fieldContent)) {
             throw "value is not in enum: " + fieldContent;
         }
-        extra.set(id, fieldContent);
+        extra.set(this.id, fieldContent);
     }
 
     format(startTime, timeWidth, length, extra) {
-        var v = URITemplate.getArg(extra, id, null);
+        var v = URITemplate.getArg(extra, this.id, null);
         if (v === null) {
-            throw "\"" + id + "\" is undefined in extras.";
+            throw "\"" + this.id + "\" is undefined in extras.";
         }
-        if (values.has(v)) {
+        if (this.values.has(v)) {
             return v;
         } else {
-            throw id + " value is not within enum: " + values;
+            throw this.id + " value is not within enum: " + this.values;
         }
     }
 
@@ -338,31 +338,31 @@ class IgnoreFieldHandler extends FieldHandler {
     name;
 
     configure(args) {
-        regex = URITemplate.getArg(args, "regex", null);
-        if (regex !== null) {
-            pattern = new RegExp(regex);
+        this.regex = URITemplate.getArg(args, "regex", null);
+        if (this.regex !== null) {
+            this.pattern = new RegExp(this.regex);
         }
-        name = URITemplate.getArg(args, "name", "unnamed");
+        this.name = URITemplate.getArg(args, "name", "unnamed");
         return null;
     }
 
     getRegex() {
-        return regex;
+        return this.regex;
     }
 
     parse(fieldContent, startTime, timeWidth, extra) {
-        if (regex !== null) {
-            if (!pattern.exec(fieldContent)!=null) {
+        if (this.regex !== null) {
+            if (!this.pattern.exec(fieldContent)!=null) {
                 throw "ignore content doesn't match regex: " + fieldContent;
             }
         }
-        if (!name=="unnamed") {
-            extra.set(name, fieldContent);
+        if (!this.name=="unnamed") {
+            extra.set(this.name, fieldContent);
         }
     }
 
     format(startTime, timeWidth, length, extra) {
-        return URITemplate.getArg(extra, name, "");
+        return URITemplate.getArg(extra, this.name, "");
     }
 
 }
@@ -445,23 +445,23 @@ class IgnoreFieldHandler extends FieldHandler {
             }
             var ge = URITemplate.getArg(args, "ge", null);
             if (ge !== null) {
-                versionGe = ge;
+                this.versionGe = ge;
             }
             var lt = URITemplate.getArg(args, "lt", null);
             if (lt !== null) {
-                versionLt = lt;
+                this.versionLt = lt;
             }
             if (alpha !== null) {
                 if (sep !== null) {
                     return "alpha with split not supported";
                 } else {
-                    versioningType = VersioningType.alphanumeric;
+                    this.versioningType = VersioningType.alphanumeric;
                 }
             } else {
                 if (sep !== null) {
-                    versioningType = VersioningType.numericSplit;
+                    this.versioningType = VersioningType.numericSplit;
                 } else {
-                    versioningType = VersioningType.numeric;
+                    this.versioningType = VersioningType.numeric;
                 }
             }
             return null;
@@ -470,7 +470,7 @@ class IgnoreFieldHandler extends FieldHandler {
         parse(fieldContent, startTime, timeWidth, extra) {
             var v = URITemplate.getArg(extra, "v", null);
             if (v !== null) {
-                versioningType = VersioningType.numericSplit;
+                this.versioningType = VersioningType.numericSplit;
                 fieldContent = v + "." + fieldContent;
             }
             extra.set("v", fieldContent);
@@ -830,7 +830,7 @@ class URITemplate {
             var digit = URITemplate.digitForCode(spec.charAt(n));
             this.timeWidth[digit] = span;
         }
-        timeWidthIsExplicit = true;
+        this.timeWidthIsExplicit = true;
     }
 
     /**
@@ -850,7 +850,7 @@ class URITemplate {
         startTime[0] = URITemplate.MIN_VALID_YEAR;
         startTime[1] = 1;
         startTime[2] = 1;
-        stopTimeDigit = URITemplate.AFTERSTOP_INIT;
+        this.stopTimeDigit = URITemplate.AFTERSTOP_INIT;
         var stopTime = [];
         stopTime[0] = URITemplate.MAX_VALID_YEAR;
         stopTime[1] = 1;
@@ -860,23 +860,23 @@ class URITemplate {
         formatString = URITemplate.makeCanonical(formatString);
         //this.formatString = formatString;
         var ss = formatString.split("$");
-        fc = [];
-        qualifiers = [];
+        this.fc = [];
+        this.qualifiers = [];
         var delim = [];
-        ndigits = ss.length;
+        this.ndigits = ss.length;
         var regex1 = "";
         regex1+= str(ss[0].replaceAll(/\+/g, "+"));
         //TODO: I thought we did this already.
-        lengths = [];
-        for ( var i = 0; i < lengths.length; i++) {
-            lengths[i] = -1;
+        this.lengths = [];
+        for ( var i = 0; i < this.lengths.length; i++) {
+            this.lengths[i] = -1;
         }
-        startShift = null;
-        stopShift = null;
+        this.startShift = null;
+        this.stopShift = null;
         this.qualifiersMaps = [];
         this.phasestart = null;
         delim[0] = ss[0];
-        for ( var i = 1; i < ndigits; i++) {
+        for ( var i = 1; i < this.ndigits; i++) {
             var pp = 0;
             var ssi = ss[i];
             while (ssi.length > pp && (/[0-9]/.test(ssi.charAt(pp)) || ssi.charAt(pp) == '-')) {
@@ -884,14 +884,14 @@ class URITemplate {
             }
             if (pp > 0) {
                 // Note length ($5Y) is not supported in http://tsds.org/uri_templates.
-                lengths[i] = parseInt(ssi.substring(0, pp));
+                this.lengths[i] = parseInt(ssi.substring(0, pp));
             } else {
-                lengths[i] = 0;
+                this.lengths[i] = 0;
             }
             ssi = URITemplate.makeQualifiersCanonical(ssi);
             // J2J (logger) logger.log(Level.FINE, "ssi={0}", ss[i]);
             if (ssi.charAt(pp) != '(') {
-                fc[i] = ssi.substring(pp, pp + 1);
+                this.fc[i] = ssi.substring(pp, pp + 1);
                 delim[i] = ssi.substring(pp + 1);
             } else {
                 if (ssi.charAt(pp) == '(') {
@@ -901,64 +901,64 @@ class URITemplate {
                     }
                     var semi = ssi.indexOf(";", pp);
                     if (semi !== -1) {
-                        fc[i] = ssi.substring(pp + 1, semi);
-                        qualifiers[i] = ssi.substring(semi + 1, endIndex);
+                        this.fc[i] = ssi.substring(pp + 1, semi);
+                        this.qualifiers[i] = ssi.substring(semi + 1, endIndex);
                     } else {
-                        fc[i] = ssi.substring(pp + 1, endIndex);
+                        this.fc[i] = ssi.substring(pp + 1, endIndex);
                     }
                     delim[i] = ssi.substring(endIndex + 1);
                 }
             }
         }
-        handlers = [];
-        offsets = [];
+        this.handlers = [];
+        this.offsets = [];
         var pos = 0;
-        offsets[0] = pos;
-        lsd = -1;
+        this.offsets[0] = pos;
+        this.lsd = -1;
         var lsdMult = 1;
         //TODO: We want to add $Y_1XX/$j/WAV_$Y$jT$(H,span=5)$M$S_REC_V01.PKT
-        context = [];
-        arraycopy( startTime, 0, context, 0, URITemplate.NUM_TIME_DIGITS );
-        externalContext = URITemplate.NUM_TIME_DIGITS;
+        this.context = [];
+        arraycopy( startTime, 0, this.context, 0, URITemplate.NUM_TIME_DIGITS );
+        this.externalContext = URITemplate.NUM_TIME_DIGITS;
         // this will lower and will typically be 0.
-        timeWidth = [];
+        this.timeWidth = [];
         var haveHour = false;
-        for ( var i = 1; i < ndigits; i++) {
+        for ( var i = 1; i < this.ndigits; i++) {
             if (pos !== -1) {
                 pos += delim[i - 1].length;
             }
             var handler = 9999;
-            for ( var j = 0; j < valid_formatCodes.length; j++) {
-                if (valid_formatCodes[j]==fc[i]) {
+            for ( var j = 0; j < this.valid_formatCodes.length; j++) {
+                if (this.valid_formatCodes[j]==this.fc[i]) {
                     handler = j;
                     break
                 }
             }
-            if (fc[i]=="H") {
+            if (this.fc[i]=="H") {
                 haveHour = true;
             } else {
-                if (fc[i]=="p") {
+                if (this.fc[i]=="p") {
                     if (!haveHour) {
                         throw "$H must preceed $p";
                     }
                 }
             }
             if (handler === 9999) {
-                if (!fieldHandlers.has(fc[i])) {
-                    throw "bad format code: \"" + fc[i] + "\" in \"" + formatString + "\"";
+                if (!this.fieldHandlers.has(this.fc[i])) {
+                    throw "bad format code: \"" + this.fc[i] + "\" in \"" + formatString + "\"";
                 } else {
                     handler = 100;
-                    handlers[i] = 100;
-                    offsets[i] = pos;
-                    if (lengths[i] < 1 || pos === -1) {
+                    this.handlers[i] = 100;
+                    this.offsets[i] = pos;
+                    if (this.lengths[i] < 1 || pos === -1) {
                         // 0->indetermined as well, allows user to force indeterminate
                         pos = -1;
-                        lengths[i] = -1;
+                        this.lengths[i] = -1;
                     } else {
-                        pos += lengths[i];
+                        pos += this.lengths[i];
                     }
-                    var fh = fieldHandlers.get(fc[i]);
-                    var args = qualifiers[i];
+                    var fh = this.fieldHandlers.get(this.fc[i]);
+                    var args = this.qualifiers[i];
                     var argv = new Map();
                     if (args !== null) {
                         var ss2 = args.split(";");
@@ -977,89 +977,89 @@ class URITemplate {
                     }
                     var id = URITemplate.getArg(argv, "id", null);
                     if (id !== null) {
-                        fieldHandlersById.set(id, fh);
+                        this.fieldHandlersById.set(id, fh);
                     }
                 }
             } else {
-                handlers[i] = handler;
-                if (lengths[i] === 0) {
-                    lengths[i] = formatCode_lengths[handler];
+                this.handlers[i] = handler;
+                if (this.lengths[i] === 0) {
+                    this.lengths[i] = this.formatCode_lengths[handler];
                 }
-                offsets[i] = pos;
-                if (lengths[i] < 1 || pos === -1) {
+                this.offsets[i] = pos;
+                if (this.lengths[i] < 1 || pos === -1) {
                     pos = -1;
                 } else {
-                    pos += lengths[i];
+                    pos += this.lengths[i];
                 }
             }
             var span = 1;
-            if (qualifiers[i] !== null) {
-                var ss2 = qualifiers[i].split(";");
-                qualifiersMaps[i] = new Map();
+            if (this.qualifiers[i] !== null) {
+                var ss2 = this.qualifiers[i].split(";");
+                this.qualifiersMaps[i] = new Map();
                 ss2.forEach( function ( ss21 ) {
                      //TODO: handle end before shift.
                     var okay = false;
                     var qual = ss21.trim();
                     if (qual=="startTimeOnly") {
-                        startTimeOnly = fc[i].charAt(0);
+                        this.startTimeOnly = this.fc[i].charAt(0);
                         okay = true;
                     }
                     var idx = qual.indexOf("=");
                     if (!okay && idx > -1) {
                         var name = qual.substring(0, idx).trim();
                         var val = qual.substring(idx + 1).trim();
-                        qualifiersMaps[i].set(name, val);
+                        this.qualifiersMaps[i].set(name, val);
                         switch (name) {
                             case "Y":
-                                context[URITemplate.YEAR] = parseInt(val);
-                                externalContext = Math.min(externalContext, 0);
+                                this.context[URITemplate.YEAR] = parseInt(val);
+                                this.externalContext = Math.min(this.externalContext, 0);
                                 break
                             case "m":
-                                context[URITemplate.MONTH] = parseInt(val);
-                                externalContext = Math.min(externalContext, 1);
+                                this.context[URITemplate.MONTH] = parseInt(val);
+                                this.externalContext = Math.min(this.externalContext, 1);
                                 break
                             case "d":
-                                context[URITemplate.DAY] = parseInt(val);
-                                externalContext = Math.min(externalContext, 2);
+                                this.context[URITemplate.DAY] = parseInt(val);
+                                this.externalContext = Math.min(this.externalContext, 2);
                                 break
                             case "j":
-                                context[URITemplate.MONTH] = 1;
-                                context[URITemplate.DAY] = parseInt(val);
-                                externalContext = Math.min(externalContext, 1);
+                                this.context[URITemplate.MONTH] = 1;
+                                this.context[URITemplate.DAY] = parseInt(val);
+                                this.externalContext = Math.min(this.externalContext, 1);
                                 break
                             case "H":
-                                context[URITemplate.HOUR] = parseInt(val);
-                                externalContext = Math.min(externalContext, 3);
+                                this.context[URITemplate.HOUR] = parseInt(val);
+                                this.externalContext = Math.min(this.externalContext, 3);
                                 break
                             case "M":
-                                context[URITemplate.MINUTE] = parseInt(val);
-                                externalContext = Math.min(externalContext, 4);
+                                this.context[URITemplate.MINUTE] = parseInt(val);
+                                this.externalContext = Math.min(this.externalContext, 4);
                                 break
                             case "S":
-                                context[URITemplate.SECOND] = parseInt(val);
-                                externalContext = Math.min(externalContext, 5);
+                                this.context[URITemplate.SECOND] = parseInt(val);
+                                this.externalContext = Math.min(this.externalContext, 5);
                                 break
                             case "cadence":
                                 span = parseInt(val);
-                                this.handleWidth(fc[i], val);
-                                timeWidthIsExplicit = true;
+                                this.handleWidth(this.fc[i], val);
+                                this.timeWidthIsExplicit = true;
                                 break
                             case "span":
                                 span = parseInt(val);
                                 // not part of uri_templates
-                                this.handleWidth(fc[i], val);
-                                timeWidthIsExplicit = true;
+                                this.handleWidth(this.fc[i], val);
+                                this.timeWidthIsExplicit = true;
                                 break
                             case "delta":
                                 span = parseInt(val);
                                 // see http://tsds.org/uri_templates
-                                this.handleWidth(fc[i], val);
-                                timeWidthIsExplicit = true;
+                                this.handleWidth(this.fc[i], val);
+                                this.timeWidthIsExplicit = true;
                                 break
                             case "resolution":
                                 span = parseInt(val);
-                                this.handleWidth(fc[i], val);
-                                timeWidthIsExplicit = true;
+                                this.handleWidth(this.fc[i], val);
+                                this.timeWidthIsExplicit = true;
                                 break
                             case "period":
                                 if (val.startsWith("P")) {
@@ -1067,7 +1067,7 @@ class URITemplate {
                                         var r = TimeUtil.parseISO8601Duration(val);
                                         for ( var j = 0; j < URITemplate.NUM_TIME_DIGITS; j++) {
                                             if (r[j] > 0) {
-                                                lsd = j;
+                                                this.lsd = j;
                                                 lsdMult = r[j];
                                                 // J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult });
                                                 break
@@ -1080,25 +1080,25 @@ class URITemplate {
                                     var code = val.charAt(val.length - 1);
                                     switch (code) {
                                         case 'Y':
-                                            lsd = 0;
+                                            this.lsd = 0;
                                             break
                                         case 'm':
-                                            lsd = 1;
+                                            this.lsd = 1;
                                             break
                                         case 'd':
-                                            lsd = 2;
+                                            this.lsd = 2;
                                             break
                                         case 'j':
-                                            lsd = 2;
+                                            this.lsd = 2;
                                             break
                                         case 'H':
-                                            lsd = 3;
+                                            this.lsd = 3;
                                             break
                                         case 'M':
-                                            lsd = 4;
+                                            this.lsd = 4;
                                             break
                                         case 'S':
-                                            lsd = 5;
+                                            this.lsd = 5;
                                             break
                                         default:
                                             break
@@ -1114,7 +1114,7 @@ class URITemplate {
                                 break
                             case "phasestart":
                                 try {
-                                    phasestart = TimeUtil.isoTimeToArray(val);
+                                    this.phasestart = TimeUtil.isoTimeToArray(val);
                                 } catch (ex) {
                                     // J2J (logger) logger.log(Level.SEVERE, null, ex);
                                 }
@@ -1128,34 +1128,34 @@ class URITemplate {
                                     digit = URITemplate.digitForCode(possibleUnit);
                                     val = val.substring(0, val.length - 1);
                                 } else {
-                                    digit = URITemplate.digitForCode(fc[i].charAt(0));
+                                    digit = URITemplate.digitForCode(this.fc[i].charAt(0));
                                 }
 
-                                if (i < stopTimeDigit) {
-                                    startShift = URITemplate.maybeInitialize(startShift);
-                                    startShift[digit] = parseInt(val);
+                                if (i < this.stopTimeDigit) {
+                                    this.startShift = URITemplate.maybeInitialize(this.startShift);
+                                    this.startShift[digit] = parseInt(val);
                                 } else {
-                                    stopShift = URITemplate.maybeInitialize(stopShift);
-                                    stopShift[digit] = parseInt(val);
+                                    this.stopShift = URITemplate.maybeInitialize(this.stopShift);
+                                    this.stopShift[digit] = parseInt(val);
                                 }
 
                                 break
                             case "pad":
                             case "fmt":
                             case "case":
-                                if (name=="pad" && val=="none") lengths[i] = -1;
-                                if (qualifiersMaps[i] === null) qualifiersMaps[i] = new Map();
-                                qualifiersMaps[i].set(name, val);
+                                if (name=="pad" && val=="none") this.lengths[i] = -1;
+                                if (this.qualifiersMaps[i] === null) this.qualifiersMaps[i] = new Map();
+                                this.qualifiersMaps[i].set(name, val);
                                 break
                             case "end":
-                                if (stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
-                                    startLsd = lsd;
-                                    stopTimeDigit = i;
+                                if (this.stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
+                                    this.startLsd = this.lsd;
+                                    this.stopTimeDigit = i;
                                 }
 
                                 break
                             default:
-                                if (!fieldHandlers.has(fc[i])) {
+                                if (!this.fieldHandlers.has(this.fc[i])) {
                                     throw "unrecognized/unsupported field: " + name + " in " + qual;
                                 }
 
@@ -1166,9 +1166,9 @@ class URITemplate {
                         if (!okay) {
                             var name = qual.trim();
                             if (name=="end") {
-                                if (stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
-                                    startLsd = lsd;
-                                    stopTimeDigit = i;
+                                if (this.stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
+                                    this.startLsd = this.lsd;
+                                    this.stopTimeDigit = i;
                                 }
                                 okay = true;
                             }
@@ -1178,14 +1178,14 @@ class URITemplate {
                         throw sprintf("%s must be assigned an integer value (e.g. %s=1) in %s",qual, qual, ss[i]);
                     }
                     if (!okay) {
-                        if (!fieldHandlers.has(fc[i])) {
+                        if (!this.fieldHandlers.has(this.fc[i])) {
                             // J2J (logger) logger.log(Level.WARNING, "unrecognized/unsupported field:{0} in {1}", new Object[] { qual, ss[i] });
                         }
                     }
                 } )
             } else {
-                if (fc[i].length === 1) {
-                    var code = fc[i].charAt(0);
+                if (this.fc[i].length === 1) {
+                    var code = this.fc[i].charAt(0);
                     var thisLsd = -1;
                     switch (code) {
                         case 'Y':
@@ -1212,56 +1212,56 @@ class URITemplate {
                         default:
                             break
                     }
-                    if (thisLsd === lsd) {
+                    if (thisLsd === this.lsd) {
                         // allow subsequent repeat fields to reset (T$y$(m,delta=4)/$x_T$y$m$d.DAT)
                         lsdMult = 1;
                     }
                 }
             }
-            if (fc[i].length === 1) {
-                switch (fc[i].charAt(0)) {
+            if (this.fc[i].length === 1) {
+                switch (this.fc[i].charAt(0)) {
                     case 'Y':
-                        externalContext = Math.min(externalContext, 0);
+                        this.externalContext = Math.min(this.externalContext, 0);
                         break
                     case 'm':
-                        externalContext = Math.min(externalContext, 1);
+                        this.externalContext = Math.min(this.externalContext, 1);
                         break
                     case 'd':
-                        externalContext = Math.min(externalContext, 2);
+                        this.externalContext = Math.min(this.externalContext, 2);
                         break
                     case 'j':
-                        externalContext = Math.min(externalContext, 1);
+                        this.externalContext = Math.min(this.externalContext, 1);
                         break
                     case 'H':
-                        externalContext = Math.min(externalContext, 3);
+                        this.externalContext = Math.min(this.externalContext, 3);
                         break
                     case 'M':
-                        externalContext = Math.min(externalContext, 4);
+                        this.externalContext = Math.min(this.externalContext, 4);
                         break
                     case 'S':
-                        externalContext = Math.min(externalContext, 5);
+                        this.externalContext = Math.min(this.externalContext, 5);
                         break
                     default:
                         break
                 }
             }
             if (handler < 100) {
-                if (precision[handler] > lsd && lsdMult === 1) {
+                if (this.precision[handler] > this.lsd && lsdMult === 1) {
                     // omni2_h0_mrg1hr_$Y$(m,span=6)$d_v01.cdf.  Essentially we ignore the $d.
-                    lsd = precision[handler];
+                    this.lsd = this.precision[handler];
                     lsdMult = span;
                     // J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult });
                 }
             }
             var dots = ".........";
-            if (lengths[i] === -1) {
+            if (this.lengths[i] === -1) {
                 regex1+= "(.*)";
             } else {
-                regex1+= "(" + dots.substring(0, lengths[i]) + ")";
+                regex1+= "(" + dots.substring(0, this.lengths[i]) + ")";
             }
             regex1+= str(delim[i].replaceAll(/\+/g, "+"));
         }
-        switch (lsd) {
+        switch (this.lsd) {
             case 0:
             case 1:
             case 2:
@@ -1269,13 +1269,13 @@ class URITemplate {
             case 4:
             case 5:
             case 6:
-                if (!timeWidthIsExplicit) {
-                    timeWidth[lsd] = lsdMult;
+                if (!this.timeWidthIsExplicit) {
+                    this.timeWidth[this.lsd] = lsdMult;
                 }
 
                 break
             case -1:
-                timeWidth[0] = 8000;
+                this.timeWidth[0] = 8000;
                 break
             case 100:
                 break
@@ -1324,27 +1324,27 @@ class URITemplate {
         startTime = [];
         stopTime = [];
         time = startTime;
-        arraycopy( context, 0, time, 0, URITemplate.NUM_TIME_DIGITS );
-        for ( var idigit = 1; idigit < ndigits; idigit++) {
-            if (idigit === stopTimeDigit) {
+        arraycopy( this.context, 0, time, 0, URITemplate.NUM_TIME_DIGITS );
+        for ( var idigit = 1; idigit < this.ndigits; idigit++) {
+            if (idigit === this.stopTimeDigit) {
                 // J2J (logger) logger.finer("switching to parsing end time");
                 arraycopy( time, 0, stopTime, 0, URITemplate.NUM_TIME_DIGITS );
                 time = stopTime;
             }
-            if (offsets[idigit] !== -1) {
+            if (this.offsets[idigit] !== -1) {
                 // note offsets[0] is always known
-                offs = offsets[idigit];
+                offs = this.offsets[idigit];
             } else {
                 offs += length + this.delims[idigit - 1].length;
             }
-            if (lengths[idigit] !== -1) {
-                length = lengths[idigit];
+            if (this.lengths[idigit] !== -1) {
+                length = this.lengths[idigit];
             } else {
                 if (this.delims[idigit]=="") {
-                    if (idigit === ndigits - 1) {
+                    if (idigit === this.ndigits - 1) {
                         length = timeString.length - offs;
                     } else {
-                        throw "No delimer specified after unknown length field, \"" + formatName[handlers[idigit]] + "\", field number=" + (1 + idigit) + "";
+                        throw "No delimer specified after unknown length field, \"" + this.formatName[this.handlers[idigit]] + "\", field number=" + (1 + idigit) + "";
                     }
                 } else {
                     while (offs < timeString.length && /\s/.test(timeString.charAt(offs))) {
@@ -1368,10 +1368,10 @@ class URITemplate {
             var field = timeString.substring(offs, offs + length).trim();
             // J2J (logger) logger.log(Level.FINEST, "handling {0} with {1}", new Object[] { field, handlers[idigit] });
             try {
-                if (handlers[idigit] < 10) {
+                if (this.handlers[idigit] < 10) {
                     var digit;
                     digit = parseInt(field);
-                    switch (handlers[idigit]) {
+                    switch (this.handlers[idigit]) {
                         case 0:
                             time[URITemplate.YEAR] = digit;
                             break
@@ -1409,11 +1409,11 @@ class URITemplate {
                             throw "handlers[idigit] was not expected value (which shouldn't happen)";
                     }
                 } else {
-                    if (handlers[idigit] === 100) {
-                        var handler = (fieldHandlers.get(fc[idigit]));
-                        handler.parse(timeString.substring(offs, offs + length), time, timeWidth, extra);
+                    if (this.handlers[idigit] === 100) {
+                        var handler = (this.fieldHandlers.get(this.fc[idigit]));
+                        handler.parse(timeString.substring(offs, offs + length), time, this.timeWidth, extra);
                     } else {
-                        if (handlers[idigit] === 10) {
+                        if (this.handlers[idigit] === 10) {
                             // AM/PM -- code assumes hour has been read already
                             var ch = timeString.charAt(offs);
                             if (ch == 'P' || ch == 'p') {
@@ -1430,7 +1430,7 @@ class URITemplate {
                                 }
                             }
                         } else {
-                            if (handlers[idigit] === 11) {
+                            if (this.handlers[idigit] === 11) {
                                 // TimeZone is not supported, see code elsewhere.
                                 var offset;
                                 offset = parseInt(timeString.substring(offs, offs + length));
@@ -1438,21 +1438,21 @@ class URITemplate {
                                 // careful!
                                 time[URITemplate.MINUTE] -= offset % 100;
                             } else {
-                                if (handlers[idigit] === 12) {
+                                if (this.handlers[idigit] === 12) {
                                     if (length >= 0) {
                                         extra.set("ignore", timeString.substring(offs, offs + length));
                                     }
                                 } else {
-                                    if (handlers[idigit] === 13) {
+                                    if (this.handlers[idigit] === 13) {
                                         // month name
                                         time[URITemplate.MINUTE] = TimeUtil.monthNumber(timeString.substring(offs, offs + length));
                                     } else {
-                                        if (handlers[idigit] === 14) {
+                                        if (this.handlers[idigit] === 14) {
                                             if (length >= 0) {
                                                 extra.set("X", timeString.substring(offs, offs + length));
                                             }
                                         } else {
-                                            if (handlers[idigit] === 15) {
+                                            if (this.handlers[idigit] === 15) {
                                                 // "x"
                                                 var name;
                                                 var qual = this.qualifiersMaps[idigit];
@@ -1477,20 +1477,20 @@ class URITemplate {
             }
         }
         if (this.phasestart !== null) {
-            if (timeWidth === null) {
+            if (this.timeWidth === null) {
                 // J2J (logger) logger.warning("phasestart cannot be used for month or year resolution");
             } else {
-                if (timeWidth[1] > 0) {
-                    startTime[1] = (Math.floor((startTime[1] - this.phasestart[1]) / timeWidth[1])) * timeWidth[1] + this.phasestart[1];
+                if (this.timeWidth[1] > 0) {
+                    startTime[1] = (Math.floor((startTime[1] - this.phasestart[1]) / this.timeWidth[1])) * this.timeWidth[1] + this.phasestart[1];
                 } else {
-                    if (timeWidth[0] > 0) {
-                        startTime[0] = (Math.floor((startTime[0] - this.phasestart[0]) / timeWidth[0])) * timeWidth[0] + this.phasestart[0];
+                    if (this.timeWidth[0] > 0) {
+                        startTime[0] = (Math.floor((startTime[0] - this.phasestart[0]) / this.timeWidth[0])) * this.timeWidth[0] + this.phasestart[0];
                     } else {
-                        if (timeWidth[2] > 1) {
-                            var phaseStartJulian = TimeUtil.julianDay(phasestart[0], phasestart[1], phasestart[2]);
+                        if (this.timeWidth[2] > 1) {
+                            var phaseStartJulian = TimeUtil.julianDay(this.phasestart[0], this.phasestart[1], this.phasestart[2]);
                             var ndays = TimeUtil.julianDay(startTime[0], startTime[1], startTime[2]) - phaseStartJulian;
-                            var ncycles = Math.floorDiv(ndays, timeWidth[2]);
-                            startTime = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * timeWidth[2]);
+                            var ncycles = Math.floorDiv(ndays, this.timeWidth[2]);
+                            startTime = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * this.timeWidth[2]);
                         } else {
                             // J2J (logger) logger.log(Level.WARNING, "phasestart can only be used when step size is integer number of days greater than 1: {0}", TimeUtil.formatIso8601Duration(timeWidth));
                         }
@@ -1499,7 +1499,7 @@ class URITemplate {
                 stopTime = TimeUtil.add(startTime, this.timeWidth);
             }
         } else {
-            if (stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
+            if (this.stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
                 stopTime = TimeUtil.add(startTime, this.timeWidth);
             }
         }
@@ -1546,7 +1546,7 @@ class URITemplate {
      * @return the external context implied by the template.
      */
     getExternalContext() {
-        return externalContext;
+        return this.externalContext;
     }
 
     /**
@@ -1555,7 +1555,7 @@ class URITemplate {
      * @param externalContextTime the context in [ Y, m, d, H, M, S, nanos ]
      */
     setContext(externalContextTime) {
-        arraycopy( externalContextTime, 0, context, 0, externalContext );
+        arraycopy( externalContextTime, 0, this.context, 0, this.externalContext );
     }
 
     /**
@@ -1652,29 +1652,29 @@ class URITemplate {
         var startTime = TimeUtil.isoTimeToArray(startTimeStr);
         var stopTime;
         var timeWidthl;
-        if (timeWidthIsExplicit) {
-            timeWidthl = timeWidth;
-            stopTime = TimeUtil.add(startTime, timeWidth);
+        if (this.timeWidthIsExplicit) {
+            timeWidthl = this.timeWidth;
+            stopTime = TimeUtil.add(startTime, this.timeWidth);
         } else {
             stopTime = TimeUtil.isoTimeToArray(stopTimeStr);
             timeWidthl = TimeUtil.subtract(stopTime, startTime);
         }
-        if (startShift !== null) {
-            startTime = TimeUtil.subtract(startTime, startShift);
+        if (this.startShift !== null) {
+            startTime = TimeUtil.subtract(startTime, this.startShift);
         }
-        if (stopShift !== null) {
-            stopTime = TimeUtil.subtract(stopTime, stopShift);
+        if (this.stopShift !== null) {
+            stopTime = TimeUtil.subtract(stopTime, this.stopShift);
         }
-        if (timeWidthIsExplicit) {
-            if (this.phasestart !== null && timeWidth[2] > 0) {
-                var phaseStartJulian = TimeUtil.julianDay(phasestart[0], phasestart[1], phasestart[2]);
+        if (this.timeWidthIsExplicit) {
+            if (this.phasestart !== null && this.timeWidth[2] > 0) {
+                var phaseStartJulian = TimeUtil.julianDay(this.phasestart[0], this.phasestart[1], this.phasestart[2]);
                 var ndays = TimeUtil.julianDay(startTime[0], startTime[1], startTime[2]) - phaseStartJulian;
-                var ncycles = Math.floorDiv(ndays, timeWidth[2]);
-                var tnew = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * timeWidth[2]);
+                var ncycles = Math.floorDiv(ndays, this.timeWidth[2]);
+                var tnew = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * this.timeWidth[2]);
                 startTime[0] = tnew[0];
                 startTime[1] = tnew[1];
                 startTime[2] = tnew[2];
-                stopTime = TimeUtil.add(startTime, timeWidth);
+                stopTime = TimeUtil.add(startTime, this.timeWidth);
             }
         }
         var timel = startTime;
@@ -1685,24 +1685,24 @@ class URITemplate {
         nf[2] = "%02d";
         nf[3] = "%03d";
         nf[4] = "%04d";
-        for ( var idigit = 1; idigit < ndigits; idigit++) {
-            if (idigit === stopTimeDigit) {
+        for ( var idigit = 1; idigit < this.ndigits; idigit++) {
+            if (idigit === this.stopTimeDigit) {
                 timel = stopTime;
             }
             result = result.substring(0,offs)+this.delims[idigit - 1]+result.substring(offs);  // J2J expr -> assignment;
-            if (offsets[idigit] !== -1) {
+            if (this.offsets[idigit] !== -1) {
                 // note offsets[0] is always known
-                offs = offsets[idigit];
+                offs = this.offsets[idigit];
             } else {
                 offs += this.delims[idigit - 1].length;
             }
-            if (lengths[idigit] !== -1) {
-                length = lengths[idigit];
+            if (this.lengths[idigit] !== -1) {
+                length = this.lengths[idigit];
             } else {
                 length = -9999;
             }
-            if (handlers[idigit] < 10) {
-                var qualm = qualifiersMaps[idigit];
+            if (this.handlers[idigit] < 10) {
+                var qualm = this.qualifiersMaps[idigit];
                 var digit;
                 var delta = 1;
                 if (qualm !== null) {
@@ -1716,7 +1716,7 @@ class URITemplate {
                         }
                     }
                 }
-                switch (handlers[idigit]) {
+                switch (this.handlers[idigit]) {
                     case 0:
                         digit = timel[0];
                         break
@@ -1756,16 +1756,16 @@ class URITemplate {
                         throw "shouldn't get here";
                 }
                 if (delta > 1) {
-                    var h = handlers[idigit];
+                    var h = this.handlers[idigit];
                     if (h === 2 || h === 3) {
                         // $j, $m all start with 1.
                         digit = ((Math.floor((digit - 1) / delta)) * delta) + 1;
                     } else {
                         if (h === 4) {
-                            if (phasestart !== null) {
-                                var phaseStartJulian = TimeUtil.julianDay(phasestart[0], phasestart[1], phasestart[2]);
+                            if (this.phasestart !== null) {
+                                var phaseStartJulian = TimeUtil.julianDay(this.phasestart[0], this.phasestart[1], this.phasestart[2]);
                                 var ndays = TimeUtil.julianDay(timel[0], timel[1], timel[2]) - phaseStartJulian;
-                                var ncycles = Math.floorDiv(ndays, timeWidth[2]);
+                                var ncycles = Math.floorDiv(ndays, this.timeWidth[2]);
                                 var tnew = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * delta);
                                 timel[0] = tnew[0];
                                 timel[1] = tnew[1];
@@ -1822,16 +1822,16 @@ class URITemplate {
                     }
                 }
             } else {
-                if (handlers[idigit] === 13) {
+                if (this.handlers[idigit] === 13) {
                     // month names
                     result = result.substring(0,offs)+TimeUtil.monthNameAbbrev(timel[1])+result.substring(offs);  // J2J expr -> assignment;
                     offs += length;
                 } else {
-                    if (handlers[idigit] === 12 || handlers[idigit] === 14) {
+                    if (this.handlers[idigit] === 12 || this.handlers[idigit] === 14) {
                         throw "cannot format spec containing ignore";
                     } else {
-                        if (handlers[idigit] === 100) {
-                            if (fc[idigit]=="v") {
+                        if (this.handlers[idigit] === 100) {
+                            if (this.fc[idigit]=="v") {
                                 // kludge for version.  TODO: This can probably use the code below now.
                                 var ins = URITemplate.getArg(extra, "v", "00");
                                 if (length > -1) {
@@ -1841,7 +1841,7 @@ class URITemplate {
                                 result = result.substring(0,offs)+ins+result.substring(offs);  // J2J expr -> assignment;
                                 offs += ins.length;
                             } else {
-                                var fh1 = fieldHandlers.get(fc[idigit]);
+                                var fh1 = this.fieldHandlers.get(this.fc[idigit]);
                                 var timeEnd = stopTime;
                                 var ins = fh1.format(timel, TimeUtil.subtract(timeEnd, timel), length, extra);
                                 var startTimeTest = [];
@@ -1863,10 +1863,10 @@ class URITemplate {
                                 offs += ins.length;
                             }
                         } else {
-                            if (handlers[idigit] === 10) {
+                            if (this.handlers[idigit] === 10) {
                                 throw "AM/PM not supported";
                             } else {
-                                if (handlers[idigit] === 11) {
+                                if (this.handlers[idigit] === 11) {
                                     throw "Time Zones not supported";
                                 }
                             }
@@ -1875,7 +1875,7 @@ class URITemplate {
                 }
             }
         }
-        result = result.substring(0,offs)+this.delims[ndigits - 1]+result.substring(offs);  // J2J expr -> assignment;
+        result = result.substring(0,offs)+this.delims[this.ndigits - 1]+result.substring(offs);  // J2J expr -> assignment;
         return result.trim();
     }
 
