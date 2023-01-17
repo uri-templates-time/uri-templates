@@ -54,7 +54,7 @@ class FieldHandler {
 
 }
 /**
- * $(subsec;places=6)  "36" â "36 microseconds"
+ * $(subsec;places=6)  "36" &rarr; "36 microseconds"
  */
 class SubsecFieldHandler extends FieldHandler {
     places;
@@ -64,7 +64,7 @@ class SubsecFieldHandler extends FieldHandler {
     formatStr;
 
     configure(args) {
-        URITemplate.places = Integer.parseInt(URITemplate.getArg(args, "places", null));
+        URITemplate.places = parseInt(URITemplate.getArg(args, "places", null));
         if (URITemplate.places > 9) throw "only nine places allowed.";
         URITemplate.nanosecondsFactor = Math.trunc( (Math.pow(10, (9 - URITemplate.places))) );
         URITemplate.formatStr = "%0" + URITemplate.places + "d";
@@ -91,7 +91,7 @@ class SubsecFieldHandler extends FieldHandler {
 
 }
 /**
- * $(hrinterval;names=a,b,c,d)  "b" â "06:00/12:00"
+ * $(hrinterval;names=a,b,c,d)  "b" &rarr; "06:00/12:00"
  */
 class HrintervalFieldHandler extends FieldHandler {
     values;
@@ -158,7 +158,7 @@ class HrintervalFieldHandler extends FieldHandler {
 }
 /**
  * regular intervals are numbered:
- * $(periodic;offset=0;start=2000-001;period=P1D) "0" ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ "2000-001"
+ * $(periodic;offset=0;start=2000-001;period=P1D) "0" &rarr; "2000-001"
  */
 class PeriodicFieldHandler extends FieldHandler {
     offset;
@@ -186,7 +186,7 @@ class PeriodicFieldHandler extends FieldHandler {
         if (s === null) {
             return "periodic field needs offset";
         }
-        URITemplate.offset = Integer.parseInt(s);
+        URITemplate.offset = parseInt(s);
         s = URITemplate.getArg(URITemplate.args, "period", null);
         if (s === null) {
             return "periodic field needs period";
@@ -214,7 +214,7 @@ class PeriodicFieldHandler extends FieldHandler {
     }
 
     parse(fieldContent, startTime, timeWidth, extra) {
-        var i = Integer.parseInt(fieldContent);
+        var i = parseInt(fieldContent);
         var addOffset = i - URITemplate.offset;
         var t = [];
         var limits = [-1, -1, 0, 24, 60, 60, 1000000000];
@@ -247,7 +247,7 @@ class PeriodicFieldHandler extends FieldHandler {
         if (URITemplate.period[1] !== 0 || URITemplate.period[3] !== 0 || URITemplate.period[4] !== 0 || URITemplate.period[5] !== 0 || URITemplate.period[6] !== 0) {
             throw "under implemented, only integer number of days supported for formatting.";
         }
-        var deltad = Math.trunc( (Math.floor((jd - this.julday) / URITemplate.period[2] )) ) + URITemplate.offset;
+        var deltad = Math.trunc( (Math.floor((jd - this.julday) / URITemplate.period[2])) ) + URITemplate.offset;
         var result = sprintf("%d",deltad);
         if (length > 16) {
             throw "length>16 not supported";
@@ -366,7 +366,6 @@ class IgnoreFieldHandler extends FieldHandler {
     }
 
 }
-
     class VersioningType {
     constructor( c ) {
         this.compare= c;
@@ -389,8 +388,8 @@ class IgnoreFieldHandler extends FieldHandler {
         var ss2 = s2.split("[\\.-]", -2);
         var n = Math.min(ss1.length, ss2.length);
         for ( var i = 0; i < n; i++) {
-            var d1 = Integer.parseInt(ss1[i]);
-            var d2 = Integer.parseInt(ss2[i]);
+            var d1 = parseInt(ss1[i]);
+            var d2 = parseInt(ss2[i]);
             if (d1 < d2) {
                 return -1;
             } else {
@@ -705,19 +704,19 @@ class URITemplate {
         var oldSpec2 = p.exec(formatString)!=null;
         if (formatString.startsWith("$") && !wildcard && !oldSpec && !oldSpec2) return formatString;
         if (formatString.indexOf("%")!==-1 && !formatString.indexOf("$")!==-1) {
-            formatString = formatString.replaceAll("%", "$");
+            formatString = formatString.replaceAll(/\%/g, "$");
         }
         oldSpec = formatString.indexOf("${")!==-1;
         if (oldSpec && !formatString.indexOf("$(")!==-1) {
-            formatString = formatString.replaceAll("${", "$(");
-            formatString = formatString.replaceAll("}", ")");
+            formatString = formatString.replaceAll(/\$\{/g, "$(");
+            formatString = formatString.replaceAll(/\}/g, ")");
         }
         if (oldSpec2 && !formatString.indexOf("$(")!==-1) {
-            formatString = formatString.replaceAll("$([0-9]+){", "$$1(");
-            formatString = formatString.replaceAll("}", ")");
+            formatString = formatString.replaceAll(/\$([0-9]+)\{/g, "$$1(");
+            formatString = formatString.replaceAll(/\}/g, ")");
         }
         if (wildcard) {
-            formatString = formatString.replaceAll("*", "$x");
+            formatString = formatString.replaceAll(/\*/g, "$x");
         }
         var i = 1;
         if (i < formatString.length && formatString.charAt(i) == '(') {
@@ -727,7 +726,7 @@ class URITemplate {
             i += 1;
         }
         if (i < formatString.length && formatString.charAt(i) == ',') {
-            formatString = formatString.replaceFirst(",", ";");
+            formatString = formatString.replace(/,/g, ";");
         }
         return formatString;
     }
@@ -821,17 +820,17 @@ class URITemplate {
      */
     handleWidth(fc, spec) {
         var span;
-        var n = URITemplate.spec.length - 1;
-        if (/[0-9]/.test(URITemplate.spec.charAt(n))) {
-            span = Integer.parseInt(URITemplate.spec);
-            var digit = URITemplate.digitForCode(URITemplate.fc.charAt(0));
+        var n = spec.length - 1;
+        if (/[0-9]/.test(spec.charAt(n))) {
+            span = parseInt(spec);
+            var digit = URITemplate.digitForCode(fc.charAt(0));
             this.timeWidth[digit] = span;
         } else {
-            span = Integer.parseInt(URITemplate.spec.substring(0, n));
-            var digit = URITemplate.digitForCode(URITemplate.spec.charAt(n));
+            span = parseInt(spec.substring(0, n));
+            var digit = URITemplate.digitForCode(spec.charAt(n));
             this.timeWidth[digit] = span;
         }
-        URITemplate.timeWidthIsExplicit = true;
+        timeWidthIsExplicit = true;
     }
 
     /**
@@ -840,12 +839,13 @@ class URITemplate {
      */
     constructor(formatString) {
         this.fieldHandlers = new Map();
-        this.fieldHandlers.set("subsec", URITemplate.SubsecFieldHandler());
-        this.fieldHandlers.set("hrinterval", URITemplate.HrintervalFieldHandler());
-        this.fieldHandlers.set("periodic", URITemplate.PeriodicFieldHandler());
-        this.fieldHandlers.set("enum", URITemplate.EnumFieldHandler());
-        this.fieldHandlers.set("x", URITemplate.IgnoreFieldHandler());
-        this.fieldHandlers.set("v", URITemplate.VersionFieldHandler());
+        this.fieldHandlers.set("subsec", new SubsecFieldHandler());
+        this.fieldHandlers.set("hrinterval", new HrintervalFieldHandler());
+        this.fieldHandlers.set("periodic", new PeriodicFieldHandler());
+        this.fieldHandlers.set("enum", new EnumFieldHandler());
+        this.fieldHandlers.set("x", new IgnoreFieldHandler());
+        this.fieldHandlers.set("v", new VersionFieldHandler());
+        
         var startTime = [];
         startTime[0] = URITemplate.MIN_VALID_YEAR;
         startTime[1] = 1;
@@ -865,7 +865,7 @@ class URITemplate {
         var delim = [];
         URITemplate.ndigits = ss.length;
         var regex1 = "";
-        regex1+= str(ss[0].replaceAll("+", "+"));
+        regex1+= str(ss[0].replaceAll(/\+/g, "+"));
         //TODO: I thought we did this already.
         URITemplate.lengths = [];
         for ( var i = 0; i < URITemplate.lengths.length; i++) {
@@ -884,7 +884,7 @@ class URITemplate {
             }
             if (pp > 0) {
                 // Note length ($5Y) is not supported in http://tsds.org/uri_templates.
-                URITemplate.lengths[i] = Integer.parseInt(ssi.substring(0, pp));
+                URITemplate.lengths[i] = parseInt(ssi.substring(0, pp));
             } else {
                 URITemplate.lengths[i] = 0;
             }
@@ -993,73 +993,73 @@ class URITemplate {
                 }
             }
             var span = 1;
-            if (URITemplate.qualifiers[i] !== null) {
-                var ss2 = URITemplate.qualifiers[i].split(";");
-                URITemplate.qualifiersMaps[i] = new Map();
+            if (qualifiers[i] !== null) {
+                var ss2 = qualifiers[i].split(";");
+                qualifiersMaps[i] = new Map();
                 ss2.forEach( function ( ss21 ) {
                      //TODO: handle end before shift.
                     var okay = false;
                     var qual = ss21.trim();
                     if (qual=="startTimeOnly") {
-                        URITemplate.startTimeOnly = URITemplate.fc[i].charAt(0);
+                        startTimeOnly = fc[i].charAt(0);
                         okay = true;
                     }
                     var idx = qual.indexOf("=");
                     if (!okay && idx > -1) {
                         var name = qual.substring(0, idx).trim();
                         var val = qual.substring(idx + 1).trim();
-                        URITemplate.qualifiersMaps[i].set(name, val);
+                        qualifiersMaps[i].set(name, val);
                         switch (name) {
                             case "Y":
-                                URITemplate.context[URITemplate.YEAR] = Integer.parseInt(val);
-                                URITemplate.externalContext = Math.min(URITemplate.externalContext, 0);
+                                context[URITemplate.YEAR] = parseInt(val);
+                                externalContext = Math.min(externalContext, 0);
                                 break
                             case "m":
-                                URITemplate.context[URITemplate.MONTH] = Integer.parseInt(val);
-                                URITemplate.externalContext = Math.min(URITemplate.externalContext, 1);
+                                context[URITemplate.MONTH] = parseInt(val);
+                                externalContext = Math.min(externalContext, 1);
                                 break
                             case "d":
-                                URITemplate.context[URITemplate.DAY] = Integer.parseInt(val);
-                                URITemplate.externalContext = Math.min(URITemplate.externalContext, 2);
+                                context[URITemplate.DAY] = parseInt(val);
+                                externalContext = Math.min(externalContext, 2);
                                 break
                             case "j":
-                                URITemplate.context[URITemplate.MONTH] = 1;
-                                URITemplate.context[URITemplate.DAY] = Integer.parseInt(val);
-                                URITemplate.externalContext = Math.min(URITemplate.externalContext, 1);
+                                context[URITemplate.MONTH] = 1;
+                                context[URITemplate.DAY] = parseInt(val);
+                                externalContext = Math.min(externalContext, 1);
                                 break
                             case "H":
-                                URITemplate.context[URITemplate.HOUR] = Integer.parseInt(val);
-                                URITemplate.externalContext = Math.min(URITemplate.externalContext, 3);
+                                context[URITemplate.HOUR] = parseInt(val);
+                                externalContext = Math.min(externalContext, 3);
                                 break
                             case "M":
-                                URITemplate.context[URITemplate.MINUTE] = Integer.parseInt(val);
-                                URITemplate.externalContext = Math.min(URITemplate.externalContext, 4);
+                                context[URITemplate.MINUTE] = parseInt(val);
+                                externalContext = Math.min(externalContext, 4);
                                 break
                             case "S":
-                                URITemplate.context[URITemplate.SECOND] = Integer.parseInt(val);
-                                URITemplate.externalContext = Math.min(URITemplate.externalContext, 5);
+                                context[URITemplate.SECOND] = parseInt(val);
+                                externalContext = Math.min(externalContext, 5);
                                 break
                             case "cadence":
-                                span = Integer.parseInt(val);
-                                this.handleWidth(URITemplate.fc[i], val);
-                                URITemplate.timeWidthIsExplicit = true;
+                                span = parseInt(val);
+                                this.handleWidth(fc[i], val);
+                                timeWidthIsExplicit = true;
                                 break
                             case "span":
-                                span = Integer.parseInt(val);
+                                span = parseInt(val);
                                 // not part of uri_templates
-                                this.handleWidth(URITemplate.fc[i], val);
-                                URITemplate.timeWidthIsExplicit = true;
+                                this.handleWidth(fc[i], val);
+                                timeWidthIsExplicit = true;
                                 break
                             case "delta":
-                                span = Integer.parseInt(val);
+                                span = parseInt(val);
                                 // see http://tsds.org/uri_templates
-                                this.handleWidth(URITemplate.fc[i], val);
-                                URITemplate.timeWidthIsExplicit = true;
+                                this.handleWidth(fc[i], val);
+                                timeWidthIsExplicit = true;
                                 break
                             case "resolution":
-                                span = Integer.parseInt(val);
-                                this.handleWidth(URITemplate.fc[i], val);
-                                URITemplate.timeWidthIsExplicit = true;
+                                span = parseInt(val);
+                                this.handleWidth(fc[i], val);
+                                timeWidthIsExplicit = true;
                                 break
                             case "period":
                                 if (val.startsWith("P")) {
@@ -1069,42 +1069,41 @@ class URITemplate {
                                             if (r[j] > 0) {
                                                 URITemplate.lsd = j;
                                                 lsdMult = r[j];
-                                                logger.log(Level.FINER, "lsd is now {0}, width={1}", [URITemplate.lsd, lsdMult]);
                                                 break
                                             }
                                         }
                                     } catch (ex) {
-                                        logger.log(Level.SEVERE, null, ex);
+                                        //logger.log(Level.SEVERE, null, ex);
                                     }
                                 } else {
                                     var code = val.charAt(val.length - 1);
                                     switch (code) {
                                         case 'Y':
-                                            URITemplate.lsd = 0;
+                                            lsd = 0;
                                             break
                                         case 'm':
-                                            URITemplate.lsd = 1;
+                                            lsd = 1;
                                             break
                                         case 'd':
-                                            URITemplate.lsd = 2;
+                                            lsd = 2;
                                             break
                                         case 'j':
-                                            URITemplate.lsd = 2;
+                                            lsd = 2;
                                             break
                                         case 'H':
-                                            URITemplate.lsd = 3;
+                                            lsd = 3;
                                             break
                                         case 'M':
-                                            URITemplate.lsd = 4;
+                                            lsd = 4;
                                             break
                                         case 'S':
-                                            URITemplate.lsd = 5;
+                                            lsd = 5;
                                             break
                                         default:
                                             break
                                     }
-                                    lsdMult = Integer.parseInt(val.substring(0, val.length - 1));
-                                    logger.log(Level.FINER, "lsd is now {0}, width={1}", [URITemplate.lsd, lsdMult]);
+                                    lsdMult = parseInt(val.substring(0, val.length - 1));
+                                    //logger.log(Level.FINER, "lsd is now {0}, width={1}", [URITemplate.lsd, lsdMult]);
                                 }
 
                                 break
@@ -1114,9 +1113,9 @@ class URITemplate {
                                 break
                             case "phasestart":
                                 try {
-                                    URITemplate.phasestart = TimeUtil.isoTimeToArray(val);
+                                    phasestart = TimeUtil.isoTimeToArray(val);
                                 } catch (ex) {
-                                    logger.log(Level.SEVERE, null, ex);
+                                    //logger.log(Level.SEVERE, null, ex);
                                 }
 
                                 break
@@ -1125,37 +1124,37 @@ class URITemplate {
                                 var possibleUnit = val.charAt(val.length - 1);
                                 var digit;
                                 if (/[a-z]/i.test(possibleUnit)) {
-                                    digit = URITemplate.digitForCode(possibleUnit);
+                                    digit = digitForCode(possibleUnit);
                                     val = val.substring(0, val.length - 1);
                                 } else {
-                                    digit = URITemplate.digitForCode(URITemplate.fc[i].charAt(0));
+                                    digit = digitForCode(URITemplate.fc[i].charAt(0));
                                 }
 
-                                if (i < URITemplate.stopTimeDigit) {
-                                    URITemplate.startShift = URITemplate.maybeInitialize(URITemplate.startShift);
-                                    URITemplate.startShift[digit] = Integer.parseInt(val);
+                                if (i < stopTimeDigit) {
+                                    startShift = URITemplate.maybeInitialize(startShift);
+                                    startShift[digit] = parseInt(val);
                                 } else {
-                                    URITemplate.stopShift = URITemplate.maybeInitialize(URITemplate.stopShift);
-                                    URITemplate.stopShift[digit] = Integer.parseInt(val);
+                                    stopShift = URITemplate.maybeInitialize(stopShift);
+                                    stopShift[digit] = parseInt(val);
                                 }
 
                                 break
                             case "pad":
                             case "fmt":
                             case "case":
-                                if (name=="pad" && val=="none") URITemplate.lengths[i] = -1;
-                                if (URITemplate.qualifiersMaps[i] === null) URITemplate.qualifiersMaps[i] = new Map();
-                                URITemplate.qualifiersMaps[i].set(name, val);
+                                if (name=="pad" && val=="none") lengths[i] = -1;
+                                if (qualifiersMaps[i] === null) qualifiersMaps[i] = new Map();
+                                qualifiersMaps[i].set(name, val);
                                 break
                             case "end":
-                                if (URITemplate.stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
-                                    URITemplate.startLsd = URITemplate.lsd;
-                                    URITemplate.stopTimeDigit = i;
+                                if (stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
+                                    startLsd = lsd;
+                                    stopTimeDigit = i;
                                 }
 
                                 break
                             default:
-                                if (!URITemplate.fieldHandlers.has(URITemplate.fc[i])) {
+                                if (!fieldHandlers.has(fc[i])) {
                                     throw "unrecognized/unsupported field: " + name + " in " + qual;
                                 }
 
@@ -1166,9 +1165,9 @@ class URITemplate {
                         if (!okay) {
                             var name = qual.trim();
                             if (name=="end") {
-                                if (URITemplate.stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
-                                    URITemplate.startLsd = URITemplate.lsd;
-                                    URITemplate.stopTimeDigit = i;
+                                if (stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
+                                    startLsd = lsd;
+                                    stopTimeDigit = i;
                                 }
                                 okay = true;
                             }
@@ -1178,14 +1177,14 @@ class URITemplate {
                         throw sprintf("%s must be assigned an integer value (e.g. %s=1) in %s",qual, qual, ss[i]);
                     }
                     if (!okay) {
-                        if (!URITemplate.fieldHandlers.has(URITemplate.fc[i])) {
-                            logger.log(Level.WARNING, "unrecognized/unsupported field:{0} in {1}", [qual, ss[i]]);
+                        if (!fieldHandlers.has(fc[i])) {
+                            //logger.log(Level.WARNING, "unrecognized/unsupported field:{0} in {1}", [qual, ss[i]]);
                         }
                     }
                 } )
             } else {
-                if (URITemplate.fc[i].length === 1) {
-                    var code = URITemplate.fc[i].charAt(0);
+                if (fc[i].length === 1) {
+                    var code = fc[i].charAt(0);
                     var thisLsd = -1;
                     switch (code) {
                         case 'Y':
@@ -1212,56 +1211,56 @@ class URITemplate {
                         default:
                             break
                     }
-                    if (thisLsd === URITemplate.lsd) {
+                    if (thisLsd === lsd) {
                         // allow subsequent repeat fields to reset (T$y$(m,delta=4)/$x_T$y$m$d.DAT)
                         lsdMult = 1;
                     }
                 }
             }
-            if (URITemplate.fc[i].length === 1) {
-                switch (URITemplate.fc[i].charAt(0)) {
+            if (fc[i].length === 1) {
+                switch (fc[i].charAt(0)) {
                     case 'Y':
-                        URITemplate.externalContext = Math.min(URITemplate.externalContext, 0);
+                        externalContext = Math.min(externalContext, 0);
                         break
                     case 'm':
-                        URITemplate.externalContext = Math.min(URITemplate.externalContext, 1);
+                        externalContext = Math.min(externalContext, 1);
                         break
                     case 'd':
-                        URITemplate.externalContext = Math.min(URITemplate.externalContext, 2);
+                        externalContext = Math.min(externalContext, 2);
                         break
                     case 'j':
-                        URITemplate.externalContext = Math.min(URITemplate.externalContext, 1);
+                        externalContext = Math.min(externalContext, 1);
                         break
                     case 'H':
-                        URITemplate.externalContext = Math.min(URITemplate.externalContext, 3);
+                        externalContext = Math.min(externalContext, 3);
                         break
                     case 'M':
-                        URITemplate.externalContext = Math.min(URITemplate.externalContext, 4);
+                        externalContext = Math.min(externalContext, 4);
                         break
                     case 'S':
-                        URITemplate.externalContext = Math.min(URITemplate.externalContext, 5);
+                        externalContext = Math.min(externalContext, 5);
                         break
                     default:
                         break
                 }
             }
             if (handler < 100) {
-                if (URITemplate.precision[handler] > URITemplate.lsd && lsdMult === 1) {
+                if (precision[handler] > lsd && lsdMult === 1) {
                     // omni2_h0_mrg1hr_$Y$(m,span=6)$d_v01.cdf.  Essentially we ignore the $d.
-                    URITemplate.lsd = URITemplate.precision[handler];
+                    lsd = precision[handler];
                     lsdMult = span;
-                    logger.log(Level.FINER, "lsd is now {0}, width={1}", [URITemplate.lsd, lsdMult]);
+                    //logger.log(Level.FINER, "lsd is now {0}, width={1}", [URITemplate.lsd, lsdMult]);
                 }
             }
             var dots = ".........";
-            if (URITemplate.lengths[i] === -1) {
+            if (lengths[i] === -1) {
                 regex1+= "(.*)";
             } else {
-                regex1+= "(" + dots.substring(0, URITemplate.lengths[i]) + ")";
+                regex1+= "(" + dots.substring(0, lengths[i]) + ")";
             }
-            regex1+= str(delim[i].replaceAll("+", "+"));
+            regex1+= str(delim[i].replaceAll(/\+/g, "+"));
         }
-        switch (URITemplate.lsd) {
+        switch (lsd) {
             case 0:
             case 1:
             case 2:
@@ -1269,29 +1268,29 @@ class URITemplate {
             case 4:
             case 5:
             case 6:
-                if (!URITemplate.timeWidthIsExplicit) {
-                    URITemplate.timeWidth[URITemplate.lsd] = lsdMult;
+                if (!timeWidthIsExplicit) {
+                    timeWidth[lsd] = lsdMult;
                 }
 
                 break
             case -1:
-                URITemplate.timeWidth[0] = 8000;
+                timeWidth[0] = 8000;
                 break
             case 100:
                 break
         }
-        if (logger.isLoggable(Level.FINE)) {
+        if (false) { //logger.isLoggable(Level.FINE)) {
             var canonical = str(delim[0]);
-            for ( var i = 1; i < URITemplate.ndigits; i++) {
+            for ( var i = 1; i < ndigits; i++) {
                 canonical+= "$";
                 if (URITemplate.qualifiers[i] === null) {
-                    canonical+= str(URITemplate.fc[i]);
+                    canonical+= str(fc[i]);
                 } else {
-                    canonical+= "(" + str(URITemplate.fc[i]) + ";" + str(URITemplate.qualifiers[i]) + ")";
+                    canonical+= "(" + str(fc[i]) + ";" + str(qualifiers[i]) + ")";
                 }
                 canonical+= str(delim[i]);
             }
-            logger.log(Level.FINE, "Canonical: {0}", canonical);
+            //logger.log(Level.FINE, "Canonical: {0}", canonical);
         }
         if (this.stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
             if (this.startShift !== null) {
@@ -1328,7 +1327,7 @@ class URITemplate {
      * @see #parse(java.lang.String) which can be used when extra arguments are not needed.
      */
     parse(timeString, extra) {
-        logger.log(Level.FINER, "parse {0}", timeString);
+        //logger.log(Level.FINER, "parse {0}", timeString);
         var offs = 0;
         var length = 0;
         var time;
@@ -1340,24 +1339,24 @@ class URITemplate {
         arraycopy( URITemplate.context, 0, time, 0, URITemplate.NUM_TIME_DIGITS );
         for ( var idigit = 1; idigit < URITemplate.ndigits; idigit++) {
             if (idigit === URITemplate.stopTimeDigit) {
-                logger.finer("switching to parsing end time");
+                //logger.finer("switching to parsing end time");
                 arraycopy( time, 0, stopTime, 0, URITemplate.NUM_TIME_DIGITS );
                 time = stopTime;
             }
-            if (URITemplate.offsets[idigit] !== -1) {
+            if (this.offsets[idigit] !== -1) {
                 // note offsets[0] is always known
-                offs = URITemplate.offsets[idigit];
+                offs = this.offsets[idigit];
             } else {
                 offs += length + this.delims[idigit - 1].length;
             }
-            if (URITemplate.lengths[idigit] !== -1) {
-                length = URITemplate.lengths[idigit];
+            if (this.lengths[idigit] !== -1) {
+                length = this.lengths[idigit];
             } else {
                 if (this.delims[idigit]=="") {
-                    if (idigit === URITemplate.ndigits - 1) {
+                    if (idigit === this.ndigits - 1) {
                         length = timeString.length - offs;
                     } else {
-                        throw "No delimer specified after unknown length field, \"" + URITemplate.formatName[URITemplate.handlers[idigit]] + "\", field number=" + (1 + idigit) + "";
+                        throw "No delimer specified after unknown length field, \"" + this.formatName[this.handlers[idigit]] + "\", field number=" + (1 + idigit) + "";
                     }
                 } else {
                     while (offs < timeString.length && /\s/.test(timeString.charAt(offs))) {
@@ -1381,10 +1380,10 @@ class URITemplate {
             var field = timeString.substring(offs, offs + length).trim();
             logger.log(Level.FINEST, "handling {0} with {1}", [field, URITemplate.handlers[idigit]]);
             try {
-                if (URITemplate.handlers[idigit] < 10) {
+                if (this.handlers[idigit] < 10) {
                     var digit;
-                    digit = Integer.parseInt(field);
-                    switch (URITemplate.handlers[idigit]) {
+                    digit = parseInt(field);
+                    switch (this.handlers[idigit]) {
                         case 0:
                             time[URITemplate.YEAR] = digit;
                             break
@@ -1423,7 +1422,7 @@ class URITemplate {
                     }
                 } else {
                     if (URITemplate.handlers[idigit] === 100) {
-                        var handler = (URITemplate.fieldHandlers.get(URITemplate.fc[idigit])) //J2J: cast type//;
+                        var handler = (URITemplate.fieldHandlers.get(URITemplate.fc[idigit]));
                         handler.parse(timeString.substring(offs, offs + length), time, URITemplate.timeWidth, extra);
                     } else {
                         if (URITemplate.handlers[idigit] === 10) {
@@ -1446,7 +1445,7 @@ class URITemplate {
                             if (URITemplate.handlers[idigit] === 11) {
                                 // TimeZone is not supported, see code elsewhere.
                                 var offset;
-                                offset = Integer.parseInt(timeString.substring(offs, offs + length));
+                                offset = parseInt(timeString.substring(offs, offs + length));
                                 time[URITemplate.HOUR] -= Math.floor(offset / 100);
                                 // careful!
                                 time[URITemplate.MINUTE] -= offset % 100;
@@ -1721,11 +1720,11 @@ class URITemplate {
                 if (qualm !== null) {
                     var ddelta = URITemplate.getArg(qualm, "delta", null);
                     if (ddelta !== null) {
-                        delta = Integer.parseInt(ddelta);
+                        delta = parseInt(ddelta);
                     } else {
                         ddelta = URITemplate.getArg(qualm, "span", null);
                         if (ddelta !== null) {
-                            delta = Integer.parseInt(ddelta);
+                            delta = parseInt(ddelta);
                         }
                     }
                 }
