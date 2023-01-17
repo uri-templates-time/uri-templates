@@ -442,7 +442,10 @@ class TimeUtil {
      */
     static toMillisecondsSince1970(time) {
         time = TimeUtil.normalizeTimeString(time);
-        return new Date(time).getTime();
+        var ta = DateTimeFormatter.ISO_INSTANT.parse(time);
+        var i = Instant.from(ta);
+        var d = Date.from(i);
+        return d.getTime();
     }
 
     /**
@@ -540,7 +543,7 @@ class TimeUtil {
                     sb+= "T";
                     needT = false;
                 }
-                sb+= nn[i] + units[i];
+                sb+= str(nn[i]) + str(units[i]);
             }
         }
         if (nn.length > 5 && nn[5] > 0 || nn.length > 6 && nn[6] > 0 || sb.length === 2) {
@@ -550,15 +553,15 @@ class TimeUtil {
             var seconds = nn[5];
             var nanoseconds = nn.length === 7 ? nn[6] : 0;
             if (nanoseconds === 0) {
-                sb+= seconds;
+                sb+= str(seconds);
             } else {
                 if (nanoseconds % 1000000 === 0) {
-                    sb+= sprintf("%.3f",seconds + nanoseconds / 1e9);
+                    sb+= str(sprintf("%.3f",seconds + nanoseconds / 1e9));
                 } else {
                     if (nanoseconds % 1000 === 0) {
-                        sb+= sprintf("%.6f",seconds + nanoseconds / 1e9);
+                        sb+= str(sprintf("%.6f",seconds + nanoseconds / 1e9));
                     } else {
-                        sb+= sprintf("%.9f",seconds + nanoseconds / 1e9);
+                        sb+= str(sprintf("%.9f",seconds + nanoseconds / 1e9));
                     }
                 }
             }
@@ -606,7 +609,7 @@ class TimeUtil {
             var nanosec = Math.trunc( ((dsec - sec) * 1e9) );
             return [TimeUtil.parseIntegerDeft(m[2], 0), TimeUtil.parseIntegerDeft(m[4], 0), TimeUtil.parseIntegerDeft(m[6], 0), TimeUtil.parseIntegerDeft(m[9], 0), TimeUtil.parseIntegerDeft(m[11], 0), sec, nanosec];
         } else {
-            if (stringIn.contains("P") && stringIn.contains("S") && !stringIn.contains("T")) {
+            if (stringIn.indexOf("P")!==-1 && stringIn.indexOf("S")!==-1 && !stringIn.indexOf("T")!==-1) {
                 throw "ISO8601 duration expected but not found.  Was the T missing before S?";
             } else {
                 throw "ISO8601 duration expected but not found.";
@@ -619,16 +622,12 @@ class TimeUtil {
      * @return the current time, to the millisecond
      */
     static now() {
-        var s = new Date().toISOString();
-        return [
-            parseInt(s.substring(0,4)),
-            parseInt(s.substring(5,7)),
-            parseInt(s.substring(8,10)),
-            parseInt(s.substring(11,13)),
-            parseInt(s.substring(14,16)),
-            parseInt(s.substring(17,19)),
-            parseInt(s.substring(20,23)) * 1000000 
-        ]
+        var ctm = Date.now();
+        var d = new Date(ctm);
+        var timeZone = TimeZone.getTimeZone("UTC");
+        var c = Calendar.getInstance(timeZone);
+        c.setTime(d);
+        return [c.get(Calendar.YEAR), 1 + c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), c.get(Calendar.SECOND), 1000000 * c.get(Calendar.MILLISECOND)];
     }
 
     /**
@@ -659,7 +658,7 @@ class TimeUtil {
     static isoTimeToArray(time) {
         var result;
         if (time.length === 4) {
-            result = [Integer.parseInt(time), 1, 1, 0, 0, 0, 0];
+            result = [parseInt(time), 1, 1, 0, 0, 0, 0];
         } else {
             if (time.startsWith("now") || time.startsWith("last")) {
                 var n;
@@ -707,7 +706,7 @@ class TimeUtil {
                         throw "expected lastday+P1D, etc";
                     }
                 }
-                if ( remainder === undefined || remainder === null || remainder.length === 0) {
+                if (remainder === null || remainder.length === 0) {
                     return n;
                 } else {
                     if (remainder.charAt(0) == '-') {
@@ -1123,6 +1122,25 @@ class TimeUtil {
     }
 
     /**
+     * return true if the time appears to be properly formatted.  Properly formatted strings include:<ul>
+     * <li>Any supported ISO8601 time
+     * <li>2000 and 2000-01 (just a year and month)
+     * <li>now - the current time reported by the processing system
+     * <li>lastyear - last year boundary
+     * <li>lastmonth - last month boundary
+     * <li>lastday - last midnight boundary
+     * <li>lasthour - last midnight boundary
+     * <li>now-P1D - yesterday at this time
+     * <li>lastday-P1D - yesterday midnight boundary
+     * </ul>
+     * @param time
+     * @return true if the time appears to be valid and will parse.
+     */
+    static isValidFormattedTime(time) {
+        return time.length > 0 && (/[0-9]/.test(time.charAt(0)) || time.charAt(0) == 'P' || time.startsWith("now") || time.startsWith("last"));
+    }
+
+    /**
      * parse the ISO8601 time range, like "1998-01-02/1998-01-17", into
      * start and stop times, returned in a 14 element array of ints.
      * @param stringIn string to parse, like "1998-01-02/1998-01-17"
@@ -1134,10 +1152,10 @@ class TimeUtil {
         if (ss.length !== 2) {
             throw "expected one slash (/) splitting start and stop times.";
         }
-        if (ss[0].length === 0 || !(/[0-9]/.test(ss[0].charAt(0)) || ss[0].charAt(0) == 'P' || ss[0].startsWith("now"))) {
+        if (!TimeUtil.isValidFormattedTime(ss[0])) {
             throw "first time/duration is misformatted.  Should be ISO8601 time or duration like P1D.";
         }
-        if (ss[1].length === 0 || !(/[0-9]/.test(ss[1].charAt(0)) || ss[1].charAt(0) == 'P' || ss[1].startsWith("now"))) {
+        if (!TimeUtil.isValidFormattedTime(ss[1])) {
             throw "second time/duration is misformatted.  Should be ISO8601 time or duration like P1D.";
         }
         var result = [0,0,0,0,0,0,0,0,0,0,0,0,0,0];
