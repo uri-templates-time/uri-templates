@@ -276,7 +276,7 @@ class EnumFieldHandler extends FieldHandler {
         if (ss.length === 1) {
             var ss2 = svalues.split("|");
             if (ss2.length > 1) {
-                logger.fine("supporting legacy value containing pipes for values");
+                // J2J (logger) logger.fine("supporting legacy value containing pipes for values");
                 ss = ss2;
             }
         }
@@ -366,7 +366,7 @@ class IgnoreFieldHandler extends FieldHandler {
     }
 
 }
-class VersioningType {
+    class VersioningType {
     constructor( c ) {
         this.compare= c;
     }
@@ -768,7 +768,7 @@ class URITemplate {
         }
         var rr = ''.join( result);
         if (!result==qualifiers) {
-            logger.log(Level.FINE, "qualifiers are made canonical: {0}->{1}", [qualifiers, rr]);
+            // J2J (logger) logger.log(Level.FINE, "qualifiers are made canonical: {0}->{1}", new Object[] { qualifiers, rr });
         }
         return rr;
     }
@@ -845,14 +845,14 @@ class URITemplate {
         this.fieldHandlers.set("enum", new EnumFieldHandler());
         this.fieldHandlers.set("x", new IgnoreFieldHandler());
         this.fieldHandlers.set("v", new VersionFieldHandler());
-        
+        // J2J (logger) logger.log(Level.FINE, "new TimeParser({0},...)", formatString);
         var startTime = [];
-        startTime[0] = MIN_VALID_YEAR;
+        startTime[0] = URITemplate.MIN_VALID_YEAR;
         startTime[1] = 1;
         startTime[2] = 1;
-        stopTimeDigit = AFTERSTOP_INIT;
+        stopTimeDigit = URITemplate.AFTERSTOP_INIT;
         var stopTime = [];
-        stopTime[0] = MAX_VALID_YEAR;
+        stopTime[0] = URITemplate.MAX_VALID_YEAR;
         stopTime[1] = 1;
         stopTime[2] = 1;
         //result.fieldHandlers = fieldHandlers;
@@ -889,7 +889,7 @@ class URITemplate {
                 lengths[i] = 0;
             }
             ssi = URITemplate.makeQualifiersCanonical(ssi);
-            logger.log(Level.FINE, "ssi={0}", ss[i]);
+            // J2J (logger) logger.log(Level.FINE, "ssi={0}", ss[i]);
             if (ssi.charAt(pp) != '(') {
                 fc[i] = ssi.substring(pp, pp + 1);
                 delim[i] = ssi.substring(pp + 1);
@@ -918,8 +918,8 @@ class URITemplate {
         var lsdMult = 1;
         //TODO: We want to add $Y_1XX/$j/WAV_$Y$jT$(H,span=5)$M$S_REC_V01.PKT
         context = [];
-        arraycopy( startTime, 0, context, 0, NUM_TIME_DIGITS );
-        externalContext = NUM_TIME_DIGITS;
+        arraycopy( startTime, 0, context, 0, URITemplate.NUM_TIME_DIGITS );
+        externalContext = URITemplate.NUM_TIME_DIGITS;
         // this will lower and will typically be 0.
         timeWidth = [];
         var haveHour = false;
@@ -1011,32 +1011,32 @@ class URITemplate {
                         qualifiersMaps[i].set(name, val);
                         switch (name) {
                             case "Y":
-                                context[YEAR] = parseInt(val);
+                                context[URITemplate.YEAR] = parseInt(val);
                                 externalContext = Math.min(externalContext, 0);
                                 break
                             case "m":
-                                context[MONTH] = parseInt(val);
+                                context[URITemplate.MONTH] = parseInt(val);
                                 externalContext = Math.min(externalContext, 1);
                                 break
                             case "d":
-                                context[DAY] = parseInt(val);
+                                context[URITemplate.DAY] = parseInt(val);
                                 externalContext = Math.min(externalContext, 2);
                                 break
                             case "j":
-                                context[MONTH] = 1;
-                                context[DAY] = parseInt(val);
+                                context[URITemplate.MONTH] = 1;
+                                context[URITemplate.DAY] = parseInt(val);
                                 externalContext = Math.min(externalContext, 1);
                                 break
                             case "H":
-                                context[HOUR] = parseInt(val);
+                                context[URITemplate.HOUR] = parseInt(val);
                                 externalContext = Math.min(externalContext, 3);
                                 break
                             case "M":
-                                context[MINUTE] = parseInt(val);
+                                context[URITemplate.MINUTE] = parseInt(val);
                                 externalContext = Math.min(externalContext, 4);
                                 break
                             case "S":
-                                context[SECOND] = parseInt(val);
+                                context[URITemplate.SECOND] = parseInt(val);
                                 externalContext = Math.min(externalContext, 5);
                                 break
                             case "cadence":
@@ -1065,15 +1065,16 @@ class URITemplate {
                                 if (val.startsWith("P")) {
                                     try {
                                         var r = TimeUtil.parseISO8601Duration(val);
-                                        for ( var j = 0; j < NUM_TIME_DIGITS; j++) {
+                                        for ( var j = 0; j < URITemplate.NUM_TIME_DIGITS; j++) {
                                             if (r[j] > 0) {
                                                 lsd = j;
                                                 lsdMult = r[j];
+                                                // J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult });
                                                 break
                                             }
                                         }
                                     } catch (ex) {
-                                        //logger.log(Level.SEVERE, null, ex);
+                                        // J2J (logger) logger.log(Level.SEVERE, null, ex);
                                     }
                                 } else {
                                     var code = val.charAt(val.length - 1);
@@ -1103,7 +1104,7 @@ class URITemplate {
                                             break
                                     }
                                     lsdMult = parseInt(val.substring(0, val.length - 1));
-                                    //logger.log(Level.FINER, "lsd is now {0}, width={1}", [URITemplate.lsd, lsdMult]);
+                                    // J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult });
                                 }
 
                                 break
@@ -1115,7 +1116,7 @@ class URITemplate {
                                 try {
                                     phasestart = TimeUtil.isoTimeToArray(val);
                                 } catch (ex) {
-                                    //logger.log(Level.SEVERE, null, ex);
+                                    // J2J (logger) logger.log(Level.SEVERE, null, ex);
                                 }
 
                                 break
@@ -1147,7 +1148,7 @@ class URITemplate {
                                 qualifiersMaps[i].set(name, val);
                                 break
                             case "end":
-                                if (stopTimeDigit == AFTERSTOP_INIT) {
+                                if (stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
                                     startLsd = lsd;
                                     stopTimeDigit = i;
                                 }
@@ -1165,7 +1166,7 @@ class URITemplate {
                         if (!okay) {
                             var name = qual.trim();
                             if (name=="end") {
-                                if (stopTimeDigit == AFTERSTOP_INIT) {
+                                if (stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
                                     startLsd = lsd;
                                     stopTimeDigit = i;
                                 }
@@ -1178,7 +1179,7 @@ class URITemplate {
                     }
                     if (!okay) {
                         if (!fieldHandlers.has(fc[i])) {
-                            logger.log(Level.WARNING, "unrecognized/unsupported field:{0} in {1}", [qual, ss[i]]);
+                            // J2J (logger) logger.log(Level.WARNING, "unrecognized/unsupported field:{0} in {1}", new Object[] { qual, ss[i] });
                         }
                     }
                 } )
@@ -1249,7 +1250,7 @@ class URITemplate {
                     // omni2_h0_mrg1hr_$Y$(m,span=6)$d_v01.cdf.  Essentially we ignore the $d.
                     lsd = precision[handler];
                     lsdMult = span;
-                    //logger.log(Level.FINER, "lsd is now {0}, width={1}", [URITemplate.lsd, lsdMult]);
+                    // J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult });
                 }
             }
             var dots = ".........";
@@ -1279,20 +1280,7 @@ class URITemplate {
             case 100:
                 break
         }
-        if (logger.isLoggable(Level.FINE)) {
-            var canonical = str(delim[0]);
-            for ( var i = 1; i < ndigits; i++) {
-                canonical+= "$";
-                if (qualifiers[i] === null) {
-                    canonical+= str(fc[i]);
-                } else {
-                    canonical+= "(" + str(fc[i]) + ";" + str(qualifiers[i]) + ")";
-                }
-                canonical+= str(delim[i]);
-            }
-            //logger.log(Level.FINE, "Canonical: {0}", canonical);
-        }
-        if (this.stopTimeDigit == AFTERSTOP_INIT) {
+        if (this.stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
             if (this.startShift !== null) {
                 this.stopShift = this.startShift;
             }
@@ -1327,7 +1315,7 @@ class URITemplate {
      * @see #parse(java.lang.String) which can be used when extra arguments are not needed.
      */
     parse(timeString, extra) {
-        //logger.log(Level.FINER, "parse {0}", timeString);
+        // J2J (logger) logger.log(Level.FINER, "parse {0}", timeString);
         var offs = 0;
         var length = 0;
         var time;
@@ -1339,7 +1327,7 @@ class URITemplate {
         arraycopy( context, 0, time, 0, URITemplate.NUM_TIME_DIGITS );
         for ( var idigit = 1; idigit < ndigits; idigit++) {
             if (idigit === stopTimeDigit) {
-                //logger.finer("switching to parsing end time");
+                // J2J (logger) logger.finer("switching to parsing end time");
                 arraycopy( time, 0, stopTime, 0, URITemplate.NUM_TIME_DIGITS );
                 time = stopTime;
             }
@@ -1378,44 +1366,44 @@ class URITemplate {
                 throw "string is too short: " + timeString;
             }
             var field = timeString.substring(offs, offs + length).trim();
-            //logger.log(Level.FINEST, "handling {0} with {1}", [field, URITemplate.handlers[idigit]]);
+            // J2J (logger) logger.log(Level.FINEST, "handling {0} with {1}", new Object[] { field, handlers[idigit] });
             try {
                 if (handlers[idigit] < 10) {
                     var digit;
                     digit = parseInt(field);
                     switch (handlers[idigit]) {
                         case 0:
-                            time[YEAR] = digit;
+                            time[URITemplate.YEAR] = digit;
                             break
                         case 1:
                             if (digit < 58) {
-                                time[YEAR] = 2000 + digit;
+                                time[URITemplate.YEAR] = 2000 + digit;
                             } else {
-                                time[YEAR] = 1900 + digit;
+                                time[URITemplate.YEAR] = 1900 + digit;
                             }
 
                             break
                         case 2:
-                            time[MONTH] = 1;
-                            time[DAY] = digit;
+                            time[URITemplate.MONTH] = 1;
+                            time[URITemplate.DAY] = digit;
                             break
                         case 3:
-                            time[MONTH] = digit;
+                            time[URITemplate.MONTH] = digit;
                             break
                         case 4:
-                            time[DAY] = digit;
+                            time[URITemplate.DAY] = digit;
                             break
                         case 5:
-                            time[HOUR] = digit;
+                            time[URITemplate.HOUR] = digit;
                             break
                         case 6:
-                            time[MINUTE] = digit;
+                            time[URITemplate.MINUTE] = digit;
                             break
                         case 7:
-                            time[SECOND] = digit;
+                            time[URITemplate.SECOND] = digit;
                             break
                         case 8:
-                            time[NANOSECOND] = digit;
+                            time[URITemplate.NANOSECOND] = digit;
                             break
                         default:
                             throw "handlers[idigit] was not expected value (which shouldn't happen)";
@@ -1429,14 +1417,14 @@ class URITemplate {
                             // AM/PM -- code assumes hour has been read already
                             var ch = timeString.charAt(offs);
                             if (ch == 'P' || ch == 'p') {
-                                if (time[HOUR] === 12) {
+                                if (time[URITemplate.HOUR] === 12) {
                                 } else {
-                                    time[HOUR] += 12;
+                                    time[URITemplate.HOUR] += 12;
                                 }
                             } else {
                                 if (ch == 'A' || ch == 'a') {
-                                    if (time[HOUR] === 12) {
-                                        time[HOUR] -= 12;
+                                    if (time[URITemplate.HOUR] === 12) {
+                                        time[URITemplate.HOUR] -= 12;
                                     } else {
                                     }
                                 }
@@ -1446,9 +1434,9 @@ class URITemplate {
                                 // TimeZone is not supported, see code elsewhere.
                                 var offset;
                                 offset = parseInt(timeString.substring(offs, offs + length));
-                                time[HOUR] -= Math.floor(offset / 100);
+                                time[URITemplate.HOUR] -= Math.floor(offset / 100);
                                 // careful!
-                                time[MINUTE] -= offset % 100;
+                                time[URITemplate.MINUTE] -= offset % 100;
                             } else {
                                 if (handlers[idigit] === 12) {
                                     if (length >= 0) {
@@ -1457,7 +1445,7 @@ class URITemplate {
                                 } else {
                                     if (handlers[idigit] === 13) {
                                         // month name
-                                        time[MINUTE] = TimeUtil.monthNumber(timeString.substring(offs, offs + length));
+                                        time[URITemplate.MINUTE] = TimeUtil.monthNumber(timeString.substring(offs, offs + length));
                                     } else {
                                         if (handlers[idigit] === 14) {
                                             if (length >= 0) {
@@ -1490,7 +1478,7 @@ class URITemplate {
         }
         if (this.phasestart !== null) {
             if (timeWidth === null) {
-                //logger.warning("phasestart cannot be used for month or year resolution");
+                // J2J (logger) logger.warning("phasestart cannot be used for month or year resolution");
             } else {
                 if (timeWidth[1] > 0) {
                     startTime[1] = (Math.floor((startTime[1] - this.phasestart[1]) / timeWidth[1])) * timeWidth[1] + this.phasestart[1];
@@ -1504,14 +1492,14 @@ class URITemplate {
                             var ncycles = Math.floorDiv(ndays, timeWidth[2]);
                             startTime = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * timeWidth[2]);
                         } else {
-                            //logger.log(Level.WARNING, "phasestart can only be used when step size is integer number of days greater than 1: {0}", TimeUtil.formatIso8601Duration(timeWidth));
+                            // J2J (logger) logger.log(Level.WARNING, "phasestart can only be used when step size is integer number of days greater than 1: {0}", TimeUtil.formatIso8601Duration(timeWidth));
                         }
                     }
                 }
                 stopTime = TimeUtil.add(startTime, this.timeWidth);
             }
         } else {
-            if (stopTimeDigit == AFTERSTOP_INIT) {
+            if (stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
                 stopTime = TimeUtil.add(startTime, this.timeWidth);
             }
         }
@@ -1519,30 +1507,30 @@ class URITemplate {
         var noShift;
         noShift = this.startShift === null;
         if (noShift) {
-            for ( var i = 0; i < NUM_TIME_DIGITS; i++) {
+            for ( var i = 0; i < URITemplate.NUM_TIME_DIGITS; i++) {
                 result[i] = startTime[i];
             }
             TimeUtil.normalizeTime(result);
         } else {
-            for ( var i = 0; i < NUM_TIME_DIGITS; i++) {
+            for ( var i = 0; i < URITemplate.NUM_TIME_DIGITS; i++) {
                 result[i] = startTime[i] + this.startShift[i];
             }
             TimeUtil.normalizeTime(result);
         }
         noShift = this.stopShift === null;
         if (noShift) {
-            for ( var i = 0; i < NUM_TIME_DIGITS; i++) {
-                result[i + NUM_TIME_DIGITS] = stopTime[i];
+            for ( var i = 0; i < URITemplate.NUM_TIME_DIGITS; i++) {
+                result[i + URITemplate.NUM_TIME_DIGITS] = stopTime[i];
             }
             TimeUtil.normalizeTime(result);
         } else {
             var result1 = [];
-            for ( var i = 0; i < NUM_TIME_DIGITS; i++) {
+            for ( var i = 0; i < URITemplate.NUM_TIME_DIGITS; i++) {
                 result1[i] = stopTime[i] + this.stopShift[i];
             }
             TimeUtil.normalizeTime(result1);
-            for ( var i = 0; i < NUM_TIME_DIGITS; i++) {
-                result[i + NUM_TIME_DIGITS] = result1[i];
+            for ( var i = 0; i < URITemplate.NUM_TIME_DIGITS; i++) {
+                result[i + URITemplate.NUM_TIME_DIGITS] = result1[i];
             }
         }
         return result;
@@ -1857,16 +1845,16 @@ class URITemplate {
                                 var timeEnd = stopTime;
                                 var ins = fh1.format(timel, TimeUtil.subtract(timeEnd, timel), length, extra);
                                 var startTimeTest = [];
-                                arraycopy( timel, 0, startTimeTest, 0, NUM_TIME_DIGITS );
+                                arraycopy( timel, 0, startTimeTest, 0, URITemplate.NUM_TIME_DIGITS );
                                 var timeWidthTest = [];
-                                arraycopy( timeWidthl, 0, timeWidthTest, 0, NUM_TIME_DIGITS );
+                                arraycopy( timeWidthl, 0, timeWidthTest, 0, URITemplate.NUM_TIME_DIGITS );
                                 try {
                                     fh1.parse(ins, startTimeTest, timeWidthTest, extra);
-                                    arraycopy( startTimeTest, 0, timel, 0, NUM_TIME_DIGITS );
-                                    arraycopy( timeWidthTest, 0, timeWidthl, 0, NUM_TIME_DIGITS );
-                                    arraycopy( TimeUtil.add(timel, timeWidthl), 0, stopTime, 0, NUM_TIME_DIGITS );
+                                    arraycopy( startTimeTest, 0, timel, 0, URITemplate.NUM_TIME_DIGITS );
+                                    arraycopy( timeWidthTest, 0, timeWidthl, 0, URITemplate.NUM_TIME_DIGITS );
+                                    arraycopy( TimeUtil.add(timel, timeWidthl), 0, stopTime, 0, URITemplate.NUM_TIME_DIGITS );
                                 } catch (ex) {
-                                    //logger.log(Level.SEVERE, null, ex);
+                                    // J2J (logger) logger.log(Level.SEVERE, null, ex);
                                 }
                                 if (length > -1 && ins.length !== length) {
                                     throw "length of fh is incorrect, should be " + length + ", got \"" + ins + "\"";
