@@ -817,6 +817,22 @@ class URITemplate {
     }
 
     /**
+     * use own floorDiv since JavaScript doesn't have floorDiv function.
+     * @param ndays
+     * @param timeWidth
+     * @return 
+     */
+    static floorDiv(ndays, timeWidth) {
+        var ncycles;
+        if (ndays < 0) {
+            ncycles = Math.floor((ndays + 1) / timeWidth) - 1;
+        } else {
+            ncycles = Math.floor(ndays / timeWidth);
+        }
+        return ncycles;
+    }
+
+    /**
      * set the explicit width
      * @param spec specification like "4" or "4H" for four hours.
      */
@@ -1491,7 +1507,7 @@ class URITemplate {
                         if (this.timeWidth[2] > 1) {
                             var phaseStartJulian = TimeUtil.julianDay(this.phasestart[0], this.phasestart[1], this.phasestart[2]);
                             var ndays = TimeUtil.julianDay(startTime[0], startTime[1], startTime[2]) - phaseStartJulian;
-                            var ncycles = Math.floorDiv(ndays, this.timeWidth[2]);
+                            var ncycles = URITemplate.floorDiv(ndays, this.timeWidth[2]);
                             startTime = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * this.timeWidth[2]);
                         } else {
                             // J2J (logger) logger.log(Level.WARNING, "phasestart can only be used when step size is integer number of days greater than 1: {0}", TimeUtil.formatIso8601Duration(timeWidth));
@@ -1671,7 +1687,7 @@ class URITemplate {
             if (this.phasestart !== null && this.timeWidth[2] > 0) {
                 var phaseStartJulian = TimeUtil.julianDay(this.phasestart[0], this.phasestart[1], this.phasestart[2]);
                 var ndays = TimeUtil.julianDay(startTime[0], startTime[1], startTime[2]) - phaseStartJulian;
-                var ncycles = Math.floorDiv(ndays, this.timeWidth[2]);
+                var ncycles = URITemplate.floorDiv(ndays, this.timeWidth[2]);
                 var tnew = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * this.timeWidth[2]);
                 startTime[0] = tnew[0];
                 startTime[1] = tnew[1];
@@ -1767,7 +1783,7 @@ class URITemplate {
                             if (this.phasestart !== null) {
                                 var phaseStartJulian = TimeUtil.julianDay(this.phasestart[0], this.phasestart[1], this.phasestart[2]);
                                 var ndays = TimeUtil.julianDay(timel[0], timel[1], timel[2]) - phaseStartJulian;
-                                var ncycles = Math.floorDiv(ndays, this.timeWidth[2]);
+                                var ncycles = URITemplate.floorDiv(ndays, this.timeWidth[2]);
                                 var tnew = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * delta);
                                 timel[0] = tnew[0];
                                 timel[1] = tnew[1];

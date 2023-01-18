@@ -851,6 +851,22 @@ public class URITemplate {
     }
     
     /**
+     * use own floorDiv since JavaScript doesn't have floorDiv function.
+     * @param ndays
+     * @param timeWidth
+     * @return 
+     */
+    private static int floorDiv( int ndays, int timeWidth ) {
+        int ncycles;
+        if ( ndays<0 ) {
+            ncycles= ( ndays + 1 ) / timeWidth - 1;
+        } else {
+            ncycles= ndays / timeWidth;
+        }
+        return ncycles;
+    }
+    
+    /**
      * set the explicit width
      * @param spec specification like "4" or "4H" for four hours.
      */
@@ -1558,7 +1574,7 @@ public class URITemplate {
                 } else if ( timeWidth[2]>1 ) {
                     int phaseStartJulian= TimeUtil.julianDay( phasestart[0], phasestart[1], phasestart[2] );
                     int ndays= TimeUtil.julianDay( startTime[0], startTime[1], startTime[2] ) - phaseStartJulian;
-                    int ncycles= Math.floorDiv( ndays, timeWidth[2] );
+                    int ncycles= floorDiv( ndays, timeWidth[2] );
                     startTime= TimeUtil.fromJulianDay( phaseStartJulian + ncycles * timeWidth[2] );
                 } else {
                     logger.log(Level.WARNING, 
@@ -1751,7 +1767,7 @@ public class URITemplate {
             if ( this.phasestart!=null && timeWidth[2]>0 ) {
                 int phaseStartJulian= TimeUtil.julianDay( phasestart[0], phasestart[1], phasestart[2] );
                 int ndays= TimeUtil.julianDay(  startTime[0], startTime[1], startTime[2] ) - phaseStartJulian;
-                int ncycles= Math.floorDiv( ndays, timeWidth[2] );
+                int ncycles= floorDiv( ndays, timeWidth[2] );
                 int[] tnew= TimeUtil.fromJulianDay(phaseStartJulian+ncycles*timeWidth[2]);
                 startTime[0]= tnew[0];
                 startTime[1]= tnew[1];
@@ -1851,7 +1867,7 @@ public class URITemplate {
                         if ( phasestart!=null ) {
                             int phaseStartJulian= TimeUtil.julianDay( phasestart[0], phasestart[1], phasestart[2] );
                             int ndays= TimeUtil.julianDay(  timel[0], timel[1], timel[2] ) - phaseStartJulian;
-                            int ncycles= Math.floorDiv( ndays, timeWidth[2] );
+                            int ncycles= floorDiv( ndays, timeWidth[2] );
                                
                             int[] tnew= TimeUtil.fromJulianDay(phaseStartJulian+ncycles*delta);
                             timel[0]= tnew[0];
