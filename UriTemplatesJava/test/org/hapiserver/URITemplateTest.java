@@ -325,7 +325,7 @@ public class URITemplateTest {
             }
         } catch (JSONException | MalformedURLException ex) {
             Logger.getLogger(URITemplateTest.class.getName()).log(Level.SEVERE, null, ex);
-            fail(ex.getLocalizedMessage());
+            fail(ex.getMessage());
         }
         
     }

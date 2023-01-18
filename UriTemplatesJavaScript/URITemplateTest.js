@@ -28,6 +28,18 @@ function fail(msg) {
     throw 'fail: '+msg;
 }                
 
+
+function arrayEquals( a,b ) {
+    if ( a.length===b.length ) {
+        for ( i=0; i < a.length; i++ ) {
+            if ( a[i]!==b[i] ) return false;
+        }
+    } else {
+        return false;
+    }
+    return true;
+}
+
 /**
  *
  * @author jbf
@@ -54,7 +66,7 @@ class URITemplateTest {
         var t2 = TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(res)).substring(0, 16);
         return t1 + "/" + t2;
     }
-
+    
     doTestTimeParser1(spec, test, norm) {
         var ut;
         try {
@@ -80,7 +92,7 @@ class URITemplateTest {
             return;
         }
         var arrow = String.fromCharCode( 8594 );
-        if (res==inorm) {
+        if (arrayEquals(res, inorm)) {
             console.info(sprintf("%s:  \t\"%s\"%s\t\"%s\"",spec, test, arrow, URITemplateTest.toStr(res)));
         } else {
             console.info("### ranges do not match: " + spec + " " + test + arrow + URITemplateTest.toStr(res) + ", should be " + norm);
@@ -171,7 +183,7 @@ class URITemplateTest {
         try {
             res = ut.format(nn[0], nn[1], new Map());
         } catch (ex) {
-            console.info("### " + (ex.getMessage()));
+            console.info("### " + String(ex));
             return;
         }
         var arrow = String.fromCharCode( 8594 );
@@ -226,8 +238,8 @@ class URITemplateTest {
         } catch (ex) {
             throw ex;
         }
-        if (ins !== null) ins.close();
-    }
+                if (ins !== null) ins.close();
+            }
 
     doTestFormatHapiServerSiteOne(outputs, t, startTime, stopTime) {
         var testOutputs = URITemplate.formatRange(t, startTime, stopTime);
