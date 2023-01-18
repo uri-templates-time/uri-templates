@@ -1,4 +1,3 @@
-
 function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
     if (srcPts !== dstPts || dstOff >= srcOff + size) {
         while (--size >= 0)
@@ -51,9 +50,6 @@ class URITemplateTest {
     }
 
     static toStr(res) {
-        if ( res[6]===undefined ) {
-            throw "res[6] is undefined";
-        }
         var t1 = TimeUtil.isoTimeFromArray(TimeUtil.getStartTime(res)).substring(0, 16);
         var t2 = TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(res)).substring(0, 16);
         return t1 + "/" + t2;
@@ -83,7 +79,7 @@ class URITemplateTest {
             fail(ex.getMessage());
             return;
         }
-        var arrow = 8594 //J2J: cast type//;
+        var arrow = String.fromCharCode( 8594 );
         if (res==inorm) {
             console.info(sprintf("%s:  \t\"%s\"%s\t\"%s\"",spec, test, arrow, URITemplateTest.toStr(res)));
         } else {
@@ -178,7 +174,7 @@ class URITemplateTest {
             console.info("### " + (ex.getMessage()));
             return;
         }
-        var arrow = 8594 //J2J: cast type//;
+        var arrow = String.fromCharCode( 8594 );
         if (res==test) {
             console.info(sprintf("%s:  \t\"%s\"%s\t\"%s\"",spec, norm, arrow, res));
         } else {
@@ -223,19 +219,19 @@ class URITemplateTest {
             var buffer = [];
             var bytesRead = ins.read(buffer);
             while (bytesRead !== -1) {
-                sb+= str(new String(buffer, 0, bytesRead));
+                sb+= String(new String(buffer, 0, bytesRead));
                 bytesRead = ins.read(buffer);
             }
             return sb;
         } catch (ex) {
             throw ex;
         }
-        if (ins !== null) ins.close();
-    }
+                if (ins !== null) ins.close();
+            }
 
     doTestFormatHapiServerSiteOne(outputs, t, startTime, stopTime) {
         var testOutputs = URITemplate.formatRange(t, startTime, stopTime);
-        if (testOutputs.length != outputs.length) {
+        if (testOutputs.length !== outputs.length) {
             fail("bad number of results in formatRange: " + t);
         }
         for ( var l = 0; l < outputs.length; l++) {
@@ -293,6 +289,7 @@ class URITemplateTest {
                 }
             }
         } catch (ex) {
+            // J2J (logger) Logger.getLogger(URITemplateTest.class.getName()).log(Level.SEVERE, null, ex);
             fail(ex.getLocalizedMessage());
         }
     }
@@ -317,20 +314,15 @@ class URITemplateTest {
             ss = URITemplate.formatRange(t, "2017-07-01", "2017-07-04", extra);
             ss.forEach( function ( s ) {
                  console.info(s);
-            } )
+            }, this )
             var ff = URITemplate.formatRange("$Y$m$(d,delta=10,phasestart=1979-01-01)", "1979-01-01", "1980-01-01");
             ff.forEach( function ( f ) {
                  console.info(f);
-            } )
+            }, this )
         } catch (ex) {
             fail(ex.getMessage());
         }
     }
 
 }
-test = new URITemplateTest();
-test.testMakeCanonical();
-test.testParse();
-test.testFormat();
-test.testFormatHapiServerSite();
-test.testFormatRange();
+
