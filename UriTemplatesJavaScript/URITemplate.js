@@ -123,9 +123,9 @@ class HrintervalFieldHandler extends FieldHandler {
 
     getRegex() {
         var vv = this.values.keySet().iterator();
-        var r = str(vv.next());
+        var r = String(vv.next());
         while (vv.hasNext()) {
-            r+= "|" + str(vv.next());
+            r+= "|" + String(vv.next());
         }
         return r;
     }
@@ -216,7 +216,7 @@ class PeriodicFieldHandler extends FieldHandler {
     parse(fieldContent, startTime, timeWidth, extra) {
         var i = parseInt(fieldContent);
         var addOffset = i - this.offset;
-        var t = [];
+        var t = [0,0,0,0,0,0,0];
         var limits = [-1, -1, 0, 24, 60, 60, 1000000000];
         timeWidth[0] = 0;
         timeWidth[1] = 0;
@@ -280,7 +280,9 @@ class EnumFieldHandler extends FieldHandler {
                 ss = ss2;
             }
         }
-        this.values.addAll(ss);
+        ss.forEach( function ( s ) {
+            this.values.add(s);
+        },this);
         this.id = URITemplate.getArg(args, "id", "unindentifiedEnum");
         return null;
     }
@@ -289,7 +291,7 @@ class EnumFieldHandler extends FieldHandler {
         var it = this.values.iterator();
         var b = "[".append(it.next());
         while (it.hasNext()) {
-            b+= "|" + str(re.escape(it.next()));
+            b+= "|" + re.escape(it.next());
         }
         b+= "]";
         return b;
@@ -846,12 +848,12 @@ class URITemplate {
         this.fieldHandlers.set("x", new IgnoreFieldHandler());
         this.fieldHandlers.set("v", new VersionFieldHandler());
         // J2J (logger) logger.log(Level.FINE, "new TimeParser({0},...)", formatString);
-        var startTime = [];
+        var startTime = [0,0,0,0,0,0,0];
         startTime[0] = URITemplate.MIN_VALID_YEAR;
         startTime[1] = 1;
         startTime[2] = 1;
         this.stopTimeDigit = URITemplate.AFTERSTOP_INIT;
-        var stopTime = [];
+        var stopTime = [0,0,0,0,0,0,0];
         stopTime[0] = URITemplate.MAX_VALID_YEAR;
         stopTime[1] = 1;
         stopTime[2] = 1;
@@ -865,7 +867,7 @@ class URITemplate {
         var delim = [];
         this.ndigits = ss.length;
         var regex1 = "";
-        regex1+= str(ss[0].replaceAll(/\+/g, "+"));
+        regex1+= ss[0].replaceAll(/\+/g, "+");
         //TODO: I thought we did this already.
         this.lengths = [];
         for ( var i = 0; i < this.lengths.length; i++) {
@@ -890,7 +892,7 @@ class URITemplate {
             }
             ssi = URITemplate.makeQualifiersCanonical(ssi);
             // J2J (logger) logger.log(Level.FINE, "ssi={0}", ss[i]);
-            if (ssi.charAt(pp) != '(') {
+            if (ssi.charAt(pp) !== '(') {
                 this.fc[i] = ssi.substring(pp, pp + 1);
                 delim[i] = ssi.substring(pp + 1);
             } else {
@@ -917,11 +919,11 @@ class URITemplate {
         this.lsd = -1;
         var lsdMult = 1;
         //TODO: We want to add $Y_1XX/$j/WAV_$Y$jT$(H,span=5)$M$S_REC_V01.PKT
-        this.context = [];
+        this.context = [0,0,0,0,0,0,0];
         arraycopy( startTime, 0, this.context, 0, URITemplate.NUM_TIME_DIGITS );
         this.externalContext = URITemplate.NUM_TIME_DIGITS;
         // this will lower and will typically be 0.
-        this.timeWidth = [];
+        this.timeWidth = [0,0,0,0,0,0,0];
         var haveHour = false;
         for ( var i = 1; i < this.ndigits; i++) {
             if (pos !== -1) {
@@ -960,7 +962,7 @@ class URITemplate {
                     var fh = this.fieldHandlers.get(this.fc[i]);
                     var args = this.qualifiers[i];
                     var argv = new Map();
-                    if (args !== null) {
+                    if (args !== undefined && args !== null) {
                         var ss2 = args.split(";");
                         ss2.forEach( function ( ss21 ) {
                              var i3 = ss21.indexOf("=");
@@ -969,7 +971,7 @@ class URITemplate {
                             } else {
                                 argv.set(ss21.substring(0, i3).trim(), ss21.substring(i3 + 1).trim());
                             }
-                        } )
+                        }, this )
                     }
                     var errm = fh.configure(argv);
                     if (errm !== null) {
@@ -993,7 +995,7 @@ class URITemplate {
                 }
             }
             var span = 1;
-            if (this.qualifiers[i] !== null) {
+            if (this.qualifiers[i]!== undefined && this.qualifiers[i] !== null) {
                 var ss2 = this.qualifiers[i].split(";");
                 this.qualifiersMaps[i] = new Map();
                 ss2.forEach( function ( ss21 ) {
@@ -1182,7 +1184,7 @@ class URITemplate {
                             // J2J (logger) logger.log(Level.WARNING, "unrecognized/unsupported field:{0} in {1}", new Object[] { qual, ss[i] });
                         }
                     }
-                } )
+                }, this )
             } else {
                 if (this.fc[i].length === 1) {
                     var code = this.fc[i].charAt(0);
@@ -1259,7 +1261,7 @@ class URITemplate {
             } else {
                 regex1+= "(" + dots.substring(0, this.lengths[i]) + ")";
             }
-            regex1+= str(delim[i].replaceAll(/\+/g, "+"));
+            regex1+= delim[i].replaceAll(/\+/g, "+");
         }
         switch (this.lsd) {
             case 0:
@@ -1321,8 +1323,8 @@ class URITemplate {
         var time;
         var startTime
         var stopTime;
-        startTime = [];
-        stopTime = [];
+        startTime = [0,0,0,0,0,0,0];
+        stopTime = [0,0,0,0,0,0,0];
         time = startTime;
         arraycopy( this.context, 0, time, 0, URITemplate.NUM_TIME_DIGITS );
         for ( var idigit = 1; idigit < this.ndigits; idigit++) {
@@ -1524,7 +1526,7 @@ class URITemplate {
             }
             TimeUtil.normalizeTime(result);
         } else {
-            var result1 = [];
+            var result1 = [0,0,0,0,0,0,0];
             for ( var i = 0; i < URITemplate.NUM_TIME_DIGITS; i++) {
                 result1[i] = stopTime[i] + this.stopShift[i];
             }
@@ -1600,7 +1602,7 @@ class URITemplate {
         var i = 0;
         var externalContext = ut.getExternalContext();
         if (externalContext > 0) {
-            var context = [];
+            var context = [0,0,0,0,0,0,0];
             arraycopy( stopDigits, 0, context, 0, externalContext );
             ut.setContext(context);
         }
@@ -1844,9 +1846,9 @@ class URITemplate {
                                 var fh1 = this.fieldHandlers.get(this.fc[idigit]);
                                 var timeEnd = stopTime;
                                 var ins = fh1.format(timel, TimeUtil.subtract(timeEnd, timel), length, extra);
-                                var startTimeTest = [];
+                                var startTimeTest = [0,0,0,0,0,0,0];
                                 arraycopy( timel, 0, startTimeTest, 0, URITemplate.NUM_TIME_DIGITS );
-                                var timeWidthTest = [];
+                                var timeWidthTest = [0,0,0,0,0,0,0];
                                 arraycopy( timeWidthl, 0, timeWidthTest, 0, URITemplate.NUM_TIME_DIGITS );
                                 try {
                                     fh1.parse(ins, startTimeTest, timeWidthTest, extra);
