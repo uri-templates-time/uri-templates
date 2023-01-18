@@ -226,8 +226,8 @@ class URITemplateTest {
         } catch (ex) {
             throw ex;
         }
-                if (ins !== null) ins.close();
-            }
+        if (ins !== null) ins.close();
+    }
 
     doTestFormatHapiServerSiteOne(outputs, t, startTime, stopTime) {
         var testOutputs = URITemplate.formatRange(t, startTime, stopTime);
@@ -325,4 +325,9 @@ class URITemplateTest {
     }
 
 }
-
+test = new URITemplateTest();
+test.testMakeCanonical();
+test.testParse();
+test.testFormat();
+test.testFormatHapiServerSite();
+test.testFormatRange();
