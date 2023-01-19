@@ -761,6 +761,8 @@ public class URITemplate {
     /**
      * $(subsec,places=4) --> $(subsec;places=4)
      * $(enum,values=01,02,03,id=foo) --> $(enum;values=01,02,03;id=foo)
+     * $a --> $a
+     * (subsec,places=4) --> (subsec;places=4)
      * @param qualifiers
      * @return 
      */
@@ -778,15 +780,16 @@ public class URITemplate {
         int istart;
         // We know that the first delimiter must be a semicolon.  
         // If it is, then assume the qualifiers are properly formatted.
-        result[0]= qualifiers.charAt(0); // '('
-        for ( istart=1; istart<qualifiers.length(); istart++ ) {
+        result[0]= qualifiers.charAt(0); // '$'
+        result[1]= qualifiers.charAt(1); // '('
+        for ( istart=2; istart<qualifiers.length(); istart++ ) {
             char ch= qualifiers.charAt(istart);
             if ( ch==';' ) return qualifiers; // assume the qualifiers are properly formatted
             if ( ch==',' ) {
                 result[istart]=';';
                 break;
             }
-            if ( Character.isLetter(ch) ) {
+            if ( Character.isLetter(ch) || ch==')' ) {
                 result[istart]=ch;
             }
         }
