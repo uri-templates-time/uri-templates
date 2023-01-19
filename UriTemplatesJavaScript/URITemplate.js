@@ -688,6 +688,9 @@ class URITemplate {
      * @return the value.
      */
     static getArg(args, arg, deft) {
+        if ( args===undefined ) { //TODO: look into when args is undefined.
+            return deft;
+        }
         if (args.has(arg)) {
             return args.get(arg);
         } else {
