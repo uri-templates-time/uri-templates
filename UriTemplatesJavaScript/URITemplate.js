@@ -499,6 +499,19 @@ function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
             dstPts[dstOff++] = tmp[i];
     } 
 }
+
+function arrayequals( a, b ) { // private
+    if ( a.length!==b.length ) {
+        return false;
+    } else {
+        for (var i = 0; i<a.length; i++ ) {
+            if ( a[i]!==b[i] ) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
 /**
  * URITemplate implements a URI_Template, as described in 
  * https://github.com/hapi-server/uri-templates/wiki/Specification
@@ -768,7 +781,7 @@ class URITemplate {
             var ch = qualifiers.charAt(i);
             if (ch == '=') expectSemi = true;
         }
-        var rr = ''.join( result);
+        var rr = result.join( "" );
         if (!result==qualifiers) {
             // J2J (logger) logger.log(Level.FINE, "qualifiers are made canonical: {0}->{1}", new Object[] { qualifiers, rr });
         }
@@ -1632,7 +1645,7 @@ class URITemplate {
                 s1 = ut.format(sptr, sptr, extra);
                 firstLoop = false;
             }
-            if (tta.slice(0,7)==tta.slice(7,14)) {
+            if ( arrayequals(tta.slice(0,7),tta.slice(7,14)) ) {
                 result.push(ut.format(startTimeStr, stopTimeStr));
                 break
             } else {
