@@ -764,7 +764,7 @@ public class URITemplate {
      * @param qualifiers
      * @return 
      */
-    private static String makeQualifiersCanonical( String qualifiers ) {
+    public static String makeQualifiersCanonical( String qualifiers ) {
         boolean noDelimiters= true;
         for ( int i=0; noDelimiters && i<qualifiers.length(); i++ ) {
             if ( qualifiers.charAt(i)==',' || qualifiers.charAt(i)==';' ) {
