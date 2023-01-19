@@ -8,7 +8,20 @@ function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
         for (var i = 0; i < size; i++)
             dstPts[dstOff++] = tmp[i];
     } 
-}// import sprintf.js
+}
+function arrayequals( a, b ) { // private
+    if ( a.length!==b.length ) {
+        return false;
+    } else {
+        for (var i = 0; i<a.length; i++ ) {
+            if ( a[i]!==b[i] ) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+// import sprintf.js
 
 // cheesy unittest temporary
 function assertEquals(a,b) {
@@ -27,18 +40,6 @@ function fail(msg) {
     console.log(msg);
     throw 'fail: '+msg;
 }                
-
-
-function arrayEquals( a,b ) {
-    if ( a.length===b.length ) {
-        for ( i=0; i < a.length; i++ ) {
-            if ( a[i]!==b[i] ) return false;
-        }
-    } else {
-        return false;
-    }
-    return true;
-}
 
 /**
  *
@@ -66,7 +67,7 @@ class URITemplateTest {
         var t2 = TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(res)).substring(0, 16);
         return t1 + "/" + t2;
     }
-    
+
     doTestTimeParser1(spec, test, norm) {
         var ut;
         try {
@@ -92,7 +93,7 @@ class URITemplateTest {
             return;
         }
         var arrow = String.fromCharCode( 8594 );
-        if (arrayEquals(res, inorm)) {
+        if (arrayequals( res, inorm )) {
             console.info(sprintf("%s:  \t\"%s\"%s\t\"%s\"",spec, test, arrow, URITemplateTest.toStr(res)));
         } else {
             console.info("### ranges do not match: " + spec + " " + test + arrow + URITemplateTest.toStr(res) + ", should be " + norm);
@@ -238,8 +239,8 @@ class URITemplateTest {
         } catch (ex) {
             throw ex;
         }
-                if (ins !== null) ins.close();
-            }
+        if (ins !== null) ins.close();
+    }
 
     doTestFormatHapiServerSiteOne(outputs, t, startTime, stopTime) {
         var testOutputs = URITemplate.formatRange(t, startTime, stopTime);
@@ -263,7 +264,7 @@ class URITemplateTest {
             console.info("# testFormatHapiServerSite");
             var ss = URITemplateTest.readJSONToString(new URL("https://raw.githubusercontent.com/hapi-server/uri-templates/master/formatting.json"));
             //String ss= readJSONToString( new URL( "file:/home/jbf/ct/git/uri-templates/formatting.json" ) );
-            var jo = new JSONArray(ss);
+            var jo = new JSONArray(ss); //TODO: JSON
             for ( var i = 0; i < jo.length(); i++) {
                 var jo1 = jo.getJSONObject(i);
                 var id = jo1.getString("id");
@@ -283,7 +284,7 @@ class URITemplateTest {
                     timeRanges = jo1.getJSONArray("timeRange");
                 } catch (ex) {
                     var timeRange = jo1.getString("timeRange");
-                    timeRanges = new JSONArray(Collections.singletonList(timeRange));
+                    timeRanges = new JSONArray(Collections.singletonList(timeRange)); //TODO: JSON
                 }
                 for ( var j = 0; j < templates.length(); j++) {
                     var t = templates.getString(j);
@@ -302,7 +303,7 @@ class URITemplateTest {
             }
         } catch (ex) {
             // J2J (logger) Logger.getLogger(URITemplateTest.class.getName()).log(Level.SEVERE, null, ex);
-            fail(ex.getLocalizedMessage());
+            fail(String(ex));
         }
     }
 
