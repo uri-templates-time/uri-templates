@@ -373,4 +373,30 @@ public class URITemplateTest {
         }
     }
     
+    @Test
+    public void testMakeQualifiersCanonical() {
+        
+        String x;
+        x= "$(subsec,places=4)";
+        if ( !"$(subsec;places=4)".equals(URITemplate.makeQualifiersCanonical(x) ) ) {
+            fail(x);
+        }
+        //x= "$(enum,values=01,02,03,id=foo)";
+        //if ( !"$(enum;values=01,02,03;id=foo)".equals( URITemplate.makeQualifiersCanonical(x) ) ) {
+        //    fail(x);
+        //}
+        
+        x= "$(hrinterval;names=01,02,03,04)";
+        if ( !"$(hrinterval;names=01,02,03,04)".equals( URITemplate.makeQualifiersCanonical(x) ) ) {
+            fail(x);
+        }
+        
+        
+        x= "$(d,delta=10,phasestart=1979-01-01)";
+        if ( !"$(d;delta=10;phasestart=1979-01-01)".equals( URITemplate.makeQualifiersCanonical(x) ) ) {
+            fail(x);
+        }
+        
+    }
 }
+
