@@ -184,7 +184,7 @@ class URITemplateTest {
         try {
             res = ut.format(nn[0], nn[1], new Map());
         } catch (ex) {
-            console.info("### " + String(ex));
+            console.info("### " + (ex.getMessage()));
             return;
         }
         var arrow = String.fromCharCode( 8594 );
@@ -238,8 +238,13 @@ class URITemplateTest {
             return sb;
         } catch (ex) {
             throw ex;
+        } finally {
+            try {
+                if (ins !== null) ins.close();
+            } catch (ex) {
+                // J2J (logger) Logger.getLogger(URITemplateTest.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
-        if (ins !== null) ins.close();
     }
 
     doTestFormatHapiServerSiteOne(outputs, t, startTime, stopTime) {
@@ -264,7 +269,7 @@ class URITemplateTest {
             console.info("# testFormatHapiServerSite");
             var ss = URITemplateTest.readJSONToString(new URL("https://raw.githubusercontent.com/hapi-server/uri-templates/master/formatting.json"));
             //String ss= readJSONToString( new URL( "file:/home/jbf/ct/git/uri-templates/formatting.json" ) );
-            var jo = new JSONArray(ss); //TODO: JSON
+            var jo = new JSONArray(ss);
             for ( var i = 0; i < jo.length(); i++) {
                 var jo1 = jo.getJSONObject(i);
                 var id = jo1.getString("id");
@@ -284,7 +289,7 @@ class URITemplateTest {
                     timeRanges = jo1.getJSONArray("timeRange");
                 } catch (ex) {
                     var timeRange = jo1.getString("timeRange");
-                    timeRanges = new JSONArray(Collections.singletonList(timeRange)); //TODO: JSON
+                    timeRanges = new JSONArray(Collections.singletonList(timeRange));
                 }
                 for ( var j = 0; j < templates.length(); j++) {
                     var t = templates.getString(j);
@@ -303,7 +308,7 @@ class URITemplateTest {
             }
         } catch (ex) {
             // J2J (logger) Logger.getLogger(URITemplateTest.class.getName()).log(Level.SEVERE, null, ex);
-            fail(String(ex));
+            fail(ex.getMessage());
         }
     }
 
@@ -337,6 +342,23 @@ class URITemplateTest {
         }
     }
 
+    testMakeQualifiersCanonical() {
+        var x;
+        x = "$(subsec,places=4)";
+        if (!"$(subsec;places=4)"==URITemplate.makeQualifiersCanonical(x)) {
+            fail(x);
+        }
+        //}
+        x = "$(hrinterval;names=01,02,03,04)";
+        if (!"$(hrinterval;names=01,02,03,04)"==URITemplate.makeQualifiersCanonical(x)) {
+            fail(x);
+        }
+        x = "$(d,delta=10,phasestart=1979-01-01)";
+        if (!"$(d;delta=10;phasestart=1979-01-01)"==URITemplate.makeQualifiersCanonical(x)) {
+            fail(x);
+        }
+    }
+
 }
 test = new URITemplateTest();
 test.testMakeCanonical();
@@ -344,3 +366,5 @@ test.testParse();
 test.testFormat();
 test.testFormatHapiServerSite();
 test.testFormatRange();
+test.testMakeQualifiersCanonical();
+
