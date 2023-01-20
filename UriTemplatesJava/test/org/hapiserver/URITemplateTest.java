@@ -377,6 +377,12 @@ public class URITemplateTest {
     public void testMakeQualifiersCanonical() {
         
         String x;
+        
+        x= "(x,name=sc,enum=a|b)";
+        if ( !"(x;name=sc;enum=a|b)".equals(URITemplate.makeQualifiersCanonical(x) ) ) {
+            fail(x);
+        }
+        
         x= "$(subsec,places=4)";
         if ( !"$(subsec;places=4)".equals(URITemplate.makeQualifiersCanonical(x) ) ) {
             fail(x);
