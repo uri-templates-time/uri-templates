@@ -253,7 +253,7 @@ class URITemplateTest {
             fail("bad number of results in formatRange: " + t);
         }
         for ( var l = 0; l < outputs.length; l++) {
-            if (!testOutputs[l]==outputs[l]) {
+            if (testOutputs[l]!=outputs[l]) {
                 fail("result doesn't match, got " + testOutputs[l] + ", should be " + outputs[l]);
             }
         }
@@ -344,27 +344,31 @@ class URITemplateTest {
 
     testMakeQualifiersCanonical() {
         var x;
+        x = "(x,name=sc,enum=a|b)";
+        if ("(x;name=sc;enum=a|b)"!=URITemplate.makeQualifiersCanonical(x)) {
+            fail(x);
+        }
         x = "$(subsec,places=4)";
-        if (!"$(subsec;places=4)"==URITemplate.makeQualifiersCanonical(x)) {
+        if ("$(subsec;places=4)"!=URITemplate.makeQualifiersCanonical(x)) {
             fail(x);
         }
         //}
         x = "$(hrinterval;names=01,02,03,04)";
-        if (!"$(hrinterval;names=01,02,03,04)"==URITemplate.makeQualifiersCanonical(x)) {
+        if ("$(hrinterval;names=01,02,03,04)"!=URITemplate.makeQualifiersCanonical(x)) {
             fail(x);
         }
         x = "$(d,delta=10,phasestart=1979-01-01)";
-        if (!"$(d;delta=10;phasestart=1979-01-01)"==URITemplate.makeQualifiersCanonical(x)) {
+        if ("$(d;delta=10;phasestart=1979-01-01)"!=URITemplate.makeQualifiersCanonical(x)) {
             fail(x);
         }
     }
 
 }
 test = new URITemplateTest();
+test.testMakeQualifiersCanonical();
 test.testMakeCanonical();
 test.testParse();
 test.testFormat();
 test.testFormatHapiServerSite();
 test.testFormatRange();
-test.testMakeQualifiersCanonical();
 
