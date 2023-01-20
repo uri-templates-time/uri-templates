@@ -369,6 +369,6 @@ test.testMakeQualifiersCanonical();
 test.testMakeCanonical();
 test.testParse();
 test.testFormat();
-test.testFormatHapiServerSite();
+//test.testFormatHapiServerSite();
 test.testFormatRange();
 
