@@ -1878,7 +1878,7 @@ public class URITemplate {
                             timel[2]= tnew[2];
                                 
                         } else {
-                            throw new IllegalArgumentException("phaseshart not set for delta days");
+                            throw new IllegalArgumentException("phasestart not set for delta days");
                         }   
                     } else {
                         digit= ( digit / delta ) * delta;
