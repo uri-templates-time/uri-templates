@@ -191,7 +191,7 @@ class PeriodicFieldHandler extends FieldHandler {
         if (s === null) {
             return "periodic field needs period";
         }
-        if (!s.startsWith("P")) {
+        if (!(s.startsWith("P"))) {
             if (s.endsWith("D")) {
                 throw "periodic unit for day is d, not D";
             }
@@ -298,7 +298,7 @@ class EnumFieldHandler extends FieldHandler {
     }
 
     parse(fieldContent, startTime, timeWidth, extra) {
-        if (!this.values.has(fieldContent)) {
+        if (!(this.values.has(fieldContent))) {
             throw "value is not in enum: " + fieldContent;
         }
         extra.set(this.id, fieldContent);
@@ -354,11 +354,11 @@ class IgnoreFieldHandler extends FieldHandler {
 
     parse(fieldContent, startTime, timeWidth, extra) {
         if (this.regex !== null) {
-            if (!this.pattern.exec(fieldContent)!=null) {
+            if (!(this.pattern.exec(fieldContent)!=null)) {
                 throw "ignore content doesn't match regex: " + fieldContent;
             }
         }
-        if (!this.name=="unnamed") {
+        if (this.name!="unnamed") {
             extra.set(this.name, fieldContent);
         }
     }
@@ -499,7 +499,6 @@ function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
             dstPts[dstOff++] = tmp[i];
     } 
 }
-
 function arrayequals( a, b ) { // private
     if ( a.length!==b.length ) {
         return false;
@@ -512,6 +511,7 @@ function arrayequals( a, b ) { // private
         return true;
     }
 }
+
 /**
  * URITemplate implements a URI_Template, as described in 
  * https://github.com/hapi-server/uri-templates/wiki/Specification
@@ -720,16 +720,16 @@ class URITemplate {
         var oldSpec = formatString.indexOf("${")!==-1;
         var p = new RegExp("\\$[0-9]+\\{");
         var oldSpec2 = p.exec(formatString)!=null;
-        if (formatString.startsWith("$") && !wildcard && !oldSpec && !oldSpec2) return formatString;
-        if (formatString.indexOf("%")!==-1 && !formatString.indexOf("$")!==-1) {
+        if (formatString.startsWith("$") && !(wildcard) && !(oldSpec) && !(oldSpec2)) return formatString;
+        if (formatString.indexOf("%")!==-1 && !(formatString.indexOf("$")!==-1)) {
             formatString = formatString.replaceAll(/\%/g, "$");
         }
         oldSpec = formatString.indexOf("${")!==-1;
-        if (oldSpec && !formatString.indexOf("$(")!==-1) {
+        if (oldSpec && !(formatString.indexOf("$(")!==-1)) {
             formatString = formatString.replaceAll(/\$\{/g, "$(");
             formatString = formatString.replaceAll(/\}/g, ")");
         }
-        if (oldSpec2 && !formatString.indexOf("$(")!==-1) {
+        if (oldSpec2 && !(formatString.indexOf("$(")!==-1)) {
             formatString = formatString.replaceAll(/\$([0-9]+)\{/g, "$$1(");
             formatString = formatString.replaceAll(/\}/g, ")");
         }
@@ -752,6 +752,8 @@ class URITemplate {
     /**
      * $(subsec,places=4) --> $(subsec;places=4)
      * $(enum,values=01,02,03,id=foo) --> $(enum;values=01,02,03;id=foo)
+     * $a --> $a
+     * (subsec,places=4) --> (subsec;places=4)
      * @param qualifiers
      * @return 
      */
@@ -767,14 +769,16 @@ class URITemplate {
         var istart;
         // If it is, then assume the qualifiers are properly formatted.
         result[0] = qualifiers.charAt(0);
-        for ( istart = 1; istart < qualifiers.length; istart++) {
+        // '$'
+        result[1] = qualifiers.charAt(1);
+        for ( istart = 2; istart < qualifiers.length; istart++) {
             var ch = qualifiers.charAt(istart);
             if (ch == ';') return qualifiers;
             if (ch == ',') {
                 result[istart] = ';';
                 break
             }
-            if (/[a-z]/i.test(ch)) {
+            if (/[a-z]/i.test(ch) || ch == ')') {
                 result[istart] = ch;
             }
         }
@@ -782,10 +786,20 @@ class URITemplate {
         for ( var i = qualifiers.length - 1; i > istart; i--) {
             result[i] = qualifiers.charAt(i);
             var ch = qualifiers.charAt(i);
-            if (ch == '=') expectSemi = true;
+            if (ch == '=') {
+                expectSemi = true;            
+            } else {
+                if (ch == ',' && expectSemi) {
+                    result[i] = ';';
+                } else {
+                    if (ch == ';') {
+                        expectSemi = false;
+                    }
+                }
+            }
         }
         var rr = result.join( "" );
-        if (!result==qualifiers) {
+        if (result!=qualifiers) {
             // J2J (logger) logger.log(Level.FINE, "qualifiers are made canonical: {0}->{1}", new Object[] { qualifiers, rr });
         }
         return rr;
@@ -972,13 +986,13 @@ class URITemplate {
                 haveHour = true;
             } else {
                 if (this.fc[i]=="p") {
-                    if (!haveHour) {
+                    if (!(haveHour)) {
                         throw "$H must preceed $p";
                     }
                 }
             }
             if (handler === 9999) {
-                if (!this.fieldHandlers.has(this.fc[i])) {
+                if (!(this.fieldHandlers.has(this.fc[i]))) {
                     throw "bad format code: \"" + this.fc[i] + "\" in \"" + formatString + "\"";
                 } else {
                     handler = 100;
@@ -1039,7 +1053,7 @@ class URITemplate {
                         okay = true;
                     }
                     var idx = qual.indexOf("=");
-                    if (!okay && idx > -1) {
+                    if (!(okay) && idx > -1) {
                         var name = qual.substring(0, idx).trim();
                         var val = qual.substring(idx + 1).trim();
                         this.qualifiersMaps[i].set(name, val);
@@ -1156,6 +1170,7 @@ class URITemplate {
                                 break
                             case "shift":
                                 if (val.length === 0) throw "shift is empty";
+
                                 var possibleUnit = val.charAt(val.length - 1);
                                 var digit;
                                 if (/[a-z]/i.test(possibleUnit)) {
@@ -1178,7 +1193,9 @@ class URITemplate {
                             case "fmt":
                             case "case":
                                 if (name=="pad" && val=="none") this.lengths[i] = -1;
+
                                 if (this.qualifiersMaps[i] === null) this.qualifiersMaps[i] = new Map();
+
                                 this.qualifiersMaps[i].set(name, val);
                                 break
                             case "end":
@@ -1189,7 +1206,7 @@ class URITemplate {
 
                                 break
                             default:
-                                if (!this.fieldHandlers.has(this.fc[i])) {
+                                if (!(this.fieldHandlers.has(this.fc[i]))) {
                                     throw "unrecognized/unsupported field: " + name + " in " + qual;
                                 }
 
@@ -1197,7 +1214,7 @@ class URITemplate {
                         }
                         okay = true;
                     } else {
-                        if (!okay) {
+                        if (!(okay)) {
                             var name = qual.trim();
                             if (name=="end") {
                                 if (this.stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
@@ -1208,11 +1225,11 @@ class URITemplate {
                             }
                         }
                     }
-                    if (!okay && (qual=="Y" || qual=="m" || qual=="d" || qual=="j" || qual=="H" || qual=="M" || qual=="S")) {
+                    if (!(okay) && (qual=="Y" || qual=="m" || qual=="d" || qual=="j" || qual=="H" || qual=="M" || qual=="S")) {
                         throw sprintf("%s must be assigned an integer value (e.g. %s=1) in %s",qual, qual, ss[i]);
                     }
-                    if (!okay) {
-                        if (!this.fieldHandlers.has(this.fc[i])) {
+                    if (!(okay)) {
+                        if (!(this.fieldHandlers.has(this.fc[i]))) {
                             // J2J (logger) logger.log(Level.WARNING, "unrecognized/unsupported field:{0} in {1}", new Object[] { qual, ss[i] });
                         }
                     }
@@ -1303,7 +1320,7 @@ class URITemplate {
             case 4:
             case 5:
             case 6:
-                if (!this.timeWidthIsExplicit) {
+                if (!(this.timeWidthIsExplicit)) {
                     this.timeWidth[this.lsd] = lsdMult;
                 }
 
@@ -1648,7 +1665,7 @@ class URITemplate {
                 s1 = ut.format(sptr, sptr, extra);
                 firstLoop = false;
             }
-            if ( arrayequals(tta.slice(0,7),tta.slice(7,14)) ) {
+            if (arrayequals( Arrays.copyOfRange(tta, 0, 7), Arrays.copyOfRange(tta, 7, 14) )) {
                 result.push(ut.format(startTimeStr, stopTimeStr));
                 break
             } else {
@@ -1805,7 +1822,7 @@ class URITemplate {
                                 timel[1] = tnew[1];
                                 timel[2] = tnew[2];
                             } else {
-                                throw "phaseshart not set for delta days";
+                                throw "phasestart not set for delta days";
                             }
                         } else {
                             digit = (Math.floor(digit / delta)) * delta;
@@ -1813,7 +1830,7 @@ class URITemplate {
                     }
                 }
                 if (length < 0) {
-                    var ss = String.valueOf(digit);
+                    var ss = new String(digit);
                     result = result.substring(0,offs)+ss+result.substring(offs);  // J2J expr -> assignment;
                     offs += ss.length;
                 } else {
@@ -1828,16 +1845,16 @@ class URITemplate {
                                 switch (pad) {
                                     case "space":
                                         result = result.substring(0,offs)+" "+result.substring(offs);  // J2J expr -> assignment;
-                                        result = result.substring(0,offs)+String.valueOf(digit)+result.substring(offs);  // J2J expr -> assignment;
+                                        result = result.substring(0,offs)+new String(digit)+result.substring(offs);  // J2J expr -> assignment;
                                         offs += 2;
                                         break
                                     case "underscore":
                                         result = result.substring(0,offs)+"_"+result.substring(offs);  // J2J expr -> assignment;
-                                        result = result.substring(0,offs)+String.valueOf(digit)+result.substring(offs);  // J2J expr -> assignment;
+                                        result = result.substring(0,offs)+new String(digit)+result.substring(offs);  // J2J expr -> assignment;
                                         offs += 2;
                                         break
                                     case "none":
-                                        result = result.substring(0,offs)+String.valueOf(digit)+result.substring(offs);  // J2J expr -> assignment;
+                                        result = result.substring(0,offs)+new String(digit)+result.substring(offs);  // J2J expr -> assignment;
                                         offs += 1;
                                         break
                                     default:
