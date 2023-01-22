@@ -647,11 +647,9 @@ class URITemplateTest {
                     outputss[ii] = outputs[ii];
                 }
                 var timeRanges;
-                try {
-                    timeRanges = jo1.timeRange;
-                } catch (ex) {
-                    var timeRange = jo1.timeRange;
-                    timeRanges = [ timeRange ];
+                timeRanges = jo1.timeRange;
+                if ( !Array.isArray(timeRanges) ) {    
+                    timeRanges = [ timeRanges ];
                 }
                 for ( var j = 0; j < templates.length; j++) {
                     var t = templates[j];
