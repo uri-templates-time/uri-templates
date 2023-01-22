@@ -513,7 +513,7 @@ function arrayequals( a, b ) { // private
 }
 
 function copyOfRange( a, s, f ) {
-    return a.slice( s, f ); //TODO: converter should pick this up
+    return a.slice( s, f ); //TODO: converter should pick this up -- TODO: this is coded, so why wasn't it used?
 }
 
 /**
@@ -859,9 +859,9 @@ class URITemplate {
     static floorDiv(ndays, timeWidth) {
         var ncycles;
         if (ndays < 0) {
-            ncycles = Math.floor((ndays + 1) / timeWidth) - 1;
+            ncycles = Math.trunc( (ndays + 1) / timeWidth ) - 1;
         } else {
-            ncycles = Math.floor(ndays / timeWidth);
+            ncycles = Math.trunc( ndays / timeWidth );
         }
         return ncycles;
     }
@@ -1661,6 +1661,15 @@ class URITemplate {
         }
         var firstLoop = true;
         while (sptr < stop) {
+            if ( sptr===undefined ) {
+                throw "hey sptr is now undefined";
+            } else {
+                if ( sptr<"1599" ) {
+                    console.info("what the heck is going on here? "+sptr);
+                } else {
+                    //console.info("sptr is defined: "+sptr);
+                }
+            }
             var sptr0 = sptr;
             s1 = ut.format(sptr, sptr, extra);
             var tta = ut.parse(s1, new Map());
