@@ -512,6 +512,10 @@ function arrayequals( a, b ) { // private
     }
 }
 
+function copyOfRange( a, s, f ) {
+    return a.slice( s, f ); //TODO: converter should pick this up
+}
+
 /**
  * URITemplate implements a URI_Template, as described in 
  * https://github.com/hapi-server/uri-templates/wiki/Specification
@@ -1665,7 +1669,7 @@ class URITemplate {
                 s1 = ut.format(sptr, sptr, extra);
                 firstLoop = false;
             }
-            if (arrayequals( Arrays.copyOfRange(tta, 0, 7), Arrays.copyOfRange(tta, 7, 14) )) {
+            if (arrayequals( copyOfRange(tta, 0, 7), copyOfRange(tta, 7, 14) )) {
                 result.push(ut.format(startTimeStr, stopTimeStr));
                 break
             } else {
