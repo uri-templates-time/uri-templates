@@ -224,27 +224,390 @@ class URITemplateTest {
         this.doTestTimeFormat1("ace_mag_$Y_$j_to_$(Y;end)_$j.cdf", "ace_mag_2005_001_to_2005_003.cdf", "2005-001T00:00/2005-003T00:00");
     }
 
-    static readJSONToString(url) {
-        var ins = null;
-        try {
-            ins = url.openStream();
-            var sb = "";
-            var buffer = [];
-            var bytesRead = ins.read(buffer);
-            while (bytesRead !== -1) {
-                sb+= String(new String(buffer, 0, bytesRead));
-                bytesRead = ins.read(buffer);
-            }
-            return sb;
-        } catch (ex) {
-            throw ex;
-        } finally {
-            try {
-                if (ins !== null) ins.close();
-            } catch (ex) {
-                // J2J (logger) Logger.getLogger(URITemplateTest.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+    static readJSONTests() {
+        // https://raw.githubusercontent.com/hapi-server/uri-templates/master/formatting.json
+        let test= "[\n" +
+"{\n" +
+"\"id\": \"fieldstest1\",\n" +
+"\"whatTests\": [\n" +
+"\"fields\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"http://example.com/data_$Y.dat\",\n" +
+"\"http://example.com/data_$(Y).dat\"\n" +
+"],\n" +
+"\"timeRange\": [\n" +
+"\"2001-03-22/2004-08-18\",\n" +
+"\"2001-03/2004-08\",\n" +
+"\"2001/2005\"\n" +
+"],\n" +
+"\"comment\": \"Example in section 1.1 of specification document. Note that stop date is exclusive, so 2001/2005 is needed to generate 2004 URI when only year start/stop is given.\",\n" +
+"\"output\": [\n" +
+"\"http://example.com/data_2001.dat\",\n" +
+"\"http://example.com/data_2002.dat\",\n" +
+"\"http://example.com/data_2003.dat\",\n" +
+"\"http://example.com/data_2004.dat\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"fieldstest2\",\n" +
+"\"whatTests\": [\n" +
+"\"fields\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"http://example.com/data_$Y-$m.dat\",\n" +
+"\"http://example.com/data_$(Y)-$m.dat\",\n" +
+"\"http://example.com/data_$Y-$(m).dat\"\n" +
+"],\n" +
+"\"timeRange\": [\n" +
+"\"1998/1999\",\n" +
+"\"1998-01/1999-01\",\n" +
+"\"1998-01/1998-12-02\"\n" +
+"],\n" +
+"\"comment\": \"\",\n" +
+"\"output\": [\n" +
+"\"http://example.com/data_1998-01.dat\",\n" +
+"\"http://example.com/data_1998-02.dat\",\n" +
+"\"http://example.com/data_1998-03.dat\",\n" +
+"\"http://example.com/data_1998-04.dat\",\n" +
+"\"http://example.com/data_1998-05.dat\",\n" +
+"\"http://example.com/data_1998-06.dat\",\n" +
+"\"http://example.com/data_1998-07.dat\",\n" +
+"\"http://example.com/data_1998-08.dat\",\n" +
+"\"http://example.com/data_1998-09.dat\",\n" +
+"\"http://example.com/data_1998-10.dat\",\n" +
+"\"http://example.com/data_1998-11.dat\",\n" +
+"\"http://example.com/data_1998-12.dat\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"escape1\",\n" +
+"\"whatTests\": [\n" +
+"\"escape\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"http://example.com/$$$Y$$.dat\"\n" +
+"],\n" +
+"\"timeRange\": [\n" +
+"\"2001/2003\"\n" +
+"],\n" +
+"\"comment\": \"$$ is interpreted as a literal $.\",\n" +
+"\"output\": [\n" +
+"\"http://example.com/$2001$.dat\",\n" +
+"\"http://example.com/$2002$.dat\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"pad1\",\n" +
+"\"whatTests\": [\n" +
+"\"pad\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"http://example.com/data_$(j;pad=none).dat\"\n" +
+"],\n" +
+"\"timeRange\": [\n" +
+"\"1999-01/1999-03\"\n" +
+"],\n" +
+"\"comment\": \"\",\n" +
+"\"output\": [\n" +
+"\"http://example.com/data_1.dat\",\n" +
+"\"http://example.com/data_2.dat\",\n" +
+"\"http://example.com/data_3.dat\",\n" +
+"\"http://example.com/data_4.dat\",\n" +
+"\"http://example.com/data_5.dat\",\n" +
+"\"http://example.com/data_6.dat\",\n" +
+"\"http://example.com/data_7.dat\",\n" +
+"\"http://example.com/data_8.dat\",\n" +
+"\"http://example.com/data_9.dat\",\n" +
+"\"http://example.com/data_10.dat\",\n" +
+"\"http://example.com/data_11.dat\",\n" +
+"\"http://example.com/data_12.dat\",\n" +
+"\"http://example.com/data_13.dat\",\n" +
+"\"http://example.com/data_14.dat\",\n" +
+"\"http://example.com/data_15.dat\",\n" +
+"\"http://example.com/data_16.dat\",\n" +
+"\"http://example.com/data_17.dat\",\n" +
+"\"http://example.com/data_18.dat\",\n" +
+"\"http://example.com/data_19.dat\",\n" +
+"\"http://example.com/data_20.dat\",\n" +
+"\"http://example.com/data_21.dat\",\n" +
+"\"http://example.com/data_22.dat\",\n" +
+"\"http://example.com/data_23.dat\",\n" +
+"\"http://example.com/data_24.dat\",\n" +
+"\"http://example.com/data_25.dat\",\n" +
+"\"http://example.com/data_26.dat\",\n" +
+"\"http://example.com/data_27.dat\",\n" +
+"\"http://example.com/data_28.dat\",\n" +
+"\"http://example.com/data_29.dat\",\n" +
+"\"http://example.com/data_30.dat\",\n" +
+"\"http://example.com/data_31.dat\",\n" +
+"\"http://example.com/data_32.dat\",\n" +
+"\"http://example.com/data_33.dat\",\n" +
+"\"http://example.com/data_34.dat\",\n" +
+"\"http://example.com/data_35.dat\",\n" +
+"\"http://example.com/data_36.dat\",\n" +
+"\"http://example.com/data_37.dat\",\n" +
+"\"http://example.com/data_38.dat\",\n" +
+"\"http://example.com/data_39.dat\",\n" +
+"\"http://example.com/data_40.dat\",\n" +
+"\"http://example.com/data_41.dat\",\n" +
+"\"http://example.com/data_42.dat\",\n" +
+"\"http://example.com/data_43.dat\",\n" +
+"\"http://example.com/data_44.dat\",\n" +
+"\"http://example.com/data_45.dat\",\n" +
+"\"http://example.com/data_46.dat\",\n" +
+"\"http://example.com/data_47.dat\",\n" +
+"\"http://example.com/data_48.dat\",\n" +
+"\"http://example.com/data_49.dat\",\n" +
+"\"http://example.com/data_50.dat\",\n" +
+"\"http://example.com/data_51.dat\",\n" +
+"\"http://example.com/data_52.dat\",\n" +
+"\"http://example.com/data_53.dat\",\n" +
+"\"http://example.com/data_54.dat\",\n" +
+"\"http://example.com/data_55.dat\",\n" +
+"\"http://example.com/data_56.dat\",\n" +
+"\"http://example.com/data_57.dat\",\n" +
+"\"http://example.com/data_58.dat\",\n" +
+"\"http://example.com/data_59.dat\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"pad2\",\n" +
+"\"whatTests\": [\n" +
+"\"pad\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"http://example.com/data_$(m;pad=none).dat\"\n" +
+"],\n" +
+"\"timeRange\": [\n" +
+"\"1999-01/1999-03\"\n" +
+"],\n" +
+"\"comment\": \"\",\n" +
+"\"output\": [\n" +
+"\"http://example.com/data_1.dat\",\n" +
+"\"http://example.com/data_2.dat\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"pad3\",\n" +
+"\"whatTests\": [\n" +
+"\"pad\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"http://example.com/data_$(d;pad=none).dat\"\n" +
+"],\n" +
+"\"timeRange\": [\n" +
+"\"1999-01-01/1999-01-03\"\n" +
+"],\n" +
+"\"comment\": \"\",\n" +
+"\"output\": [\n" +
+"\"http://example.com/data_1.dat\",\n" +
+"\"http://example.com/data_2.dat\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"pad4\",\n" +
+"\"whatTests\": [\n" +
+"\"pad\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"http://example.com/data_$(H;pad=none).dat\"\n" +
+"],\n" +
+"\"timeRange\": [\n" +
+"\"1999-01-01T00/1999-01-01T03\"\n" +
+"],\n" +
+"\"comment\": \"\",\n" +
+"\"output\": [\n" +
+"\"http://example.com/data_0.dat\",\n" +
+"\"http://example.com/data_1.dat\",\n" +
+"\"http://example.com/data_2.dat\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"pad5\",\n" +
+"\"whatTests\": [\n" +
+"\"pad\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"http://example.com/data_$(M;pad=none).dat\"\n" +
+"],\n" +
+"\"timeRange\": [\n" +
+"\"1999-01-01T00:00/1999-01-01T00:03\"\n" +
+"],\n" +
+"\"comment\": \"\",\n" +
+"\"output\": [\n" +
+"\"http://example.com/data_0.dat\",\n" +
+"\"http://example.com/data_1.dat\",\n" +
+"\"http://example.com/data_2.dat\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"pad6\",\n" +
+"\"whatTests\": [\n" +
+"\"pad\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"http://example.com/data_$(S;pad=none).dat\"\n" +
+"],\n" +
+"\"timeRange\": [\n" +
+"\"1999-01-01T00:00:00/1999-01-01T00:00:03\"\n" +
+"],\n" +
+"\"comment\": \"\",\n" +
+"\"output\": [\n" +
+"\"http://example.com/data_0.dat\",\n" +
+"\"http://example.com/data_1.dat\",\n" +
+"\"http://example.com/data_2.dat\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"deltaUnits1\",\n" +
+"\"whatTests\": [\n" +
+"\"delta\",\n" +
+"\"units\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"$Y-$(m;delta=2)\",\n" +
+"\"$Y-$(m;delta=2;phasestart=2013-01)\"\n" +
+"],\n" +
+"\"timeRange\": \"2013-02/2013-06\",\n" +
+"\"comment\": \"Note no phase start needed when delta in month.\",\n" +
+"\"output\": [\n" +
+"\"2013-01\",\n" +
+"\"2013-03\",\n" +
+"\"2013-05\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"deltaUnits2\",\n" +
+"\"whatTests\": [\n" +
+"\"delta\",\n" +
+"\"units\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"$Y-$m-$(d;delta=7;phasestart=2019-05-05)\"\n" +
+"],\n" +
+"\"timeRange\": \"2019-05-01/2019-06-01\",\n" +
+"\"comment\": \"Note that phasestart is required.\",\n" +
+"\"output\": [\n" +
+"\"2019-04-28\",\n" +
+"\"2019-05-05\",\n" +
+"\"2019-05-12\",\n" +
+"\"2019-05-19\",\n" +
+"\"2019-05-26\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"deltaUnits3\",\n" +
+"\"whatTests\": [\n" +
+"\"delta\",\n" +
+"\"units\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"$Y-$m-$(d;delta=2;phasestart=2013-09-01)\"\n" +
+"],\n" +
+"\"timeRange\": \"2013-09-01/2013-09-05\",\n" +
+"\"comment\": \"Note phasestart required.\",\n" +
+"\"output\": [\n" +
+"\"2013-09-01\",\n" +
+"\"2013-09-03\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"shiftUnits1\",\n" +
+"\"whatTests\": [\n" +
+"\"shift\",\n" +
+"\"units\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"$Y-$m-$(d;shift=1).dat\",\n" +
+"\"$Y-$m-$(d;shift=1d).dat\"\n" +
+"],\n" +
+"\"timeRange\": \"2013-09-01/2013-09-05\",\n" +
+"\"comment\": \"Basic example of shift. Example use case is where file name corresponds to when the file was written and file contains measurements made on the day before.\",\n" +
+"\"output\": [\n" +
+"\"2013-08-31.dat\",\n" +
+"\"2013-09-01.dat\",\n" +
+"\"2013-09-02.dat\",\n" +
+"\"2013-09-03.dat\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"end1\",\n" +
+"\"whatTests\": [\n" +
+"\"end\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"data_$Y$m$d_$(Y;end)$m$d.txt\"\n" +
+"],\n" +
+"\"timeRange\": \"2005-132/2005-146\",\n" +
+"\"comment\": \"when the start time and end time are available, format range should format the whole interval\",\n" +
+"\"output\": [\n" +
+"\"data_20050512_20050526.txt\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"shift1\",\n" +
+"\"whatTests\": [\n" +
+"\"shift\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"data_$Y$j_$(Y;end)$(j;shift=1).txt\"\n" +
+"],\n" +
+"\"timeRange\": \"2005-132/2005-146\",\n" +
+"\"comment\": \"Shift is used for inclusive stop day, see https://github.com/hapi-server/uri-templates/wiki/Specification#full-list-of-field-codes the at end of the section.\",\n" +
+"\"output\": [\n" +
+"\"data_2005132_2005145.txt\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"deltaPhaseStartEnd1\",\n" +
+"\"whatTests\": [\n" +
+"\"delta\",\n" +
+"\"phasestart\",\n" +
+"\"end\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"$Y$m$(d;delta=10;phasestart=1979-01-01)_$(Y,end)$m$d\"\n" +
+"],\n" +
+"\"timeRange\": \"1979-01-01/1979-01-18\",\n" +
+"\"comment\": \"should step by ten day increments.\",\n" +
+"\"output\": [\n" +
+"\"19790101_19790111\",\n" +
+"\"19790111_19790121\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"subsec1\",\n" +
+"\"whatTests\": [\n" +
+"\"subsec\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"$Y$m$d_$H$M$S.$(subsec;places=2)\"\n" +
+"],\n" +
+"\"timeRange\": \"2008-01-01T01:00:00.030/2008-01-01T01:00:00.060\",\n" +
+"\"comment\": \"should step by .01 second increments.\",\n" +
+"\"output\": [\n" +
+"\"20080101_010000.03\",\n" +
+"\"20080101_010000.04\",\n" +
+"\"20080101_010000.05\"\n" +
+"]\n" +
+"},\n" +
+"{\n" +
+"\"id\": \"delta1\",\n" +
+"\"whatTests\": [\n" +
+"\"delta\"\n" +
+"],\n" +
+"\"template\": [\n" +
+"\"vg1pws_lr_$Y$m$(d;delta=10;phasestart=1979-01-01)_$(Y;end)$m$(d)_v5.10.png\"\n" +
+"],\n" +
+"\"timeRange\": \"1979-01-02/1979-01-03\",\n" +
+"\"comment\": \"should be 10 days long\",\n" +
+"\"output\": [\n" +
+"\"vg1pws_lr_19790101_19790111_v5.10.png\"\n" +
+"]\n" +
+"}\n" +
+"]";
+        return JSON.parse(test);
     }
 
     doTestFormatHapiServerSiteOne(outputs, t, startTime, stopTime) {
@@ -267,34 +630,33 @@ class URITemplateTest {
     testFormatHapiServerSite() {
         try {
             console.info("# testFormatHapiServerSite");
-            var ss = URITemplateTest.readJSONToString(new URL("https://raw.githubusercontent.com/hapi-server/uri-templates/master/formatting.json"));
+            var jo = URITemplateTest.readJSONTests();
             //String ss= readJSONToString( new URL( "file:/home/jbf/ct/git/uri-templates/formatting.json" ) );
-            var jo = new JSONArray(ss);
-            for ( var i = 0; i < jo.length(); i++) {
-                var jo1 = jo.getJSONObject(i);
-                var id = jo1.getString("id");
-                console.info(sprintf("# %2d: %s %s",i, id, jo1.get("whatTests")));
+            for ( var i = 0; i < jo.length; i++) {
+                var jo1 = jo[i];
+                var id = jo1.id;
+                console.info(sprintf("# %2d: %s %s",i, id, jo1.whatTests));
                 if (i < 3) {
                     console.info("###  Skipping test " + i);
                     continue
                 }
-                var templates = jo1.getJSONArray("template");
-                var outputs = jo1.getJSONArray("output");
+                var templates = jo1.template;
+                var outputs = jo1.output;
                 var outputss = [];
-                for ( var ii = 0; ii < outputs.length(); ii++) {
-                    outputss[ii] = outputs.getString(ii);
+                for ( var ii = 0; ii < outputs.length; ii++) {
+                    outputss[ii] = outputs[ii];
                 }
                 var timeRanges;
                 try {
-                    timeRanges = jo1.getJSONArray("timeRange");
+                    timeRanges = jo1.timeRange;
                 } catch (ex) {
-                    var timeRange = jo1.getString("timeRange");
-                    timeRanges = new JSONArray(Collections.singletonList(timeRange));
+                    var timeRange = jo1.timeRange;
+                    timeRanges = [ timeRange ];
                 }
-                for ( var j = 0; j < templates.length(); j++) {
-                    var t = templates.getString(j);
-                    for ( var k = 0; k < timeRanges.length(); k++) {
-                        var timeRange = timeRanges.getString(k);
+                for ( var j = 0; j < templates.length; j++) {
+                    var t = templates[j];
+                    for ( var k = 0; k < timeRanges.length; k++) {
+                        var timeRange = timeRanges[k];
                         console.info("timeRange:" + timeRange);
                         var timeStartStop = timeRange.split("/");
                         try {
@@ -308,7 +670,7 @@ class URITemplateTest {
             }
         } catch (ex) {
             // J2J (logger) Logger.getLogger(URITemplateTest.class.getName()).log(Level.SEVERE, null, ex);
-            fail(ex.getMessage());
+            fail(ex);
         }
     }
 
@@ -369,6 +731,6 @@ test.testMakeQualifiersCanonical();
 test.testMakeCanonical();
 test.testParse();
 test.testFormat();
-//test.testFormatHapiServerSite();
+test.testFormatHapiServerSite();
 test.testFormatRange();
 
