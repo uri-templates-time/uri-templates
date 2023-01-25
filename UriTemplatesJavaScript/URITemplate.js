@@ -85,7 +85,7 @@ class SubsecFieldHandler extends FieldHandler {
     }
 
     format(startTime, timeWidth, length, extra) {
-        var nn = Math.floor(startTime[6] / this.nanosecondsFactor);
+        var nn = Math.trunc(startTime[6] / this.nanosecondsFactor);
         return sprintf(this.formatStr,Math.trunc( Math.round(nn) ));
     }
 
@@ -146,7 +146,7 @@ class HrintervalFieldHandler extends FieldHandler {
     }
 
     format(startTime, timeWidth, length, extra) {
-        var key = Math.floor(startTime[3] / this.mult);
+        var key = Math.trunc(startTime[3] / this.mult);
         if (this.revvalues.has(key)) {
             var v = this.revvalues.get(key);
             return v;
@@ -280,9 +280,7 @@ class EnumFieldHandler extends FieldHandler {
                 ss = ss2;
             }
         }
-        ss.forEach( function ( s ) {
-            this.values.add(s);
-        },this);
+        this.values.addAll(ss);
         this.id = URITemplate.getArg(args, "id", "unindentifiedEnum");
         return null;
     }
@@ -510,10 +508,6 @@ function arrayequals( a, b ) { // private
         }
         return true;
     }
-}
-
-function copyOfRange( a, s, f ) {
-    return a.slice( s, f ); //TODO: converter should pick this up -- TODO: this is coded, so why wasn't it used?
 }
 
 /**
@@ -859,9 +853,9 @@ class URITemplate {
     static floorDiv(ndays, timeWidth) {
         var ncycles;
         if (ndays < 0) {
-            ncycles = Math.trunc( (ndays + 1) / timeWidth ) - 1;
+            ncycles = Math.trunc((ndays + 1) / timeWidth) - 1;
         } else {
-            ncycles = Math.trunc( ndays / timeWidth );
+            ncycles = Math.trunc(ndays / timeWidth);
         }
         return ncycles;
     }
@@ -1489,7 +1483,7 @@ class URITemplate {
                                 // TimeZone is not supported, see code elsewhere.
                                 var offset;
                                 offset = parseInt(timeString.substring(offs, offs + length));
-                                time[URITemplate.HOUR] -= Math.floor(offset / 100);
+                                time[URITemplate.HOUR] -= Math.trunc(offset / 100);
                                 // careful!
                                 time[URITemplate.MINUTE] -= offset % 100;
                             } else {
@@ -1536,10 +1530,10 @@ class URITemplate {
                 // J2J (logger) logger.warning("phasestart cannot be used for month or year resolution");
             } else {
                 if (this.timeWidth[1] > 0) {
-                    startTime[1] = (Math.floor((startTime[1] - this.phasestart[1]) / this.timeWidth[1])) * this.timeWidth[1] + this.phasestart[1];
+                    startTime[1] = (Math.trunc((startTime[1] - this.phasestart[1]) / this.timeWidth[1])) * this.timeWidth[1] + this.phasestart[1];
                 } else {
                     if (this.timeWidth[0] > 0) {
-                        startTime[0] = (Math.floor((startTime[0] - this.phasestart[0]) / this.timeWidth[0])) * this.timeWidth[0] + this.phasestart[0];
+                        startTime[0] = (Math.trunc((startTime[0] - this.phasestart[0]) / this.timeWidth[0])) * this.timeWidth[0] + this.phasestart[0];
                     } else {
                         if (this.timeWidth[2] > 1) {
                             var phaseStartJulian = TimeUtil.julianDay(this.phasestart[0], this.phasestart[1], this.phasestart[2]);
@@ -1661,15 +1655,6 @@ class URITemplate {
         }
         var firstLoop = true;
         while (sptr < stop) {
-            if ( sptr===undefined ) {
-                throw "hey sptr is now undefined";
-            } else {
-                if ( sptr<"1599" ) {
-                    console.info("what the heck is going on here? "+sptr);
-                } else {
-                    //console.info("sptr is defined: "+sptr);
-                }
-            }
             var sptr0 = sptr;
             s1 = ut.format(sptr, sptr, extra);
             var tta = ut.parse(s1, new Map());
@@ -1678,7 +1663,7 @@ class URITemplate {
                 s1 = ut.format(sptr, sptr, extra);
                 firstLoop = false;
             }
-            if (arrayequals( copyOfRange(tta, 0, 7), copyOfRange(tta, 7, 14) )) {
+            if (arrayequals( tta.slice(0,7), tta.slice(7,14) )) {
                 result.push(ut.format(startTimeStr, stopTimeStr));
                 break
             } else {
@@ -1811,10 +1796,10 @@ class URITemplate {
                         digit = timel[5];
                         break
                     case 8:
-                        digit = Math.floor(timel[6] / 1000000);
+                        digit = Math.trunc(timel[6] / 1000000);
                         break
                     case 9:
-                        digit = Math.floor(timel[6] / 1000);
+                        digit = Math.trunc(timel[6] / 1000);
                         break
                     default:
                         throw "shouldn't get here";
@@ -1823,7 +1808,7 @@ class URITemplate {
                     var h = this.handlers[idigit];
                     if (h === 2 || h === 3) {
                         // $j, $m all start with 1.
-                        digit = ((Math.floor((digit - 1) / delta)) * delta) + 1;
+                        digit = ((Math.trunc((digit - 1) / delta)) * delta) + 1;
                     } else {
                         if (h === 4) {
                             if (this.phasestart !== null) {
@@ -1838,7 +1823,7 @@ class URITemplate {
                                 throw "phasestart not set for delta days";
                             }
                         } else {
-                            digit = (Math.floor(digit / delta)) * delta;
+                            digit = (Math.trunc(digit / delta)) * delta;
                         }
                     }
                 }
