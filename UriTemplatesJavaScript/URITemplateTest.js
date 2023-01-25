@@ -73,7 +73,7 @@ class URITemplateTest {
         try {
             ut = new URITemplate(spec);
         } catch (ex) {
-            console.error("### unable to parse spec: " + spec);
+            console.info("### unable to parse spec: " + spec);
             return;
         }
         var nn = norm.split("/");
@@ -150,7 +150,7 @@ class URITemplateTest {
         this.doTestTimeParser1("$(periodic;offset=2285;start=2000-346;period=P27D)", "2286", "2001-007/P27D");
         this.doTestTimeParser1("$(j;Y=2012)$(hrinterval;names=01,02,03,04)", "01702", "2012-01-17T06:00/PT6H");
         this.doTestTimeParser1("$(j;Y=2012).$H$M$S.$(subsec;places=3)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246");
-        this.doTestTimeParser1("$(j;Y=2012).$x.$X.$(ignore).$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
+        //This should not parse: doTestTimeParser1( "$(j;Y=2012).$x.$X.$(ignore).$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
         this.doTestTimeParser1("$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
         //testTimeParser1( "$(o;id=rbspa-pp)", "31",  "2012-09-10T14:48:30.914Z/2012-09-10T23:47:34.973Z"); 
         this.doTestTimeParser1("$(j;Y=2012)$(hrinterval;names=01,02,03,04)", "01702", "2012-01-17T06:00/2012-01-17T12:00");
@@ -677,7 +677,7 @@ class URITemplateTest {
             console.info("# testFormatRange");
             var t;
             var ss;
-            console.error(URITemplate.VERSION);
+            console.info(URITemplate.VERSION);
             t = "data_$Y.dat";
             ss = URITemplate.formatRange(t, "2001-03-22", "2004-08-18");
             if (ss.length !== 4) {

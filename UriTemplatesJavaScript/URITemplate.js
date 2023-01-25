@@ -280,7 +280,9 @@ class EnumFieldHandler extends FieldHandler {
                 ss = ss2;
             }
         }
-        this.values.addAll(ss);
+        ss.forEach( function ( s ) {
+            this.values.add(s);
+        },this);
         this.id = URITemplate.getArg(args, "id", "unindentifiedEnum");
         return null;
     }
