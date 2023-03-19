@@ -780,7 +780,7 @@ public class TimeUtil {
             
         } else {
             if (time.length() < 7) {
-                throw new IllegalArgumentException("time must have 4 or greater than 7 elements");
+                throw new IllegalArgumentException("time must have 4 or greater than 7 characters");
             }
             // first, parse YMD part, and leave remaining components in time.
             if ( time.length()==7 ) {
@@ -1220,7 +1220,13 @@ public class TimeUtil {
             return result;
         } else {
             int[] starttime= isoTimeToArray(ss[0]);
-            int[] stoptime=  isoTimeToArray(ss[1]);
+            int[] stoptime; 
+            if ( ss[1].length()==ss[0].length() ) {
+                stoptime=  isoTimeToArray(ss[1]);
+            } else {
+                int partToShare= ss[0].length() - ss[1].length();
+                stoptime= isoTimeToArray( ss[0].substring(0,partToShare) + ss[1] );
+            }
             setStartTime( starttime, result );
             setStopTime( stoptime, result );
             return result;
