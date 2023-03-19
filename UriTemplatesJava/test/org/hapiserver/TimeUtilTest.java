@@ -458,6 +458,23 @@ public class TimeUtilTest {
             throw new AssertionError(ex);
         }
         
+        stringIn = "2023-01-18T17:00/18:00";
+        expResult = new int[] { 2023, 1, 18, 17, 0, 0, 0, 2023, 1, 18, 18, 0, 0, 0 };
+        try {
+            result = TimeUtil.parseISO8601TimeRange(stringIn);
+            assertArrayEquals(expResult, result);
+        } catch (ParseException ex) {
+            throw new AssertionError(ex);
+        }
+        
+        stringIn = "2013-01-01/07-01";
+        expResult = new int[] { 2013, 1, 1, 0, 0, 0, 0, 2013, 7, 1, 0, 0, 0, 0 };
+        try {
+            result = TimeUtil.parseISO8601TimeRange(stringIn);
+            assertArrayEquals(expResult, result);
+        } catch (ParseException ex) {
+            throw new AssertionError(ex);
+        }
     }
 
     /**
