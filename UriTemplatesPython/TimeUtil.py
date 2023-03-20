@@ -593,7 +593,7 @@ class TimeUtil:
             return TimeUtil.now()
         else:
             if len(time) < 7:
-                raise Exception('time must have 4 or greater than 7 elements')
+                raise Exception('time must have 4 or greater than 7 characters')
             if len(time) == 7:
                 if time[4] == 'W':
                     # 2022W08
@@ -920,6 +920,23 @@ class TimeUtil:
     def parseISO8601Time(string):
         return TimeUtil.isoTimeToArray(string)
 
+    # return true if the time appears to be properly formatted.  Properly formatted strings include:<ul>
+    # <li>Any supported ISO8601 time
+    # <li>2000 and 2000-01 (just a year and month)
+    # <li>now - the current time reported by the processing system
+    # <li>lastyear - last year boundary
+    # <li>lastmonth - last month boundary
+    # <li>lastday - last midnight boundary
+    # <li>lasthour - last midnight boundary
+    # <li>now-P1D - yesterday at this time
+    # <li>lastday-P1D - yesterday midnight boundary
+    # </ul>
+    # @param time
+    # @return true if the time appears to be valid and will parse.
+    @staticmethod
+    def isValidFormattedTime(time):
+        return len(time) > 0 and (time[0].isdigit() or time[0] == 'P' or time.startswith('now') or time.startswith('last'))
+
     # parse the ISO8601 time range, like "1998-01-02/1998-01-17", into
     # start and stop times, returned in a 14 element array of ints.
     # @param stringIn string to parse, like "1998-01-02/1998-01-17"
@@ -930,9 +947,9 @@ class TimeUtil:
         ss = stringIn.split('/')
         if len(ss) != 2:
             raise Exception('expected one slash (/) splitting start and stop times.')
-        if len(ss[0]) == 0 or not (ss[0][0].isdigit() or ss[0][0] == 'P' or ss[0].startswith('now')):
+        if not TimeUtil.isValidFormattedTime(ss[0]):
             raise Exception('first time/duration is misformatted.  Should be ISO8601 time or duration like P1D.')
-        if len(ss[1]) == 0 or not (ss[1][0].isdigit() or ss[1][0] == 'P' or ss[1].startswith('now')):
+        if not TimeUtil.isValidFormattedTime(ss[1]):
             raise Exception('second time/duration is misformatted.  Should be ISO8601 time or duration like P1D.')
         result = [0] * 14
         if ss[0].startswith('P'):
@@ -955,7 +972,11 @@ class TimeUtil:
             return result
         else:
             starttime = TimeUtil.isoTimeToArray(ss[0])
-            stoptime = TimeUtil.isoTimeToArray(ss[1])
+            if len(ss[1]) == len(ss[0]):
+                stoptime = TimeUtil.isoTimeToArray(ss[1])
+            else:
+                partToShare = len(ss[0]) - len(ss[1])
+                stoptime = TimeUtil.isoTimeToArray(ss[0][0:partToShare] + ss[1])
             TimeUtil.setStartTime(starttime, result)
             TimeUtil.setStopTime(stoptime, result)
             return result
