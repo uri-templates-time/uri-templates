@@ -1,7 +1,5 @@
 import unittest
 
-from TimeUtil import TimeUtil
-
 # Tests of the useful TimeUtil.java code.
 # @author jbf
 class TimeUtilTest(unittest.TestCase):
@@ -311,6 +309,20 @@ class TimeUtilTest(unittest.TestCase):
             raise AssertionError(ex)
         stringIn = 'P7D/2022-01-02'
         expResult = [ 2021, 12, 26, 0, 0, 0, 0, 2022, 1, 2, 0, 0, 0, 0 ]
+        try:
+            result = TimeUtil.parseISO8601TimeRange(stringIn)
+            self.assertEqual(expResult,result)
+        except Exception as ex: # J2J: exceptions
+            raise AssertionError(ex)
+        stringIn = '2023-01-18T17:00/18:00'
+        expResult = [ 2023, 1, 18, 17, 0, 0, 0, 2023, 1, 18, 18, 0, 0, 0 ]
+        try:
+            result = TimeUtil.parseISO8601TimeRange(stringIn)
+            self.assertEqual(expResult,result)
+        except Exception as ex: # J2J: exceptions
+            raise AssertionError(ex)
+        stringIn = '2013-01-01/07-01'
+        expResult = [ 2013, 1, 1, 0, 0, 0, 0, 2013, 7, 1, 0, 0, 0, 0 ]
         try:
             result = TimeUtil.parseISO8601TimeRange(stringIn)
             self.assertEqual(expResult,result)
