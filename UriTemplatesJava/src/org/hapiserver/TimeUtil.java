@@ -197,6 +197,7 @@ public class TimeUtil {
      * @param timerange the fourteen-element time range.
      */
     public static void setStartTime( int[] time, int[] timerange ) {
+        if ( timerange.length!=14 ) throw new IllegalArgumentException("timerange should be 14-element array.");
         System.arraycopy( time, 0, timerange, 0, TimeUtil.TIME_DIGITS  );
     }
     
@@ -207,6 +208,7 @@ public class TimeUtil {
      * @param timerange the fourteen-element time range.
      */
     public static void setStopTime( int[] time, int[] timerange ) {
+        if ( timerange.length!=14 ) throw new IllegalArgumentException("timerange should be 14-element array.");
         System.arraycopy( time, 0, timerange, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS  );
     }
     
@@ -236,8 +238,8 @@ public class TimeUtil {
             throw new IllegalArgumentException("t1 is not smaller than t2");
         }
         int[] result= new int[TimeUtil.TIME_DIGITS*2];
-        setStartTime( result, t1 );
-        setStopTime( result, t2 );
+        setStartTime( t1, result );
+        setStopTime( t2, result );
         return result;
     }
     
