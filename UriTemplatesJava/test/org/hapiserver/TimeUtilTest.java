@@ -285,6 +285,9 @@ public class TimeUtilTest {
         expResult = new int[] { 0, 0, 0, 0, 0, 0, 123000 };
         result = TimeUtil.parseISO8601Duration("PT0.000123S");
         assertArrayEquals(expResult, result);
+        result = TimeUtil.parseISO8601Duration("PT52.000000S"); // Das2 parsing has a problem with this.
+        expResult = new int[] { 0, 0, 0, 0, 0, 52, 0 }; 
+        assertArrayEquals(expResult, result);
     }
 
     /**
