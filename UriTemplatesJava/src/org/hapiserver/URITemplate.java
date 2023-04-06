@@ -1726,10 +1726,9 @@ public class URITemplate {
         }
         return result.toArray( new String[result.size()] );
     }
-            
+    
     /**
-     * return a list of formatted names, using the spec and the given 
-     * time range.
+     * return a the formatted name, using the spec and the given time range.
      * @param startTimeStr iso8601 formatted time.
      * @param stopTimeStr iso8601 formatted time.
      * @return formatted time, often a resolvable URI.
@@ -1739,8 +1738,7 @@ public class URITemplate {
     }
     
     /**
-     * return a list of formatted names, using the spec and the given 
-     * time range.
+     * return a the formatted name, using the spec and the given time range.
      * @param startTimeStr iso8601 formatted time.
      * @param stopTimeStr iso8601 formatted time.
      * @param extra extra parameters
@@ -1751,14 +1749,43 @@ public class URITemplate {
              
         int[] startTime= TimeUtil.isoTimeToArray( startTimeStr );
         int[] stopTime;        
-        int[] timeWidthl;
         if ( timeWidthIsExplicit ) {
-            timeWidthl = timeWidth;
             stopTime = TimeUtil.add( startTime, timeWidth );
         } else {
             stopTime = TimeUtil.isoTimeToArray( stopTimeStr );
+        }
+        return format( startTime, stopTime, extra );
+    }        
+    
+    /**
+     * return a the formatted name, using the spec and the given time range.
+     * @param timeRange fourteen-component time range
+     * @param extra extra parameters
+     * @return formatted time, often a resolvable URI.
+     */    
+    public String format( int[] timeRange, Map<String,String> extra ) {
+        int[] start= TimeUtil.getStartTime(timeRange);
+        int[] stop= TimeUtil.getStopTime(timeRange);
+        return format( start, stop, extra );
+    }
+    
+    /**
+     * return a list of formatted names, using the spec and the given 
+     * time range.
+     * @param startTime seven-component start time
+     * @param stopTime seven-component stop time
+     * @param extra extra parameters
+     * @return formatted time, often a resolvable URI.
+     */    
+    public String format( int[] startTime, int[] stopTime, Map<String,String> extra ) {
+
+        int[] timeWidthl;
+        if ( timeWidthIsExplicit ) {
+            timeWidthl= timeWidth;
+        } else {
             timeWidthl = TimeUtil.subtract( stopTime, startTime );
         }
+        
         if ( startShift!=null ) {
             startTime= TimeUtil.subtract( startTime, startShift );
         }
