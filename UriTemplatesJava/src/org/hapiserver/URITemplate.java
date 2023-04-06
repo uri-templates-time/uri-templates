@@ -2033,6 +2033,7 @@ public class URITemplate {
     }
     
     private static void printUsage() {
+        System.err.println("URITemplate "+VERSION);
         System.err.println("Usage: ");
         System.err.println("java -jar UriTemplatesJava.jar [--formatRange|--parse] [--range=<ISO8601 range>] --template=<URI template> [--name=<name>]");
         System.err.println("java -jar UriTemplatesJava.jar --formatRange --range=1999-01-01/1999-01-03 --template='http://example.com/data_$(d;pad=none).dat'");
