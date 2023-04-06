@@ -1750,9 +1750,30 @@ public class URITemplate {
         }
         return format( startTime, stopTime, extra );
     }        
+
+    /**
+     * return the formatted name, using the spec and the given time range.
+     * @param timeRange fourteen-component time range
+     * @return formatted time, often a resolvable URI.
+     */    
+    public String format( int[] timeRange ) {
+        int[] start= TimeUtil.getStartTime(timeRange);
+        int[] stop= TimeUtil.getStopTime(timeRange);
+        return format( start, stop, Collections.emptyMap() );
+    }
     
     /**
-     * return a the formatted name, using the spec and the given time range.
+     * return the formatted name, using the spec and the given time range.
+     * @param startTime seven-component start time
+     * @param stopTime seven-component stop time
+     * @return formatted time, often a resolvable URI.
+     */    
+    public String format( int[] startTime, int[] stopTime ) {
+        return format( startTime, stopTime, Collections.emptyMap() );
+    }
+    
+    /**
+     * return the formatted name, using the spec and the given time range.
      * @param timeRange fourteen-component time range
      * @param extra extra parameters
      * @return formatted time, often a resolvable URI.
@@ -1764,8 +1785,7 @@ public class URITemplate {
     }
     
     /**
-     * return a list of formatted names, using the spec and the given 
-     * time range.
+     * return the formatted name, using the spec and the given time range.
      * @param startTime seven-component start time
      * @param stopTime seven-component stop time
      * @param extra extra parameters
