@@ -1597,9 +1597,7 @@ public class URITemplate {
         boolean noShift;
         noShift = this.startShift==null;
         if ( noShift ) { 
-            for ( int i=0; i<NUM_TIME_DIGITS; i++ ) {
-                result[i]= startTime[i];
-            }
+            System.arraycopy(startTime, 0, result, 0, NUM_TIME_DIGITS);
             TimeUtil.normalizeTime(result);
         } else {
             for ( int i=0; i<NUM_TIME_DIGITS; i++ ) {
@@ -1610,9 +1608,7 @@ public class URITemplate {
         
         noShift = this.stopShift==null;
         if ( noShift ) {        
-            for ( int i= 0; i<NUM_TIME_DIGITS; i++ ) {
-                result[i+NUM_TIME_DIGITS]= stopTime[i];
-            }
+            System.arraycopy(stopTime, 0, result, NUM_TIME_DIGITS, NUM_TIME_DIGITS);
             TimeUtil.normalizeTime(result);
         } else {
             int[] result1= new int[NUM_TIME_DIGITS];
@@ -1620,9 +1616,7 @@ public class URITemplate {
                 result1[i]= stopTime[i] + this.stopShift[i];
             }
             TimeUtil.normalizeTime(result1);
-            for ( int i= 0; i<NUM_TIME_DIGITS; i++ ) {
-                result[i+NUM_TIME_DIGITS]= result1[i];
-            }
+            System.arraycopy(result1, 0, result, NUM_TIME_DIGITS, NUM_TIME_DIGITS);
         }
         
         return result;
@@ -1891,24 +1885,30 @@ public class URITemplate {
                 }
                 if ( delta>1 ) {
                     int h= handlers[idigit];
-                    if ( h==2 || h==3 ) { // $j, $m all start with 1.
-                        digit= ( ( ( digit-1) / delta ) * delta ) + 1;
-                    } else if ( h==4 ) {
-                        if ( phasestart!=null ) {
-                            int phaseStartJulian= TimeUtil.julianDay( phasestart[0], phasestart[1], phasestart[2] );
-                            int ndays= TimeUtil.julianDay(  timel[0], timel[1], timel[2] ) - phaseStartJulian;
-                            int ncycles= floorDiv( ndays, timeWidth[2] );
-                               
-                            int[] tnew= TimeUtil.fromJulianDay(phaseStartJulian+ncycles*delta);
-                            timel[0]= tnew[0];
-                            timel[1]= tnew[1];
-                            timel[2]= tnew[2];
+                    switch (h) {
+                        case 2:
+                        case 3:
+                            // $j, $m all start with 1.
+                            digit= ( ( ( digit-1) / delta ) * delta ) + 1;
+                            break;
+                        case 4:
+                            if ( phasestart!=null ) {
+                                int phaseStartJulian= TimeUtil.julianDay( phasestart[0], phasestart[1], phasestart[2] );
+                                int ndays= TimeUtil.julianDay(  timel[0], timel[1], timel[2] ) - phaseStartJulian;
+                                int ncycles= floorDiv( ndays, timeWidth[2] );
                                 
-                        } else {
-                            throw new IllegalArgumentException("phasestart not set for delta days");
-                        }   
-                    } else {
-                        digit= ( digit / delta ) * delta;
+                                int[] tnew= TimeUtil.fromJulianDay(phaseStartJulian+ncycles*delta);
+                                timel[0]= tnew[0];
+                                timel[1]= tnew[1];
+                                timel[2]= tnew[2];
+                                
+                            } else {
+                                throw new IllegalArgumentException("phasestart not set for delta days");
+                            }   
+                            break;
+                        default:
+                            digit= ( digit / delta ) * delta;
+                            break;
                     }
                 }
                 if ( length<0 ) {
