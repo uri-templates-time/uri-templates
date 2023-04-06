@@ -819,7 +819,7 @@ public class URITemplate {
      */
     private static int[] maybeInitialize( int[] digits ) {
         if ( digits==null ) {
-            return new int[7];
+            return new int[TimeUtil.TIME_DIGITS];
         } else {
             return digits;
         }
@@ -1696,7 +1696,7 @@ public class URITemplate {
         int i=0;
         int externalContext= ut.getExternalContext();
         if ( externalContext>0 ) {
-            int[] context= new int[NUM_TIME_DIGITS];
+            int[] context= new int[TimeUtil.TIME_DIGITS];
             System.arraycopy(stopDigits, 0, context, 0, externalContext);
             ut.setContext(context);
         }
@@ -1707,18 +1707,18 @@ public class URITemplate {
             s1= ut.format( sptr, sptr, extra );
             int [] tta= ut.parse( s1, new HashMap<>() );
             if ( firstLoop ) {
-                sptr= TimeUtil.isoTimeFromArray( Arrays.copyOfRange(tta,0,7) );
+                sptr= TimeUtil.isoTimeFromArray( TimeUtil.getStartTime(tta) );
                 s1= ut.format( sptr, sptr, extra );
                 firstLoop= false;
             }
             //test for special case where start and stop are in the template, so there is no looping.
-            if ( Arrays.equals( Arrays.copyOfRange(tta,0,7), Arrays.copyOfRange(tta,7,14) ) ) {
+            if ( Arrays.equals( TimeUtil.getStartTime(tta), TimeUtil.getStopTime(tta) ) ) {
                 result.add( ut.format( startTimeStr, stopTimeStr ) );
                 break;
             } else {
                 result.add( s1 );
             }
-            sptr= TimeUtil.isoTimeFromArray(Arrays.copyOfRange(tta,7,14));
+            sptr= TimeUtil.isoTimeFromArray( TimeUtil.getStopTime(tta) );
             if ( sptr0.equals(sptr) ) {
                 throw new IllegalArgumentException("template fails to advance");
             }
@@ -2063,8 +2063,8 @@ public class URITemplate {
                         int[] itimeRange;
                         itimeRange= TimeUtil.parseISO8601TimeRange(tr1);
                         String[] result= URITemplate.formatRange( template, 
-                            TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 0, 7 ) ), 
-                            TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 7, 14 ) ) );
+                            TimeUtil.isoTimeFromArray( TimeUtil.getStartTime( itimeRange ) ), 
+                            TimeUtil.isoTimeFromArray( TimeUtil.getStopTime( itimeRange ) ) );
                         for ( String s: result ) {
                             System.out.println(s);
                         }
@@ -2084,8 +2084,8 @@ public class URITemplate {
                 try {
                     itimeRange= TimeUtil.parseISO8601TimeRange(timeRange);
                     String[] result= URITemplate.formatRange( template, 
-                        TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 0, 7 ) ), 
-                        TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 7, 14 ) ) );
+                        TimeUtil.isoTimeFromArray( TimeUtil.getStartTime( itimeRange ) ), 
+                        TimeUtil.isoTimeFromArray( TimeUtil.getStopTime( itimeRange ) ) );
                     for ( String s: result ) {
                         System.out.println(s);
                     }
@@ -2117,9 +2117,9 @@ public class URITemplate {
                     while ( filen1!=null ) {
                         URITemplate ut= new URITemplate(template);
                         int[] itimeRange= ut.parse( filen1, argsm );
-                        System.out.print( TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 0, 7 ) ) );
+                        System.out.print( TimeUtil.isoTimeFromArray( TimeUtil.getStartTime( itimeRange ) ) );
                         System.out.print( "/" );
-                        System.out.println( TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 7, 14 ) ) );                            
+                        System.out.println( TimeUtil.isoTimeFromArray( TimeUtil.getStopTime( itimeRange ) ) );                            
                         filen1= r.readLine();
                     }
 
@@ -2135,9 +2135,9 @@ public class URITemplate {
                 try {
                     URITemplate ut= new URITemplate(template);
                     int[] itimeRange= ut.parse( name, argsm );
-                    System.out.print( TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 0, 7 ) ) );
+                    System.out.print( TimeUtil.isoTimeFromArray( TimeUtil.getStartTime( itimeRange ) ) );
                     System.out.print( "/" );
-                    System.out.println( TimeUtil.isoTimeFromArray( Arrays.copyOfRange( itimeRange, 7, 14 ) ) );                    
+                    System.out.println( TimeUtil.isoTimeFromArray( TimeUtil.getStopTime( itimeRange ) ) );                    
                 } catch ( ParseException ex ) {
                     printUsage();
                     System.err.println("parseException from ?");
