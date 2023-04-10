@@ -466,11 +466,11 @@ class TimeUtil:
             if nanoseconds == 0:
                 sb+= str(seconds)
             elif nanoseconds % 1000000 == 0:
-                sb+= '%.3f' % seconds + nanoseconds / 1e9
+                sb+= '%.3f' % ( seconds + nanoseconds / 1e9 )
             elif nanoseconds % 1000 == 0:
-                sb+= '%.6f' % seconds + nanoseconds / 1e9
+                sb+= '%.6f' % ( seconds + nanoseconds / 1e9 )
             else:
-                sb+= '%.9f' % seconds + nanoseconds / 1e9
+                sb+= '%.9f' % ( seconds + nanoseconds / 1e9 )
             sb+= 'S'
         if len(sb) == 1:
             if len(nn) > 3:
