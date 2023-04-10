@@ -202,8 +202,8 @@ class TimeUtil {
             throw "t1 is not smaller than t2";
         }
         var result = [];
-        TimeUtil.setStartTime(result, t1);
-        TimeUtil.setStopTime(result, t2);
+        TimeUtil.setStartTime(t1, result);
+        TimeUtil.setStopTime(t2, result);
         return result;
     }
 

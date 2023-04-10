@@ -533,8 +533,10 @@ class URITemplate {
     // J2J: Name is used twice in class: URITemplate parse
     // J2J: Name is used twice in class: URITemplate formatRange
     // J2J: Name is used twice in class: URITemplate format
+    // J2J: Name is used twice in class: URITemplate formatTimeRange
+    // J2J: Name is used twice in class: URITemplate formatStartStopRange
     // J2J: private static final Logger logger = Logger.getLogger("hapiserver.uritemplates");
-    static VERSION = "20201007a";
+    static VERSION = "20230406a";
 
     static getVersion() {
         return URITemplate.VERSION;
@@ -614,12 +616,12 @@ class URITemplate {
     handlers;
 
     /**
-     * one element for each field, it is the offset to each field.
+     * one element for each field, containing the offset to each field, or -1 if the offset is not determined.
      */
     offsets;
 
     /**
-     * one element for each field, it is number of digits in each field.
+     * one element for each field, containing number of digits in each field, or -1 if the length is not known.
      */
     lengths;
 
@@ -848,9 +850,22 @@ class URITemplate {
 
     /**
      * use own floorDiv since JavaScript doesn't have floorDiv function.
+     * Note that in Python, floorDiv is just "//".  Java also truncates when doing
+     * integer division.
+     * +---------------+--------+
+     * | expression    | result |
+     * +---------------+--------+
+     * | floorDiv(0,7) |  0     |
+     * | floorDiv(1,7) |  0     |
+     * | floorDiv(7,7) |  1     |
+     * | floorDiv(-1,7)| -1     |
+     * | floorDiv(-7,7)| -1     |
+     * | floorDiv(-8,7)| -2     |
+     * +---------------+--------+
+     * 
      * @param ndays
      * @param timeWidth
-     * @return 
+     * @return the integer number of widths which result in a number below ndays.
      */
     static floorDiv(ndays, timeWidth) {
         var ncycles;
@@ -1192,7 +1207,10 @@ class URITemplate {
                             case "pad":
                             case "fmt":
                             case "case":
-                                if (name=="pad" && val=="none") this.lengths[i] = -1;
+                                if (name=="pad" && val=="none") {
+                                    this.lengths[i] = -1;
+                                    pos = -1;
+                                }
 
                                 if (this.qualifiersMaps[i] === null) this.qualifiersMaps[i] = new Map();
 
@@ -1417,7 +1435,7 @@ class URITemplate {
                 throw "string is too short: " + timeString;
             }
             var field = timeString.substring(offs, offs + length).trim();
-            // J2J (logger) logger.log(Level.FINEST, "handling {0} with {1}", new Object[] { field, handlers[idigit] });
+            // J2J (logger) logger.log(Level.FINEST, "handling \"{0}\" with {1}", new Object[] { field, handlers[idigit] });
             try {
                 if (this.handlers[idigit] < 10) {
                     var digit;
@@ -1558,9 +1576,7 @@ class URITemplate {
         var noShift;
         noShift = this.startShift === null;
         if (noShift) {
-            for ( var i = 0; i < URITemplate.NUM_TIME_DIGITS; i++) {
-                result[i] = startTime[i];
-            }
+            arraycopy( startTime, 0, result, 0, URITemplate.NUM_TIME_DIGITS );
             TimeUtil.normalizeTime(result);
         } else {
             for ( var i = 0; i < URITemplate.NUM_TIME_DIGITS; i++) {
@@ -1570,9 +1586,7 @@ class URITemplate {
         }
         noShift = this.stopShift === null;
         if (noShift) {
-            for ( var i = 0; i < URITemplate.NUM_TIME_DIGITS; i++) {
-                result[i + URITemplate.NUM_TIME_DIGITS] = stopTime[i];
-            }
+            arraycopy( stopTime, 0, result, URITemplate.NUM_TIME_DIGITS, URITemplate.NUM_TIME_DIGITS );
             TimeUtil.normalizeTime(result);
         } else {
             var result1 = [0,0,0,0,0,0,0];
@@ -1580,9 +1594,7 @@ class URITemplate {
                 result1[i] = stopTime[i] + this.stopShift[i];
             }
             TimeUtil.normalizeTime(result1);
-            for ( var i = 0; i < URITemplate.NUM_TIME_DIGITS; i++) {
-                result[i + URITemplate.NUM_TIME_DIGITS] = result1[i];
-            }
+            arraycopy( result1, 0, result, URITemplate.NUM_TIME_DIGITS, URITemplate.NUM_TIME_DIGITS );
         }
         return result;
     }
@@ -1661,17 +1673,17 @@ class URITemplate {
             s1 = ut.format(sptr, sptr, extra);
             var tta = ut.parse(s1, new Map());
             if (firstLoop) {
-                sptr = TimeUtil.isoTimeFromArray(tta.slice(0,7));
+                sptr = TimeUtil.isoTimeFromArray(TimeUtil.getStartTime(tta));
                 s1 = ut.format(sptr, sptr, extra);
                 firstLoop = false;
             }
-            if (arrayequals( tta.slice(0,7), tta.slice(7,14) )) {
+            if (arrayequals( TimeUtil.getStartTime(tta), TimeUtil.getStopTime(tta) )) {
                 result.push(ut.format(startTimeStr, stopTimeStr));
                 break
             } else {
                 result.push(s1);
             }
-            sptr = TimeUtil.isoTimeFromArray(tta.slice(7,14));
+            sptr = TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(tta));
             if (sptr0==sptr) {
                 throw "template fails to advance";
             }
@@ -1681,8 +1693,7 @@ class URITemplate {
     }
 
     /**
-     * return a list of formatted names, using the spec and the given 
-     * time range.
+     * return a the formatted name, using the spec and the given time range.
      * @param startTimeStr iso8601 formatted time.
      * @param stopTimeStr iso8601 formatted time.
      * @return formatted time, often a resolvable URI.
@@ -1692,8 +1703,7 @@ class URITemplate {
     }
 
     /**
-     * return a list of formatted names, using the spec and the given 
-     * time range.
+     * return a the formatted name, using the spec and the given time range.
      * @param startTimeStr iso8601 formatted time.
      * @param stopTimeStr iso8601 formatted time.
      * @param extra extra parameters
@@ -1702,12 +1712,59 @@ class URITemplate {
     format(startTimeStr, stopTimeStr, extra) {
         var startTime = TimeUtil.isoTimeToArray(startTimeStr);
         var stopTime;
-        var timeWidthl;
         if (this.timeWidthIsExplicit) {
-            timeWidthl = this.timeWidth;
             stopTime = TimeUtil.add(startTime, this.timeWidth);
         } else {
             stopTime = TimeUtil.isoTimeToArray(stopTimeStr);
+        }
+        return this.formatStartStopRange(startTime, stopTime, extra);
+    }
+
+    /**
+     * return the formatted name, using the spec and the given time range.
+     * @param timeRange fourteen-component time range
+     * @return formatted time, often a resolvable URI.
+     */
+    formatTimeRange(timeRange) {
+        var start = TimeUtil.getStartTime(timeRange);
+        var stop = TimeUtil.getStopTime(timeRange);
+        return this.formatStartStopRange(start, stop, {});
+    }
+
+    /**
+     * return the formatted name, using the spec and the given time range.
+     * @param startTime seven-component start time
+     * @param stopTime seven-component stop time
+     * @return formatted time, often a resolvable URI.
+     */
+    formatStartStopRange(startTime, stopTime) {
+        return this.formatStartStopRange(startTime, stopTime, {});
+    }
+
+    /**
+     * return the formatted name, using the spec and the given time range.
+     * @param timeRange fourteen-component time range
+     * @param extra extra parameters
+     * @return formatted time, often a resolvable URI.
+     */
+    formatTimeRange(timeRange, extra) {
+        var start = TimeUtil.getStartTime(timeRange);
+        var stop = TimeUtil.getStopTime(timeRange);
+        return this.formatStartStopRange(start, stop, extra);
+    }
+
+    /**
+     * return the formatted name, using the spec and the given time range.
+     * @param startTime seven-component start time
+     * @param stopTime seven-component stop time
+     * @param extra extra parameters
+     * @return formatted time, often a resolvable URI.
+     */
+    formatStartStopRange(startTime, stopTime, extra) {
+        var timeWidthl;
+        if (this.timeWidthIsExplicit) {
+            timeWidthl = this.timeWidth;
+        } else {
             timeWidthl = TimeUtil.subtract(stopTime, startTime);
         }
         if (this.startShift !== null) {
@@ -1808,11 +1865,13 @@ class URITemplate {
                 }
                 if (delta > 1) {
                     var h = this.handlers[idigit];
-                    if (h === 2 || h === 3) {
-                        // $j, $m all start with 1.
-                        digit = ((Math.trunc((digit - 1) / delta)) * delta) + 1;
-                    } else {
-                        if (h === 4) {
+                    switch (h) {
+                        case 2:
+                        case 3:
+                            // $j, $m all start with 1.
+                            digit = ((Math.trunc((digit - 1) / delta)) * delta) + 1;
+                            break
+                        case 4:
                             if (this.phasestart !== null) {
                                 var phaseStartJulian = TimeUtil.julianDay(this.phasestart[0], this.phasestart[1], this.phasestart[2]);
                                 var ndays = TimeUtil.julianDay(timel[0], timel[1], timel[2]) - phaseStartJulian;
@@ -1824,9 +1883,11 @@ class URITemplate {
                             } else {
                                 throw "phasestart not set for delta days";
                             }
-                        } else {
+
+                            break
+                        default:
                             digit = (Math.trunc(digit / delta)) * delta;
-                        }
+                            break
                     }
                 }
                 if (length < 0) {

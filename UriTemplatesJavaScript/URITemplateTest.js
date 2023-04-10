@@ -159,6 +159,8 @@ class URITemplateTest {
         this.doTestTimeParser1("$Y-$j", "2012-017", "2012-01-17T00:00/2012-01-18T00:00");
         this.doTestTimeParser1("$(j,Y=2012)", "017", "2012-01-17T00:00/2012-01-18T00:00");
         this.doTestTimeParser1("ace_mag_$Y_$j_to_$(Y;end)_$j.cdf", "ace_mag_2005_001_to_2005_003.cdf", "2005-001T00:00/2005-003T00:00");
+        this.doTestTimeParser1("$y $(m;pad=none) $(d;pad=none) $(H;pad=none)", "99 1 3 0", "1999-01-03T00:00/1999-01-03T01:00");
+        this.doTestTimeParser1("$y $j ($(m;pad=none) $(d;pad=none)) $H", "99 003 (1 3) 00", "1999-01-03T00:00/1999-01-03T01:00");
     }
 
     /**
@@ -222,6 +224,9 @@ class URITemplateTest {
         this.doTestTimeFormat1("$Y-$j", "2012-017", "2012-01-17T00:00/2012-01-18T00:00");
         this.doTestTimeFormat1("$(j,Y=2012)", "017", "2012-01-17T00:00/2012-01-18T00:00");
         this.doTestTimeFormat1("ace_mag_$Y_$j_to_$(Y;end)_$j.cdf", "ace_mag_2005_001_to_2005_003.cdf", "2005-001T00:00/2005-003T00:00");
+        var ut = new URITemplate("$Y$m$d-$(Y;end)$m$d");
+        ut.formatTimeRange([2013, 2, 2, 0, 0, 0, 0, 2014, 3, 3, 0, 0, 0, 0], {} );
+        ut.formatStartStopRange([2013, 2, 2, 0, 0, 0, 0], [2014, 3, 3, 0, 0, 0, 0], {} );
     }
 
     static readJSONTests() {
@@ -608,7 +613,7 @@ class URITemplateTest {
 "}\n" +
 "]";
         return JSON.parse(test);
-    }
+            }
 
     doTestFormatHapiServerSiteOne(outputs, t, startTime, stopTime) {
         var testOutputs = URITemplate.formatRange(t, startTime, stopTime);
@@ -677,7 +682,6 @@ class URITemplateTest {
             console.info("# testFormatRange");
             var t;
             var ss;
-            console.info(URITemplate.VERSION);
             t = "data_$Y.dat";
             ss = URITemplate.formatRange(t, "2001-03-22", "2004-08-18");
             if (ss.length !== 4) {
@@ -725,10 +729,10 @@ class URITemplateTest {
 
 }
 test = new URITemplateTest();
-test.testMakeQualifiersCanonical();
 test.testMakeCanonical();
 test.testParse();
 test.testFormat();
 test.testFormatHapiServerSite();
 test.testFormatRange();
+test.testMakeQualifiersCanonical();
 
