@@ -111,12 +111,12 @@ public class URITemplate {
     int[] handlers;
 
     /**
-     * one element for each field, it is the offset to each field.
+     * one element for each field, containing the offset to each field, or -1 if the offset is not determined.
      */
     int[] offsets;
     
     /**
-     * one element for each field, it is number of digits in each field.
+     * one element for each field, containing number of digits in each field, or -1 if the length is not known.
      */
     int[] lengths;
     
@@ -1219,7 +1219,10 @@ public class URITemplate {
                             case "pad":
                             case "fmt":
                             case "case":
-                                if ( name.equals("pad") && val.equals("none") ) lengths[i]= -1;
+                                if ( name.equals("pad") && val.equals("none") ) {
+                                    lengths[i]= -1;
+                                    pos= -1;
+                                }
                                 if ( qualifiersMaps[i]==null ) qualifiersMaps[i]= new HashMap();
                                 qualifiersMaps[i].put(name,val);
                                 break;
@@ -1469,7 +1472,7 @@ public class URITemplate {
 
             String field= timeString.substring(offs, offs + length).trim();
                         
-            logger.log(Level.FINEST, "handling {0} with {1}", new Object[]{field, handlers[idigit]});
+            logger.log(Level.FINEST, "handling \"{0}\" with {1}", new Object[]{field, handlers[idigit]});
             
             try {
 

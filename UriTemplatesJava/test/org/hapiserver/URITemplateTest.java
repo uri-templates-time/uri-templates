@@ -158,6 +158,8 @@ public class URITemplateTest {
         doTestTimeParser1( "$Y-$j",         "2012-017", "2012-01-17T00:00/2012-01-18T00:00");
         doTestTimeParser1( "$(j,Y=2012)",   "017",      "2012-01-17T00:00/2012-01-18T00:00");
         doTestTimeParser1( "ace_mag_$Y_$j_to_$(Y;end)_$j.cdf",   "ace_mag_2005_001_to_2005_003.cdf",      "2005-001T00:00/2005-003T00:00");    
+        doTestTimeParser1( "$y $(m;pad=none) $(d;pad=none) $(H;pad=none)", "99 1 3 0", "1999-01-03T00:00/1999-01-03T01:00" );
+        doTestTimeParser1( "$y $j ($(m;pad=none) $(d;pad=none)) $H", "99 003 (1 3) 00", "1999-01-03T00:00/1999-01-03T01:00" );        
     }
     
     /**
