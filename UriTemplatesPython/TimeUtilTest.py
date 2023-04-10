@@ -1,5 +1,7 @@
 import unittest
 
+from TimeUtil import TimeUtil
+
 # Tests of the useful TimeUtil.java code.
 # @author jbf
 class TimeUtilTest(unittest.TestCase):
