@@ -164,6 +164,7 @@ class TimeUtil {
      * @param timerange the fourteen-element time range.
      */
     static setStartTime(time, timerange) {
+        if (timerange.length !== 14) throw "timerange should be 14-element array.";
         arraycopy( time, 0, timerange, 0, TimeUtil.TIME_DIGITS );
     }
 
@@ -173,6 +174,7 @@ class TimeUtil {
      * @param timerange the fourteen-element time range.
      */
     static setStopTime(time, timerange) {
+        if (timerange.length !== 14) throw "timerange should be 14-element array.";
         arraycopy( time, 0, timerange, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS );
     }
 
@@ -196,7 +198,7 @@ class TimeUtil {
      * @throws IllegalArgumentException when the first time is greater than or equal to the second time.
      */
     static createTimeRange(t1, t2) {
-        if (!TimeUtil.gt(t2, t1)) {
+        if (!(TimeUtil.gt(t2, t1))) {
             throw "t1 is not smaller than t2";
         }
         var result = [];
@@ -442,7 +444,10 @@ class TimeUtil {
      */
     static toMillisecondsSince1970(time) {
         time = TimeUtil.normalizeTimeString(time);
-        return new Date(time).getTime();
+        var ta = DateTimeFormatter.ISO_INSTANT.parse(time);
+        var i = Instant.from(ta);
+        var d = Date.from(i);
+        return d.getTime();
     }
 
     /**
@@ -540,7 +545,7 @@ class TimeUtil {
                     sb+= "T";
                     needT = false;
                 }
-                sb+= nn[i] + units[i];
+                sb+= String(nn[i]) + String(units[i]);
             }
         }
         if (nn.length > 5 && nn[5] > 0 || nn.length > 6 && nn[6] > 0 || sb.length === 2) {
@@ -550,7 +555,7 @@ class TimeUtil {
             var seconds = nn[5];
             var nanoseconds = nn.length === 7 ? nn[6] : 0;
             if (nanoseconds === 0) {
-                sb+= seconds;
+                sb+= String(seconds);
             } else {
                 if (nanoseconds % 1000000 === 0) {
                     sb+= sprintf("%.3f",seconds + nanoseconds / 1e9);
@@ -574,12 +579,12 @@ class TimeUtil {
         return sb;
     }
 
-    static iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?";
+    static iso8601duration = "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?(\\d*?\\.?\\d*)S)?)?";
 
     /**
      * Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
      */
-    static iso8601DurationPattern = new RegExp("P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?");
+    static iso8601DurationPattern = new RegExp("P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d*?\\.?\\d*)S)?)?");
 
     /**
      * returns a 7 element array with [year,mon,day,hour,min,sec,nanos]. Note
@@ -606,7 +611,7 @@ class TimeUtil {
             var nanosec = Math.trunc( ((dsec - sec) * 1e9) );
             return [TimeUtil.parseIntegerDeft(m[2], 0), TimeUtil.parseIntegerDeft(m[4], 0), TimeUtil.parseIntegerDeft(m[6], 0), TimeUtil.parseIntegerDeft(m[9], 0), TimeUtil.parseIntegerDeft(m[11], 0), sec, nanosec];
         } else {
-            if (stringIn.indexOf("P")!==-1 && stringIn.indexOf("S")!==-1 && !stringIn.indexOf("T")!==-1) {
+            if (stringIn.indexOf("P")!==-1 && stringIn.indexOf("S")!==-1 && !(stringIn.indexOf("T")!==-1)) {
                 throw "ISO8601 duration expected but not found.  Was the T missing before S?";
             } else {
                 throw "ISO8601 duration expected but not found.";
@@ -729,7 +734,7 @@ class TimeUtil {
                 return TimeUtil.now();
             } else {
                 if (time.length < 7) {
-                    throw "time must have 4 or greater than 7 elements";
+                    throw "time must have 4 or greater than 7 characters";
                 }
                 if (time.length === 7) {
                     if (time.charAt(4) == 'W') {
@@ -1020,7 +1025,7 @@ class TimeUtil {
         if (year <= 1582) {
             throw "year must be more than 1582";
         }
-        var jd = 367 * year - Math.floor(7 * (year + Math.floor((month + 9) / 12)) / 4) - Math.floor(3 * (Math.floor((year + Math.floor((month - 9) / 7)) / 100) + 1) / 4) + Math.floor(275 * month / 9) + day + 1721029;
+        var jd = 367 * year - Math.trunc(7 * (year + Math.trunc((month + 9) / 12)) / 4) - Math.trunc(3 * (Math.trunc((year + Math.trunc((month - 9) / 7)) / 100) + 1) / 4) + Math.trunc(275 * month / 9) + day + 1721029;
         return jd;
     }
 
@@ -1036,21 +1041,21 @@ class TimeUtil {
      */
     static fromJulianDay(julian) {
         var j = julian + 32044;
-        var g = Math.floor(j / 146097);
+        var g = Math.trunc(j / 146097);
         var dg = j % 146097;
-        var c = Math.floor((Math.floor(dg / 36524) + 1) * 3 / 4);
+        var c = Math.trunc((Math.trunc(dg / 36524) + 1) * 3 / 4);
         var dc = dg - c * 36524;
-        var b = Math.floor(dc / 1461);
+        var b = Math.trunc(dc / 1461);
         var db = dc % 1461;
-        var a = Math.floor((Math.floor(db / 365) + 1) * 3 / 4);
+        var a = Math.trunc((Math.trunc(db / 365) + 1) * 3 / 4);
         var da = db - a * 365;
         var y = g * 400 + c * 100 + b * 4 + a;
-        var m = Math.floor((da * 5 + 308) / 153) - 2;
-        var d = da - Math.floor((m + 4) * 153 / 5) + 122;
-        var Y = y - 4800 + Math.floor((m + 2) / 12);
+        var m = Math.trunc((da * 5 + 308) / 153) - 2;
+        var d = da - Math.trunc((m + 4) * 153 / 5) + 122;
+        var Y = y - 4800 + Math.trunc((m + 2) / 12);
         var M = (m + 2) % 12 + 1;
         var D = d + 1;
-        var result = [];
+        var result = [0,0,0,0,0,0,0];
         result[0] = Y;
         result[1] = M;
         result[2] = D;
@@ -1153,10 +1158,10 @@ class TimeUtil {
         if (ss.length !== 2) {
             throw "expected one slash (/) splitting start and stop times.";
         }
-        if (!TimeUtil.isValidFormattedTime(ss[0])) {
+        if (!(TimeUtil.isValidFormattedTime(ss[0]))) {
             throw "first time/duration is misformatted.  Should be ISO8601 time or duration like P1D.";
         }
-        if (!TimeUtil.isValidFormattedTime(ss[1])) {
+        if (!(TimeUtil.isValidFormattedTime(ss[1]))) {
             throw "second time/duration is misformatted.  Should be ISO8601 time or duration like P1D.";
         }
         var result = [0,0,0,0,0,0,0,0,0,0,0,0,0,0];
@@ -1174,7 +1179,7 @@ class TimeUtil {
                 var time = TimeUtil.isoTimeToArray(ss[0]);
                 var duration = TimeUtil.parseISO8601Duration(ss[1]);
                 TimeUtil.setStartTime(time, result);
-                var stoptime = [];
+                var stoptime = [0,0,0,0,0,0,0];
                 for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
                     stoptime[i] = time[i] + duration[i];
                 }
@@ -1183,7 +1188,13 @@ class TimeUtil {
                 return result;
             } else {
                 var starttime = TimeUtil.isoTimeToArray(ss[0]);
-                var stoptime = TimeUtil.isoTimeToArray(ss[1]);
+                var stoptime;
+                if (ss[1].length === ss[0].length) {
+                    stoptime = TimeUtil.isoTimeToArray(ss[1]);
+                } else {
+                    var partToShare = ss[0].length - ss[1].length;
+                    stoptime = TimeUtil.isoTimeToArray(ss[0].substring(0, partToShare) + ss[1]);
+                }
                 TimeUtil.setStartTime(starttime, result);
                 TimeUtil.setStopTime(stoptime, result);
                 return result;
@@ -1199,7 +1210,7 @@ class TimeUtil {
      * @return a time
      */
     static subtract(base, offset) {
-        var result = [];
+        var result = [0,0,0,0,0,0,0];
         for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
             result[i] = base[i] - offset[i];
         }
@@ -1218,7 +1229,7 @@ class TimeUtil {
      * @return a time
      */
     static add(base, offset) {
-        var result = [];
+        var result = [0,0,0,0,0,0,0];
         for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
             result[i] = base[i] + offset[i];
         }
@@ -1403,5 +1414,4 @@ class TimeUtil {
     }
 
 }
-
 

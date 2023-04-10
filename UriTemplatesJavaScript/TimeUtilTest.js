@@ -4,7 +4,7 @@ function assertEquals(a,b) {
 }
 function assertArrayEquals(a,b) {
     if ( a.length===b.length ) {
-        for ( i=0; i<a.length; i++ ) {
+        for ( i=0; i < a.length; i++ ) {
             if ( a[i]!==b[i] ) throw 'a['+i+']!==b['+i+'] : ' +a[i] + ' !== ' + b[i];
         }
     } else {
@@ -247,7 +247,7 @@ class TimeUtilTest {
     testToMillisecondsSince1970() {
         console.info("toMillisecondsSince1970");
         var result = TimeUtil.toMillisecondsSince1970("2000-01-02T00:00:00.0Z");
-        assertEquals(10958, Math.floor(result / 86400000));
+        assertEquals(10958, Math.trunc(result / 86400000));
         //  # 10958.0 days
         assertEquals(0, result % 86400000);
         result = TimeUtil.toMillisecondsSince1970("2020-07-09T16:35:27Z");
@@ -266,6 +266,10 @@ class TimeUtilTest {
         assertArrayEquals(expResult, result);
         expResult = [0, 0, 0, 0, 0, 0, 123000];
         result = TimeUtil.parseISO8601Duration("PT0.000123S");
+        assertArrayEquals(expResult, result);
+        result = TimeUtil.parseISO8601Duration("PT52.000000S");
+        // Das2 parsing has a problem with this.
+        expResult = [0, 0, 0, 0, 0, 52, 0];
         assertArrayEquals(expResult, result);
     }
 
@@ -411,6 +415,22 @@ class TimeUtilTest {
         }
         stringIn = "P7D/2022-01-02";
         expResult = [2021, 12, 26, 0, 0, 0, 0, 2022, 1, 2, 0, 0, 0, 0];
+        try {
+            result = TimeUtil.parseISO8601TimeRange(stringIn);
+            assertArrayEquals(expResult, result);
+        } catch (ex) {
+            throw new AssertionError(ex);
+        }
+        stringIn = "2023-01-18T17:00/18:00";
+        expResult = [2023, 1, 18, 17, 0, 0, 0, 2023, 1, 18, 18, 0, 0, 0];
+        try {
+            result = TimeUtil.parseISO8601TimeRange(stringIn);
+            assertArrayEquals(expResult, result);
+        } catch (ex) {
+            throw new AssertionError(ex);
+        }
+        stringIn = "2013-01-01/07-01";
+        expResult = [2013, 1, 1, 0, 0, 0, 0, 2013, 7, 1, 0, 0, 0, 0];
         try {
             result = TimeUtil.parseISO8601TimeRange(stringIn);
             assertArrayEquals(expResult, result);
