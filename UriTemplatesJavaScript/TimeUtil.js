@@ -444,10 +444,7 @@ class TimeUtil {
      */
     static toMillisecondsSince1970(time) {
         time = TimeUtil.normalizeTimeString(time);
-        var ta = DateTimeFormatter.ISO_INSTANT.parse(time);
-        var i = Instant.from(ta);
-        var d = Date.from(i);
-        return d.getTime();
+        return new Date(time).getTime();
     }
 
     /**
@@ -1327,8 +1324,8 @@ class TimeUtil {
      * @return 14-component time interval.
      */
     static nextRange(timerange) {
-        var result = [];
-        var width = [];
+        var result = [0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+        var width = [0,0,0,0,0,0,0];
         for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
             width[i] = timerange[i + TimeUtil.TIME_DIGITS] - timerange[i];
         }
@@ -1371,8 +1368,8 @@ class TimeUtil {
      * @return 14-component time interval.
      */
     static previousRange(timerange) {
-        var result = [];
-        var width = [];
+        var result = [0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+        var width = [0,0,0,0,0,0,0];
         for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
             width[i] = timerange[i + TimeUtil.TIME_DIGITS] - timerange[i];
         }
