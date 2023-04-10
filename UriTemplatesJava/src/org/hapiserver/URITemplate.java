@@ -855,9 +855,22 @@ public class URITemplate {
     
     /**
      * use own floorDiv since JavaScript doesn't have floorDiv function.
+     * Note that in Python, floorDiv is just "//".  Java also truncates when doing
+     * integer division.
+     * +---------------+--------+
+     * | expression    | result |
+     * +---------------+--------+
+     * | floorDiv(0,7) |  0     |
+     * | floorDiv(1,7) |  0     |
+     * | floorDiv(7,7) |  1     |
+     * | floorDiv(-1,7)| -1     |
+     * | floorDiv(-7,7)| -1     |
+     * | floorDiv(-8,7)| -2     |
+     * +---------------+--------+
+     * 
      * @param ndays
      * @param timeWidth
-     * @return 
+     * @return the integer number of widths which result in a number below ndays.
      */
     private static int floorDiv( int ndays, int timeWidth ) {
         int ncycles;
