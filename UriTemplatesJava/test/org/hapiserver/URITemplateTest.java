@@ -234,8 +234,8 @@ public class URITemplateTest {
         doTestTimeFormat1( "$(j,Y=2012)",   "017",      "2012-01-17T00:00/2012-01-18T00:00");
         doTestTimeFormat1( "ace_mag_$Y_$j_to_$(Y;end)_$j.cdf",   "ace_mag_2005_001_to_2005_003.cdf",      "2005-001T00:00/2005-003T00:00");        
         URITemplate ut = new URITemplate("$Y$m$d-$(Y;end)$m$d");
-        ut.format( new int[] { 2013, 2, 2, 0, 0, 0, 0, 2014, 3, 3, 0, 0, 0, 0 }, Collections.emptyMap() );
-        ut.format( new int[] { 2013, 2, 2, 0, 0, 0, 0 }, new int[] { 2014, 3, 3, 0, 0, 0, 0 }, Collections.emptyMap() );
+        ut.formatTimeRange( new int[] { 2013, 2, 2, 0, 0, 0, 0, 2014, 3, 3, 0, 0, 0, 0 }, Collections.emptyMap() );
+        ut.formatStartStopRange( new int[] { 2013, 2, 2, 0, 0, 0, 0 }, new int[] { 2014, 3, 3, 0, 0, 0, 0 }, Collections.emptyMap() );
     }
     
     private static String readJSONToString( URL url ) {

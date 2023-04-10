@@ -1764,7 +1764,7 @@ public class URITemplate {
         } else {
             stopTime = TimeUtil.isoTimeToArray( stopTimeStr );
         }
-        return format( startTime, stopTime, extra );
+        return formatStartStopRange( startTime, stopTime, extra );
     }        
 
     /**
@@ -1772,10 +1772,10 @@ public class URITemplate {
      * @param timeRange fourteen-component time range
      * @return formatted time, often a resolvable URI.
      */    
-    public String format( int[] timeRange ) {
+    public String formatTimeRange( int[] timeRange ) {
         int[] start= TimeUtil.getStartTime(timeRange);
         int[] stop= TimeUtil.getStopTime(timeRange);
-        return format( start, stop, Collections.emptyMap() );
+        return formatStartStopRange( start, stop, Collections.emptyMap() );
     }
     
     /**
@@ -1784,8 +1784,8 @@ public class URITemplate {
      * @param stopTime seven-component stop time
      * @return formatted time, often a resolvable URI.
      */    
-    public String format( int[] startTime, int[] stopTime ) {
-        return format( startTime, stopTime, Collections.emptyMap() );
+    public String formatStartStopRange( int[] startTime, int[] stopTime ) {
+        return formatStartStopRange( startTime, stopTime, Collections.emptyMap() );
     }
     
     /**
@@ -1794,10 +1794,10 @@ public class URITemplate {
      * @param extra extra parameters
      * @return formatted time, often a resolvable URI.
      */    
-    public String format( int[] timeRange, Map<String,String> extra ) {
+    public String formatTimeRange( int[] timeRange, Map<String,String> extra ) {
         int[] start= TimeUtil.getStartTime(timeRange);
         int[] stop= TimeUtil.getStopTime(timeRange);
-        return format( start, stop, extra );
+        return formatStartStopRange( start, stop, extra );
     }
     
     /**
@@ -1807,7 +1807,7 @@ public class URITemplate {
      * @param extra extra parameters
      * @return formatted time, often a resolvable URI.
      */    
-    public String format( int[] startTime, int[] stopTime, Map<String,String> extra ) {
+    public String formatStartStopRange( int[] startTime, int[] stopTime, Map<String,String> extra ) {
 
         int[] timeWidthl;
         if ( timeWidthIsExplicit ) {
