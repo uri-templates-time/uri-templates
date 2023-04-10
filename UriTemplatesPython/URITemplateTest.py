@@ -97,7 +97,7 @@ class URITemplateTest(unittest.TestCase):
         self.doTestTimeParser1('$(periodic;offset=2285;start=2000-346;period=P27D)', '2286', '2001-007/P27D')
         self.doTestTimeParser1('$(j;Y=2012)$(hrinterval;names=01,02,03,04)', '01702', '2012-01-17T06:00/PT6H')
         self.doTestTimeParser1('$(j;Y=2012).$H$M$S.$(subsec;places=3)', '017.020000.245', '2012-01-17T02:00:00.245/2012-01-17T02:00:00.246')
-        self.doTestTimeParser1('$(j;Y=2012).$x.$X.$(ignore).$H', '017.x.y.z.02', '2012-01-17T02:00:00/2012-01-17T03:00:00')
+        #This should not parse: doTestTimeParser1( "$(j;Y=2012).$x.$X.$(ignore).$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
         self.doTestTimeParser1('$(j;Y=2012).*.*.*.$H', '017.x.y.z.02', '2012-01-17T02:00:00/2012-01-17T03:00:00')
         #testTimeParser1( "$(o;id=rbspa-pp)", "31",  "2012-09-10T14:48:30.914Z/2012-09-10T23:47:34.973Z"); 
         self.doTestTimeParser1('$(j;Y=2012)$(hrinterval;names=01,02,03,04)', '01702', '2012-01-17T06:00/2012-01-17T12:00')
@@ -106,6 +106,8 @@ class URITemplateTest(unittest.TestCase):
         self.doTestTimeParser1('$Y-$j', '2012-017', '2012-01-17T00:00/2012-01-18T00:00')
         self.doTestTimeParser1('$(j,Y=2012)', '017', '2012-01-17T00:00/2012-01-18T00:00')
         self.doTestTimeParser1('ace_mag_$Y_$j_to_$(Y;end)_$j.cdf', 'ace_mag_2005_001_to_2005_003.cdf', '2005-001T00:00/2005-003T00:00')
+        self.doTestTimeParser1('$y $(m;pad=none) $(d;pad=none) $(H;pad=none)', '99 1 3 0', '1999-01-03T00:00/1999-01-03T01:00')
+        self.doTestTimeParser1('$y $j ($(m;pad=none) $(d;pad=none)) $H', '99 003 (1 3) 00', '1999-01-03T00:00/1999-01-03T01:00')
 
     # Use the spec, format the test time and verify that we get norm.
     # @param spec
@@ -157,6 +159,9 @@ class URITemplateTest(unittest.TestCase):
         self.doTestTimeFormat1('$Y-$j', '2012-017', '2012-01-17T00:00/2012-01-18T00:00')
         self.doTestTimeFormat1('$(j,Y=2012)', '017', '2012-01-17T00:00/2012-01-18T00:00')
         self.doTestTimeFormat1('ace_mag_$Y_$j_to_$(Y;end)_$j.cdf', 'ace_mag_2005_001_to_2005_003.cdf', '2005-001T00:00/2005-003T00:00')
+        ut = URITemplate('$Y$m$d-$(Y;end)$m$d')
+        ut.formatTimeRange([ 2013, 2, 2, 0, 0, 0, 0, 2014, 3, 3, 0, 0, 0, 0 ], {})
+        ut.formatStartStopRange([ 2013, 2, 2, 0, 0, 0, 0 ], [ 2014, 3, 3, 0, 0, 0, 0 ], {})
 
     @staticmethod
     def readJSONToString(url):
@@ -211,7 +216,6 @@ class URITemplateTest(unittest.TestCase):
     def testFormatRange(self):
         try:
             print('# testFormatRange')
-            sys.stderr.write(URITemplate.VERSION+'\n')
             t = 'data_$Y.dat'
             ss = URITemplate.formatRange(t, '2001-03-22', '2004-08-18')
             if len(ss) != 4:
@@ -230,6 +234,21 @@ class URITemplateTest(unittest.TestCase):
                 print(f)
         except Exception as ex: # J2J: exceptions
             fail(ex.getMessage())
+
+    def testMakeQualifiersCanonical(self):
+        x = '(x,name=sc,enum=a|b)'
+        if not '(x;name=sc;enum=a|b)'==URITemplate.makeQualifiersCanonical(x):
+            fail(x)
+        x = '$(subsec,places=4)'
+        if not '$(subsec;places=4)'==URITemplate.makeQualifiersCanonical(x):
+            fail(x)
+        #}
+        x = '$(hrinterval;names=01,02,03,04)'
+        if not '$(hrinterval;names=01,02,03,04)'==URITemplate.makeQualifiersCanonical(x):
+            fail(x)
+        x = '$(d,delta=10,phasestart=1979-01-01)'
+        if not '$(d;delta=10;phasestart=1979-01-01)'==URITemplate.makeQualifiersCanonical(x):
+            fail(x)
 
 
 if __name__ == '__main__':

@@ -20,8 +20,8 @@ from TimeUtil import TimeUtil
 # 
 # @author jbf
 class URITemplate:
-    #J2J: private static final Logger logger = Logger.getLogger("hapiserver.uritemplates");
-    VERSION = '20201007a'
+
+    VERSION = '20230406a'
 
     @staticmethod
     def getVersion():
@@ -84,10 +84,10 @@ class URITemplate:
     # one element for each field, it is the handler (or type) of each field.
     handlers = None  # J2J added
 
-    # one element for each field, it is the offset to each field.
+    # one element for each field, containing the offset to each field, or -1 if the offset is not determined.
     offsets = None  # J2J added
 
-    # one element for each field, it is number of digits in each field.
+    # one element for each field, containing number of digits in each field, or -1 if the length is not known.
     lengths = None  # J2J added
 
     # shift found in each digit--going away
@@ -253,7 +253,7 @@ class URITemplate:
             if fieldContent in self.values:
                 ii = self.values[fieldContent]
             else:
-                raise Exception('expected one of ' + str(self.getRegex()))
+                raise Exception('expected one of ' + self.getRegex())
             hour = self.mult * ii
             startTime[3] = hour
             timeWidth[3] = self.mult
@@ -564,6 +564,8 @@ class URITemplate:
 
     # $(subsec,places=4) --> $(subsec;places=4)
     # $(enum,values=01,02,03,id=foo) --> $(enum;values=01,02,03;id=foo)
+    # $a --> $a
+    # (subsec,places=4) --> (subsec;places=4)
     # @param qualifiers
     # @return 
     @staticmethod
@@ -578,14 +580,16 @@ class URITemplate:
         result = [None] * len(qualifiers)
         # If it is, then assume the qualifiers are properly formatted.
         result[0] = qualifiers[0]
-        istart = 1
+        # '$'
+        result[1] = qualifiers[1]
+        istart = 2
         while istart < len(qualifiers):  # J2J for loop
             ch = qualifiers[istart]
             if ch == ';': return qualifiers
             if ch == ',':
                 result[istart] = ';'
                 break
-            if ch.isalpha():
+            if ch.isalpha() or ch == ')':
                 result[istart] = ch
             istart = istart + 1
         expectSemi = False
@@ -609,7 +613,7 @@ class URITemplate:
     @staticmethod
     def maybeInitialize(digits):
         if digits is None:
-            return [0] * 7
+            return [0] * TimeUtil.TIME_DIGITS
         else:
             return digits
 
@@ -636,6 +640,28 @@ class URITemplate:
             return 5
         else:
             return -1
+
+    # use own floorDiv since JavaScript doesn't have floorDiv function.
+    # Note that in Python, floorDiv is just "//".  Java also truncates when doing
+    # integer division.
+    # +---------------+--------+
+    # | expression    | result |
+    # +---------------+--------+
+    # | floorDiv(0,7) |  0     |
+    # | floorDiv(1,7) |  0     |
+    # | floorDiv(7,7) |  1     |
+    # | floorDiv(-1,7)| -1     |
+    # | floorDiv(-7,7)| -1     |
+    # | floorDiv(-8,7)| -2     |
+    # +---------------+--------+
+    # 
+    # @param ndays
+    # @param timeWidth
+    # @return the integer number of widths which result in a number below ndays.
+    @staticmethod
+    def floorDiv(ndays, timeWidth):
+        ncycles = ndays // timeWidth
+        return ncycles
 
     # set the explicit width
     # @param spec specification like "4" or "4H" for four hours.
@@ -900,7 +926,9 @@ class URITemplate:
                                 self.stopShift[digit] = int(val)
 
                         elif name=='pad' or name=='fmt' or name=="case":
-                            if name=='pad' and val=='none': self.lengths[i] = -1
+                            if name=='pad' and val=='none':
+                                self.lengths[i] = -1
+                                pos = -1
 
                             if self.qualifiersMaps[i] is None: self.qualifiersMaps[i] = {}
 
@@ -1055,7 +1083,7 @@ class URITemplate:
             if len(timeString) < offs + length:
                 raise Exception('string is too short: ' + timeString)
             field = timeString[offs:offs + length].strip()
-            # J2J (logger) logger.log(Level.FINEST, "handling {0} with {1}", new Object[] { field, handlers[idigit] })
+            # J2J (logger) logger.log(Level.FINEST, "handling \"{0}\" with {1}", new Object[] { field, handlers[idigit] })
             try:
                 if self.handlers[idigit] < 10:
                     digit = int(field)
@@ -1138,7 +1166,7 @@ class URITemplate:
                 elif self.timeWidth[2] > 1:
                     phaseStartJulian = TimeUtil.julianDay(self.phasestart[0], self.phasestart[1], self.phasestart[2])
                     ndays = TimeUtil.julianDay(startTime[0], startTime[1], startTime[2]) - phaseStartJulian
-                    ncycles = ndays//self.timeWidth[2]
+                    ncycles = URITemplate.floorDiv(ndays, self.timeWidth[2])
                     startTime = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * self.timeWidth[2])
                 else:
                     # J2J (logger) logger.log(Level.WARNING, "phasestart can only be used when step size is integer number of days greater than 1: {0}", TimeUtil.formatIso8601Duration(timeWidth))
@@ -1150,8 +1178,7 @@ class URITemplate:
         result = [0] * (URITemplate.NUM_TIME_DIGITS * 2)
         noShift = self.startShift is None
         if noShift:
-            for i in range(0, URITemplate.NUM_TIME_DIGITS):
-                result[i] = startTime[i]
+            result[0:URITemplate.NUM_TIME_DIGITS]=startTime[0:URITemplate.NUM_TIME_DIGITS]
             TimeUtil.normalizeTime(result)
         else:
             for i in range(0, URITemplate.NUM_TIME_DIGITS):
@@ -1159,16 +1186,14 @@ class URITemplate:
             TimeUtil.normalizeTime(result)
         noShift = self.stopShift is None
         if noShift:
-            for i in range(0, URITemplate.NUM_TIME_DIGITS):
-                result[i + URITemplate.NUM_TIME_DIGITS] = stopTime[i]
+            result[URITemplate.NUM_TIME_DIGITS:2*URITemplate.NUM_TIME_DIGITS]=stopTime[0:URITemplate.NUM_TIME_DIGITS]
             TimeUtil.normalizeTime(result)
         else:
             result1 = [0] * URITemplate.NUM_TIME_DIGITS
             for i in range(0, URITemplate.NUM_TIME_DIGITS):
                 result1[i] = stopTime[i] + self.stopShift[i]
             TimeUtil.normalizeTime(result1)
-            for i in range(0, URITemplate.NUM_TIME_DIGITS):
-                result[i + URITemplate.NUM_TIME_DIGITS] = result1[i]
+            result[URITemplate.NUM_TIME_DIGITS:2*URITemplate.NUM_TIME_DIGITS]=result1[0:URITemplate.NUM_TIME_DIGITS]
         return result
 
     # return the number of digits, starting with the year, which must be
@@ -1201,7 +1226,7 @@ class URITemplate:
     # @return the formatted times which cover the span.
     # @throws ParseException when the initial parsing cannot be done.
     @staticmethod
-    def formatRange(template, startTimeStr, stopTimeStr, extra={}):
+    def formatRange(template, startTimeStr, stopTimeStr, extra={} ):
         ut = URITemplate(template)
         result = []
         sptr = TimeUtil.isoTimeFromArray(TimeUtil.isoTimeToArray(startTimeStr))
@@ -1212,7 +1237,7 @@ class URITemplate:
         i = 0
         externalContext = ut.getExternalContext()
         if externalContext > 0:
-            context = [0] * URITemplate.NUM_TIME_DIGITS
+            context = [0] * TimeUtil.TIME_DIGITS
             context[0:externalContext]=stopDigits[0:externalContext]
             ut.setContext(context)
         firstLoop = True
@@ -1221,7 +1246,7 @@ class URITemplate:
             s1 = ut.format(sptr, sptr, extra)
             tta = ut.parse(s1, {})
             if firstLoop:
-                sptr = TimeUtil.isoTimeFromArray(tta[0:7])
+                sptr = TimeUtil.isoTimeFromArray(TimeUtil.getStartTime(tta))
                 s1 = ut.format(sptr, sptr, extra)
                 firstLoop = False
             if tta[0:7]==tta[7:14]:
@@ -1229,14 +1254,14 @@ class URITemplate:
                 break
             else:
                 result.append(s1)
-            sptr = TimeUtil.isoTimeFromArray(tta[7:14])
+            sptr = TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(tta))
             if sptr0==sptr:
                 raise Exception('template fails to advance')
             i = i + 1
         return result
 
-    # return a list of formatted names, using the spec and the given 
-    # time range.
+
+    # return a the formatted name, using the spec and the given time range.
     # @param startTimeStr iso8601 formatted time.
     # @param stopTimeStr iso8601 formatted time.
     # @param extra extra parameters
@@ -1244,10 +1269,29 @@ class URITemplate:
     def format(self, startTimeStr, stopTimeStr, extra={}):
         startTime = TimeUtil.isoTimeToArray(startTimeStr)
         if self.timeWidthIsExplicit:
-            timeWidthl = self.timeWidth
             stopTime = TimeUtil.add(startTime, self.timeWidth)
         else:
             stopTime = TimeUtil.isoTimeToArray(stopTimeStr)
+        return self.formatStartStopRange(startTime, stopTime, extra)
+
+    # return the formatted name, using the spec and the given time range.
+    # @param timeRange fourteen-component time range
+    # @param extra extra parameters
+    # @return formatted time, often a resolvable URI.
+    def formatTimeRange(self, timeRange, extra={}):
+        start = TimeUtil.getStartTime(timeRange)
+        stop = TimeUtil.getStopTime(timeRange)
+        return self.formatStartStopRange(start, stop, extra)
+
+    # return the formatted name, using the spec and the given time range.
+    # @param startTime seven-component start time
+    # @param stopTime seven-component stop time
+    # @param extra extra parameters
+    # @return formatted time, often a resolvable URI.
+    def formatStartStopRange(self, startTime, stopTime, extra):
+        if self.timeWidthIsExplicit:
+            timeWidthl = self.timeWidth
+        else:
             timeWidthl = TimeUtil.subtract(stopTime, startTime)
         if self.startShift != None:
             startTime = TimeUtil.subtract(startTime, self.startShift)
@@ -1257,7 +1301,7 @@ class URITemplate:
             if self.phasestart != None and self.timeWidth[2] > 0:
                 phaseStartJulian = TimeUtil.julianDay(self.phasestart[0], self.phasestart[1], self.phasestart[2])
                 ndays = TimeUtil.julianDay(startTime[0], startTime[1], startTime[2]) - phaseStartJulian
-                ncycles = ndays//self.timeWidth[2]
+                ncycles = URITemplate.floorDiv(ndays, self.timeWidth[2])
                 tnew = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * self.timeWidth[2])
                 startTime[0] = tnew[0]
                 startTime[1] = tnew[1]
@@ -1322,20 +1366,21 @@ class URITemplate:
                     raise Exception('shouldn\'t get here')
                 if delta > 1:
                     h = self.handlers[idigit]
-                    if h == 2 or h == 3:
+                    if h==2 or h==3:
                         # $j, $m all start with 1.
                         digit = (((digit - 1) // delta) * delta) + 1
-                    elif h == 4:
+                    elif h==4:
                         if self.phasestart != None:
                             phaseStartJulian = TimeUtil.julianDay(self.phasestart[0], self.phasestart[1], self.phasestart[2])
                             ndays = TimeUtil.julianDay(timel[0], timel[1], timel[2]) - phaseStartJulian
-                            ncycles = ndays//self.timeWidth[2]
+                            ncycles = URITemplate.floorDiv(ndays, self.timeWidth[2])
                             tnew = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * delta)
                             timel[0] = tnew[0]
                             timel[1] = tnew[1]
                             timel[2] = tnew[2]
                         else:
-                            raise Exception('phaseshart not set for delta days')
+                            raise Exception('phasestart not set for delta days')
+
                     else:
                         digit = (digit // delta) * delta
                 if length < 0:
@@ -1415,6 +1460,7 @@ class URITemplate:
 
     @staticmethod
     def printUsage():
+        sys.stderr.write('URITemplate ' + URITemplate.VERSION+'\n')
         sys.stderr.write('Usage: \n')
         sys.stderr.write('java -jar UriTemplatesJava.jar [--formatRange|--parse] [--range=<ISO8601 range>] --template=<URI template> [--name=<name>]\n')
         sys.stderr.write('java -jar UriTemplatesJava.jar --formatRange --range=1999-01-01/1999-01-03 --template=\'http://example.com/data_$(d;pad=none).dat\'\n')
@@ -1457,7 +1503,7 @@ class URITemplate:
                     tr1 = r.readLine()
                     while tr1 != None:
                         itimeRange = TimeUtil.parseISO8601TimeRange(tr1)
-                        result = URITemplate.formatRange(template, TimeUtil.isoTimeFromArray(itimeRange[0:7]), TimeUtil.isoTimeFromArray(itimeRange[7:14]))
+                        result = URITemplate.formatRange(template, TimeUtil.isoTimeFromArray(TimeUtil.getStartTime(itimeRange)), TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(itimeRange)))
                         for s in result:
                             print(s)
                         tr1 = r.readLine()
@@ -1468,7 +1514,7 @@ class URITemplate:
             else:
                 try:
                     itimeRange = TimeUtil.parseISO8601TimeRange(timeRange)
-                    result = URITemplate.formatRange(template, TimeUtil.isoTimeFromArray(itimeRange[0:7]), TimeUtil.isoTimeFromArray(itimeRange[7:14]))
+                    result = URITemplate.formatRange(template, TimeUtil.isoTimeFromArray(TimeUtil.getStartTime(itimeRange)), TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(itimeRange)))
                     for s in result:
                         print(s)
                 except Exception as ex: # J2J: exceptions
@@ -1494,9 +1540,9 @@ class URITemplate:
                     while filen1 != None:
                         ut = URITemplate(template)
                         itimeRange = ut.parse(filen1, argsm)
-                        sys.stdout.write(TimeUtil.isoTimeFromArray(itimeRange[0:7]))
+                        sys.stdout.write(TimeUtil.isoTimeFromArray(TimeUtil.getStartTime(itimeRange)))
                         sys.stdout.write('/')
-                        print(TimeUtil.isoTimeFromArray(itimeRange[7:14]))
+                        print(TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(itimeRange)))
                         filen1 = r.readLine()
                 except Exception as ex: # J2J: exceptions
                     URITemplate.printUsage()
@@ -1506,9 +1552,9 @@ class URITemplate:
                 try:
                     ut = URITemplate(template)
                     itimeRange = ut.parse(name, argsm)
-                    sys.stdout.write(TimeUtil.isoTimeFromArray(itimeRange[0:7]))
+                    sys.stdout.write(TimeUtil.isoTimeFromArray(TimeUtil.getStartTime(itimeRange)))
                     sys.stdout.write('/')
-                    print(TimeUtil.isoTimeFromArray(itimeRange[7:14]))
+                    print(TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(itimeRange)))
                 except Exception as ex: # J2J: exceptions
                     URITemplate.printUsage()
                     sys.stderr.write('parseException from ?\n')
