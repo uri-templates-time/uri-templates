@@ -193,6 +193,10 @@ class TimeUtilTest(unittest.TestCase):
         expResult = [ 0, 0, 0, 0, 0, 0, 123000 ]
         result = TimeUtil.parseISO8601Duration('PT0.000123S')
         self.assertEqual(expResult,result)
+        result = TimeUtil.parseISO8601Duration('PT52.000000S')
+        # Das2 parsing has a problem with this.
+        expResult = [ 0, 0, 0, 0, 0, 52, 0 ]
+        self.assertEqual(expResult,result)
 
     # Test of julianDay method, of class TimeUtil.
     def testJulianDay(self):
