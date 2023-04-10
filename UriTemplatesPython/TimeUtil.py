@@ -129,6 +129,7 @@ class TimeUtil:
     # @param timerange the fourteen-element time range.
     @staticmethod
     def setStartTime(time, timerange):
+        if len(timerange) != 14: raise Exception('timerange should be 14-element array.')
         timerange[0:TimeUtil.TIME_DIGITS]=time[0:TimeUtil.TIME_DIGITS]
 
     # copy the components of time into the stop position (indeces 7-14) of the time range.
@@ -136,6 +137,7 @@ class TimeUtil:
     # @param timerange the fourteen-element time range.
     @staticmethod
     def setStopTime(time, timerange):
+        if len(timerange) != 14: raise Exception('timerange should be 14-element array.')
         timerange[TimeUtil.TIME_DIGITS:2*TimeUtil.TIME_DIGITS]=time[0:TimeUtil.TIME_DIGITS]
 
     # format the time as (non-leap) milliseconds since 1970-01-01T00:00.000Z into a string.  The
@@ -464,11 +466,11 @@ class TimeUtil:
             if nanoseconds == 0:
                 sb+= str(seconds)
             elif nanoseconds % 1000000 == 0:
-                sb+= '%.3f' % ( seconds + nanoseconds / 1e9)
+                sb+= '%.3f' % seconds + nanoseconds / 1e9
             elif nanoseconds % 1000 == 0:
-                sb+= '%.6f' % ( seconds + nanoseconds / 1e9)
+                sb+= '%.6f' % seconds + nanoseconds / 1e9
             else:
-                sb+= '%.9f' % ( seconds + nanoseconds / 1e9)
+                sb+= '%.9f' % seconds + nanoseconds / 1e9
             sb+= 'S'
         if len(sb) == 1:
             if len(nn) > 3:
@@ -477,10 +479,10 @@ class TimeUtil:
                 sb+= '0D'
         return sb
 
-    iso8601duration = 'P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?'
+    iso8601duration = 'P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?(\\d*?\\.?\\d*)S)?)?'
 
     # Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
-    iso8601DurationPattern = re.compile('P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?')
+    iso8601DurationPattern = re.compile('P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d*?\\.?\\d*)S)?)?')
 
     # returns a 7 element array with [year,mon,day,hour,min,sec,nanos]. Note
     # this does not allow fractional day, hours or minutes! Examples
