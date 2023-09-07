@@ -197,7 +197,7 @@ class URITemplate:
         def configure(self, args):
             self.places = int(URITemplate.getArg(args, 'places', None))
             if self.places > 9: raise Exception('only nine places allowed.')
-            self.nanosecondsFactor = int((10**((9 - self.places))))
+            self.nanosecondsFactor = int((10 ** (9 - self.places)))
             self.formatStr = '%0' + str(self.places) + 'd'
             return None
 
@@ -811,7 +811,7 @@ class URITemplate:
                 ss2 = self.qualifiers[i].split(';')
                 self.qualifiersMaps[i] = {}
                 for ss21 in ss2:
-                    #TODO: handle end before shift.
+                    # TODO: handle end before shift.
                     okay = False
                     qual = ss21.strip()
                     if qual=='startTimeOnly':
@@ -1485,6 +1485,7 @@ class URITemplate:
                 argsm[aa[0]] = ''
             else:
                 argsm[aa[0]] = aa[1]
+        print(argsm)
         if '--formatRange' in argsm:
             argsm.pop('--formatRange')
             template = argsm.pop('--template')
