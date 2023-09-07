@@ -1462,10 +1462,10 @@ class URITemplate:
     def printUsage():
         sys.stderr.write('URITemplate ' + URITemplate.VERSION+'\n')
         sys.stderr.write('Usage: \n')
-        sys.stderr.write('java -jar UriTemplatesJava.jar [--formatRange|--parse] [--range=<ISO8601 range>] --template=<URI template> [--name=<name>]\n')
-        sys.stderr.write('java -jar UriTemplatesJava.jar --formatRange --range=1999-01-01/1999-01-03 --template=\'http://example.com/data_$(d;pad=none).dat\'\n')
+        sys.stderr.write('python URITemplate.py [--formatRange|--parse] [--range=<ISO8601 range>] --template=<URI template> [--name=<name>]\n')
+        sys.stderr.write('python URITemplate.py --formatRange --range=1999-01-01/1999-01-03 --template=\'http://example.com/data_$(d;pad=none).dat\'\n')
         #example.com/data_$(d;pad=none).dat'");
-        sys.stderr.write('java -jar UriTemplatesJava.jar --parse --template=\'data_$(d;pad=none;Y=1999; m=5).dat\' --name=data_1.dat\n')
+        sys.stderr.write('python URITemplate.py --parse --template=\'data_$(d;pad=none;Y=1999; m=5).dat\' --name=data_1.dat\n')
         sys.stderr.write('   --formatRange time ranges will be formatted into names\n')
         sys.stderr.write('   --parse names will be parsed into time ranges\n')
         sys.stderr.write('   --range is an iso8601 range, or - for ranges from stdin\n')
@@ -1485,7 +1485,6 @@ class URITemplate:
                 argsm[aa[0]] = ''
             else:
                 argsm[aa[0]] = aa[1]
-        print(argsm)
         if '--formatRange' in argsm:
             argsm.pop('--formatRange')
             template = argsm.pop('--template')
