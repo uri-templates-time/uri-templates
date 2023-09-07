@@ -4,7 +4,7 @@ import sys
 
 from TimeUtil import TimeUtil
 
-# URITemplate implements a URI_Template, as described in 
+# URITemplate implements a URI_Template, as described in
 # https://github.com/hapi-server/uri-templates/wiki/Specification
 # The main method shows how the library can be used to format
 # and parse codes, but briefly parsing is done using the parse
@@ -167,7 +167,7 @@ class URITemplate:
         # @throws ParseException when the field is not consistent with the spec.
         def parse(self, fieldContent, startTime, timeWidth, extra):
             pass
-        # create a string given the times, when this is possible.  An 
+        # create a string given the times, when this is possible.  An
         # IllegalArgumentException should be thrown when this is not possible, 
         # but be loose so this can be composed with other field handlers.  
         # For example, imagine the $Y field handler.  This should not throw an 
@@ -1213,7 +1213,7 @@ class URITemplate:
         self.context[0:self.externalContext]=externalContextTime[0:self.externalContext]
 
 
-    # For convenience, add API to match that suggested by 
+    # For convenience, add API to match that suggested by
     # https://github.com/hapi-server/uri-templates/blob/master/formatting.json,
     # and allowing for extra named fields to be passed in.
     # Note if start and end appear in the template, then just one formatted
@@ -1356,11 +1356,11 @@ class URITemplate:
                     digit = timel[3]
                 elif self.handlers[idigit]==6:
                     digit = timel[4]
-                elif self.handlers[idigit]==7:
+                elif self.handlers[idigit] == 7:
                     digit = timel[5]
-                elif self.handlers[idigit]==8:
+                elif self.handlers[idigit] == 8:
                     digit = timel[6] // 1000000
-                elif self.handlers[idigit]==9:
+                elif self.handlers[idigit] == 9:
                     digit = timel[6] // 1000
                 else:
                     raise Exception('shouldn\'t get here')
@@ -1471,69 +1471,74 @@ class URITemplate:
         sys.stderr.write('   --range is an iso8601 range, or - for ranges from stdin\n')
         sys.stderr.write('   --name is has been formatted by the template, or - for names from stdin\n')
 
-    # Usage: java -jar dist/UriTemplatesJava.jar --formatRange --range='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'
+    # Usage: python URITemplate.py --formatRange --range='1999-01-01/1999-01-03' --template='http://example.com/data_$(d;pad=none).dat'
     # @param args the command line arguments.
     @staticmethod
     def main(args):
-        if len(args) == 0 or args[1]=='--help':
+        if len(args) == 1 or args[2] == '--help':
             URITemplate.printUsage()
-            sys.exit(-1)
+            return -1
         argsm = {}
         for a in args:
-            aa = a.split('=')
+            aa = a.split('=', 1)
             if len(aa) == 1:
                 argsm[aa[0]] = ''
             else:
                 argsm[aa[0]] = aa[1]
+        print(argsm)
         if '--formatRange' in argsm:
             argsm.pop('--formatRange')
             template = argsm.pop('--template')
             if template is None:
                 URITemplate.printUsage()
                 sys.stderr.write('need --template parameter\n')
-                sys.exit(-2)
+                return -2
             timeRange = argsm.pop('--range')
             if timeRange is None:
                 URITemplate.printUsage()
                 sys.stderr.write('need --range parameter\n')
-                sys.exit(-3)
-            if timeRange=='-':
+                return -3
+            if timeRange == '-':
                 tr1 = None
                 try:
                     tr1 = r.readLine()
                     while tr1 != None:
                         itimeRange = TimeUtil.parseISO8601TimeRange(tr1)
-                        result = URITemplate.formatRange(template, TimeUtil.isoTimeFromArray(TimeUtil.getStartTime(itimeRange)), TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(itimeRange)))
+                        result = URITemplate.formatRange(template,
+                                                         TimeUtil.isoTimeFromArray(TimeUtil.getStartTime(itimeRange)),
+                                                         TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(itimeRange)))
                         for s in result:
                             print(s)
                         tr1 = r.readLine()
-                except Exception as ex: # J2J: exceptions
+                except Exception as ex:  # J2J: exceptions
                     URITemplate.printUsage()
-                    sys.stderr.write('range is misformatted: ' + tr1+'\n')
-                    sys.exit(-3)
+                    sys.stderr.write('range is misformatted: ' + tr1 + '\n')
+                    return -3
             else:
                 try:
                     itimeRange = TimeUtil.parseISO8601TimeRange(timeRange)
-                    result = URITemplate.formatRange(template, TimeUtil.isoTimeFromArray(TimeUtil.getStartTime(itimeRange)), TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(itimeRange)))
+                    result = URITemplate.formatRange(template,
+                                                     TimeUtil.isoTimeFromArray(TimeUtil.getStartTime(itimeRange)),
+                                                     TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(itimeRange)))
                     for s in result:
                         print(s)
-                except Exception as ex: # J2J: exceptions
+                except Exception as ex:  # J2J: exceptions
                     URITemplate.printUsage()
                     sys.stderr.write('range is misformatted\n')
-                    sys.exit(-3)
+                    return -3
         elif '--parse' in argsm:
             argsm.pop('--parse')
             template = argsm.pop('--template')
             if template is None:
                 URITemplate.printUsage()
                 sys.stderr.write('need --template parameter\n')
-                sys.exit(-2)
+                return -2
             name = argsm.pop('--name')
             if name is None:
                 URITemplate.printUsage()
                 sys.stderr.write('need --name parameter\n')
-                sys.exit(-3)
-            if name=='-':
+                return -3
+            if name == '-':
                 filen1 = None
                 try:
                     filen1 = r.readLine()
@@ -1544,10 +1549,10 @@ class URITemplate:
                         sys.stdout.write('/')
                         print(TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(itimeRange)))
                         filen1 = r.readLine()
-                except Exception as ex: # J2J: exceptions
+                except Exception as ex:  # J2J: exceptions
                     URITemplate.printUsage()
-                    sys.stderr.write('parseException from ' + filen1+'\n')
-                    sys.exit(-3)
+                    sys.stderr.write('parseException from ' + filen1 + '\n')
+                    return -3
             else:
                 try:
                     ut = URITemplate(template)
@@ -1555,9 +1560,12 @@ class URITemplate:
                     sys.stdout.write(TimeUtil.isoTimeFromArray(TimeUtil.getStartTime(itimeRange)))
                     sys.stdout.write('/')
                     print(TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(itimeRange)))
-                except Exception as ex: # J2J: exceptions
+                except Exception as ex:  # J2J: exceptions
                     URITemplate.printUsage()
                     sys.stderr.write('parseException from ?\n')
-                    sys.exit(-3)
+                    return -3
 
 
+if __name__ == "__main__":
+    exitcode = URITemplate.main(sys.argv)
+    sys.exit(exitcode)
