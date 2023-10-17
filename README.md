@@ -15,7 +15,7 @@ Here is a list of implementations of the specification:
 
 | Name<br>Notes | Language | URL |
 | ------------- | -------- | --- |
-| URI_Templates Java<br>reference implementation | Java     | https://github.com/hapi-server/uri-templates/tree/master/UriTemplatesJava<br>Javadoc: https://cottagesystems.com/hapi/uri_templates/doc/ |
+| URI_Templates Java<br>reference implementation | Java     | https://github.com/hapi-server/uri-templates/tree/master/UriTemplatesJava <br> https://cottagesystems.com/hapi/uri_templates/doc/ |
 | Autoplot Aggregation<br>nearly complete for spec | Java  | https://autoplot.org/ |
 | URI_Templates JavaScript | JavaScript | https://github.com/hapi-server/uri-templates/tree/master/UriTemplatesJavaScript |
 | URI_Templates Python | Python | https://github.com/hapi-server/uri-templates/tree/master/UriTemplatesPython |
