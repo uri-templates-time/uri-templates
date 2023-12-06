@@ -1586,15 +1586,15 @@ class URITemplate {
         }
         noShift = this.stopShift === null;
         if (noShift) {
+            TimeUtil.normalizeTime(stopTime);
             arraycopy( stopTime, 0, result, URITemplate.NUM_TIME_DIGITS, URITemplate.NUM_TIME_DIGITS );
-            TimeUtil.normalizeTime(result);
         } else {
-            var result1 = [0,0,0,0,0,0,0];
+            var resultStop = [0,0,0,0,0,0,0];
             for ( var i = 0; i < URITemplate.NUM_TIME_DIGITS; i++) {
-                result1[i] = stopTime[i] + this.stopShift[i];
+                resultStop[i] = stopTime[i] + this.stopShift[i];
             }
-            TimeUtil.normalizeTime(result1);
-            arraycopy( result1, 0, result, URITemplate.NUM_TIME_DIGITS, URITemplate.NUM_TIME_DIGITS );
+            TimeUtil.normalizeTime(resultStop);
+            arraycopy( resultStop, 0, result, URITemplate.NUM_TIME_DIGITS, URITemplate.NUM_TIME_DIGITS );
         }
         return result;
     }
