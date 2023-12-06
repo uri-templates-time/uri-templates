@@ -1623,16 +1623,16 @@ public class URITemplate {
         }
         
         noShift = this.stopShift==null;
-        if ( noShift ) {        
+        if ( noShift ) {     
+            TimeUtil.normalizeTime(stopTime);
             System.arraycopy(stopTime, 0, result, NUM_TIME_DIGITS, NUM_TIME_DIGITS);
-            TimeUtil.normalizeTime(result);
         } else {
-            int[] result1= new int[NUM_TIME_DIGITS];
+            int[] resultStop= new int[NUM_TIME_DIGITS];
             for ( int i= 0; i<NUM_TIME_DIGITS; i++ ) {
-                result1[i]= stopTime[i] + this.stopShift[i];
+                resultStop[i]= stopTime[i] + this.stopShift[i];
             }
-            TimeUtil.normalizeTime(result1);
-            System.arraycopy(result1, 0, result, NUM_TIME_DIGITS, NUM_TIME_DIGITS);
+            TimeUtil.normalizeTime(resultStop);
+            System.arraycopy(resultStop, 0, result, NUM_TIME_DIGITS, NUM_TIME_DIGITS);
         }
         
         return result;
