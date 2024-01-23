@@ -4,7 +4,7 @@ import sys
 
 from TimeUtil import TimeUtil
 
-# URITemplate implements a URI_Template, as described in
+# URITemplate implements a URI_Template, as described in 
 # https://github.com/hapi-server/uri-templates/wiki/Specification
 # The main method shows how the library can be used to format
 # and parse codes, but briefly parsing is done using the parse
@@ -167,7 +167,7 @@ class URITemplate:
         # @throws ParseException when the field is not consistent with the spec.
         def parse(self, fieldContent, startTime, timeWidth, extra):
             pass
-        # create a string given the times, when this is possible.  An
+        # create a string given the times, when this is possible.  An 
         # IllegalArgumentException should be thrown when this is not possible, 
         # but be loose so this can be composed with other field handlers.  
         # For example, imagine the $Y field handler.  This should not throw an 
@@ -1186,14 +1186,14 @@ class URITemplate:
             TimeUtil.normalizeTime(result)
         noShift = self.stopShift is None
         if noShift:
+            TimeUtil.normalizeTime(stopTime)
             result[URITemplate.NUM_TIME_DIGITS:2*URITemplate.NUM_TIME_DIGITS]=stopTime[0:URITemplate.NUM_TIME_DIGITS]
-            TimeUtil.normalizeTime(result)
         else:
-            result1 = [0] * URITemplate.NUM_TIME_DIGITS
+            resultStop = [0] * URITemplate.NUM_TIME_DIGITS
             for i in range(0, URITemplate.NUM_TIME_DIGITS):
-                result1[i] = stopTime[i] + self.stopShift[i]
-            TimeUtil.normalizeTime(result1)
-            result[URITemplate.NUM_TIME_DIGITS:2*URITemplate.NUM_TIME_DIGITS]=result1[0:URITemplate.NUM_TIME_DIGITS]
+                resultStop[i] = stopTime[i] + self.stopShift[i]
+            TimeUtil.normalizeTime(resultStop)
+            result[URITemplate.NUM_TIME_DIGITS:2*URITemplate.NUM_TIME_DIGITS]=resultStop[0:URITemplate.NUM_TIME_DIGITS]
         return result
 
     # return the number of digits, starting with the year, which must be
@@ -1213,7 +1213,7 @@ class URITemplate:
         self.context[0:self.externalContext]=externalContextTime[0:self.externalContext]
 
 
-    # For convenience, add API to match that suggested by
+    # For convenience, add API to match that suggested by 
     # https://github.com/hapi-server/uri-templates/blob/master/formatting.json,
     # and allowing for extra named fields to be passed in.
     # Note if start and end appear in the template, then just one formatted
@@ -1356,11 +1356,11 @@ class URITemplate:
                     digit = timel[3]
                 elif self.handlers[idigit]==6:
                     digit = timel[4]
-                elif self.handlers[idigit] == 7:
+                elif self.handlers[idigit]==7:
                     digit = timel[5]
-                elif self.handlers[idigit] == 8:
+                elif self.handlers[idigit]==8:
                     digit = timel[6] // 1000000
-                elif self.handlers[idigit] == 9:
+                elif self.handlers[idigit]==9:
                     digit = timel[6] // 1000
                 else:
                     raise Exception('shouldn\'t get here')
@@ -1485,7 +1485,6 @@ class URITemplate:
                 argsm[aa[0]] = ''
             else:
                 argsm[aa[0]] = aa[1]
-        print(argsm)
         if '--formatRange' in argsm:
             argsm.pop('--formatRange')
             template = argsm.pop('--template')
