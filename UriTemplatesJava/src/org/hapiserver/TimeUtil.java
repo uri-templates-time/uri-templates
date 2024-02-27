@@ -25,6 +25,8 @@ import java.util.regex.Pattern;
  */
 public class TimeUtil {
 
+    public static final String VERSION = "20240227.1";
+    
     /**
      * Number of time components: year, month, day, hour, minute, second, nanosecond
      */

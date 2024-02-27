@@ -39,7 +39,7 @@ public class URITemplate {
        
     private static final Logger logger= Logger.getLogger("hapiserver.uritemplates");
     
-    public static String VERSION= "20240222.1";
+    public static String VERSION= "20240227.1";
     
     public static String getVersion() {
         return VERSION;
