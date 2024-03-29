@@ -63,6 +63,11 @@ class TimeUtilTest {
         var stopTime;
         var expResult
         var result;
+        startTime = "1999-12-31";
+        stopTime = "2000-01-03";
+        expResult = ["1999-12-31Z", "2000-01-01Z", "2000-01-02Z"];
+        result = TimeUtil.countOffDays(startTime, stopTime);
+        assertArrayEquals(expResult, result);
         startTime = "1999-12-31Z";
         stopTime = "2000-01-03Z";
         expResult = ["1999-12-31Z", "2000-01-01Z", "2000-01-02Z"];
@@ -73,6 +78,12 @@ class TimeUtilTest {
         expResult = ["1999-12-31Z", "2000-01-01Z", "2000-01-02Z"];
         result = TimeUtil.countOffDays(startTime, stopTime);
         assertArrayEquals(expResult, result);
+        startTime = "1999";
+        stopTime = "2000";
+        result = TimeUtil.countOffDays(startTime, stopTime);
+        assertEquals(result.length, 365);
+        assertEquals(result[0], "1999-01-01Z");
+        assertEquals(result[364], "1999-12-31Z");
     }
 
     /**

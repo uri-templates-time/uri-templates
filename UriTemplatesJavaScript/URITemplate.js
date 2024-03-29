@@ -536,7 +536,7 @@ class URITemplate {
     // J2J: Name is used twice in class: URITemplate formatTimeRange
     // J2J: Name is used twice in class: URITemplate formatStartStopRange
     // J2J: private static final Logger logger = Logger.getLogger("hapiserver.uritemplates");
-    static VERSION = "20230406a";
+    static VERSION = "20240227.1";
 
     static getVersion() {
         return URITemplate.VERSION;

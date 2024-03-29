@@ -1,4 +1,3 @@
-// import sprintf.js
 function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
     if (srcPts !== dstPts || dstOff >= srcOff + size) {
         while (--size >= 0)
@@ -10,6 +9,8 @@ function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
             dstPts[dstOff++] = tmp[i];
     } 
 }
+// import sprintf.js
+
 /**
  * Utilities for times in IsoTime strings (limited set of ISO8601 times)
  * Examples of isoTime strings include:<ul>
@@ -23,6 +24,8 @@ function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
  * @author jbf
  */
 class TimeUtil {
+    static VERSION = "20240329.1";
+
     /**
      * Number of time components: year, month, day, hour, minute, second, nanosecond
      */
@@ -318,13 +321,10 @@ class TimeUtil {
      *
      * @param startTime an iso time string
      * @param stopTime an iso time string
-     * @return array of times, complete days, in the form $Y-$m-$d
+     * @return array of times, complete days, in the form $Y-$m-$dZ
      */
     static countOffDays(startTime, stopTime) {
-        if (stopTime.length < 10 || /[0-9]/.test(stopTime.charAt(10))) {
-            throw "arguments must be $Y-$m-$dZ";
-        }
-        var t1
+        var t1;
         var t2;
         try {
             t1 = TimeUtil.parseISO8601Time(startTime);
