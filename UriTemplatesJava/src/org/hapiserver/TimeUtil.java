@@ -360,9 +360,6 @@ public class TimeUtil {
      * @return array of times, complete days, in the form $Y-$m-$d
      */
     public static String[] countOffDays(String startTime, String stopTime) {
-        if (stopTime.length() < 10 || Character.isDigit(stopTime.charAt(10))) {
-            throw new IllegalArgumentException("arguments must be $Y-$m-$dZ");
-        }
         int[] t1,t2;
         try {
             t1 = parseISO8601Time(startTime);
