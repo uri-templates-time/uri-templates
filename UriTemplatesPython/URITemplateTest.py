@@ -86,6 +86,7 @@ class URITemplateTest(unittest.TestCase):
         self.dotestParse1()
         self.doTestParse2()
         self.doTestParse3()
+        self.doTestTimeParser1('ac27_crn$x_$Y$j00-$(Y;end)$(j;end)00.gif', 'ac27_crn1926_199722300-199725000.gif', '1997-223T00:00/1997-250T00:00')
         self.doTestTimeParser1('$Y $m $d $H $M', '2012 03 30 16 20', '2012-03-30T16:20/2012-03-30T16:21')
         self.doTestTimeParser1('$Y$m$d-$(enum;values=a,b,c,d)', '20130202-a', '2013-02-02/2013-02-03')
         self.doTestTimeParser1('$Y$m$d-$(Y;end)$m$d', '20130202-20140303', '2013-02-02/2014-03-03')
@@ -108,6 +109,7 @@ class URITemplateTest(unittest.TestCase):
         self.doTestTimeParser1('ace_mag_$Y_$j_to_$(Y;end)_$j.cdf', 'ace_mag_2005_001_to_2005_003.cdf', '2005-001T00:00/2005-003T00:00')
         self.doTestTimeParser1('$y $(m;pad=none) $(d;pad=none) $(H;pad=none)', '99 1 3 0', '1999-01-03T00:00/1999-01-03T01:00')
         self.doTestTimeParser1('$y $j ($(m;pad=none) $(d;pad=none)) $H', '99 003 (1 3) 00', '1999-01-03T00:00/1999-01-03T01:00')
+        self.doTestTimeParser1('/gif/ac_$Y$j$H-$(Y;end)$j$H.gif', '/gif/ac_199733000-199733100.gif', '1997-11-26T00:00Z/1997-11-27T00:00Z')
 
     # Use the spec, format the test time and verify that we get norm.
     # @param spec

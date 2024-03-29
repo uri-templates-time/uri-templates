@@ -21,7 +21,7 @@ from TimeUtil import TimeUtil
 # @author jbf
 class URITemplate:
 
-    VERSION = '20230406a'
+    VERSION = '20240227.1'
 
     @staticmethod
     def getVersion():
@@ -197,7 +197,7 @@ class URITemplate:
         def configure(self, args):
             self.places = int(URITemplate.getArg(args, 'places', None))
             if self.places > 9: raise Exception('only nine places allowed.')
-            self.nanosecondsFactor = int((10 ** (9 - self.places)))
+            self.nanosecondsFactor = int((10**((9 - self.places))))
             self.formatStr = '%0' + str(self.places) + 'd'
             return None
 
@@ -811,7 +811,7 @@ class URITemplate:
                 ss2 = self.qualifiers[i].split(';')
                 self.qualifiersMaps[i] = {}
                 for ss21 in ss2:
-                    # TODO: handle end before shift.
+                    #TODO: handle end before shift.
                     okay = False
                     qual = ss21.strip()
                     if qual=='startTimeOnly':
@@ -1509,7 +1509,7 @@ class URITemplate:
                         for s in result:
                             print(s)
                         tr1 = r.readLine()
-                except Exception as ex:  # J2J: exceptions
+                except Exception as ex: # J2J: exceptions
                     URITemplate.printUsage()
                     sys.stderr.write('range is misformatted: ' + tr1 + '\n')
                     return -3
@@ -1521,7 +1521,7 @@ class URITemplate:
                                                      TimeUtil.isoTimeFromArray(TimeUtil.getStopTime(itimeRange)))
                     for s in result:
                         print(s)
-                except Exception as ex:  # J2J: exceptions
+                except Exception as ex: # J2J: exceptions
                     URITemplate.printUsage()
                     sys.stderr.write('range is misformatted\n')
                     return -3
