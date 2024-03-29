@@ -25,7 +25,8 @@ import java.util.regex.Pattern;
  */
 public class TimeUtil {
 
-    public static final String VERSION = "20240329.1";
+    // TODO: handle 20240329 properly.  For now just throw exception
+    public static final String VERSION = "20240329.2";
     
     /**
      * Number of time components: year, month, day, hour, minute, second, nanosecond
@@ -101,7 +102,13 @@ public class TimeUtil {
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     };
 
-    
+    /**
+     * This class is not to be instantiated.
+     */
+    private TimeUtil() {
+        
+    }
+        
     /**
      * fast parser requires that each character of string is a digit.  Note this 
      * does not check the the numbers are digits!
@@ -341,13 +348,6 @@ public class TimeUtil {
             }
         }
         return 1;
-    }
-
-    /**
-     * This class is not to be instantiated.
-     */
-    private TimeUtil() {
-        
     }
 
     /**
@@ -783,6 +783,9 @@ public class TimeUtil {
             if (time.length() < 7) {
                 throw new IllegalArgumentException("time must have 4 or greater than 7 characters");
             }
+            if ( Character.isDigit(time.charAt(4)) && Character.isDigit(time.charAt(5)) ) {
+                throw new IllegalArgumentException("date and time must contain delimiters between fields");
+            }
             // first, parse YMD part, and leave remaining components in time.
             if ( time.length()==7 ) {
                 if ( time.charAt(4)=='W' ) { // 2022W08
@@ -809,9 +812,16 @@ public class TimeUtil {
                     time = "";
                 }
             } else if (time.charAt(8) == 'T') {
-                result = new int[]{parseInteger(time.substring(0, 4)), 1, parseInteger(time.substring(5, 8)), // days
-                    0, 0, 0, 0};
-                time = time.substring(9);
+                if ( Character.isDigit(time.charAt(4)) ) {
+                    result = new int[]{
+                        parseInteger(time.substring(0, 4)), parseInteger(time.substring(4,6)), parseInteger(time.substring(6,8)), 
+                        0, 0, 0, 0};
+                    time = time.substring(9);
+                } else {
+                    result = new int[]{parseInteger(time.substring(0, 4)), 1, parseInteger(time.substring(5, 8)), // days
+                        0, 0, 0, 0};
+                    time = time.substring(9);
+                }
             } else if (time.charAt(8) == 'Z') {
                 result = new int[]{parseInteger(time.substring(0, 4)), 1, parseInteger(time.substring(5, 8)), // days
                     0, 0, 0, 0};
