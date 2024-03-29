@@ -32,6 +32,11 @@ class TimeUtilTest(unittest.TestCase):
     # Test of countOffDays method, of class TimeUtil.
     def testCountOffDays(self):
         print('countOffDays')
+        startTime = '1999-12-31'
+        stopTime = '2000-01-03'
+        expResult = [ '1999-12-31Z', '2000-01-01Z', '2000-01-02Z' ]
+        result = TimeUtil.countOffDays(startTime, stopTime)
+        self.assertEqual(expResult,result)
         startTime = '1999-12-31Z'
         stopTime = '2000-01-03Z'
         expResult = [ '1999-12-31Z', '2000-01-01Z', '2000-01-02Z' ]
@@ -42,6 +47,12 @@ class TimeUtilTest(unittest.TestCase):
         expResult = [ '1999-12-31Z', '2000-01-01Z', '2000-01-02Z' ]
         result = TimeUtil.countOffDays(startTime, stopTime)
         self.assertEqual(expResult,result)
+        startTime = '1999'
+        stopTime = '2000'
+        result = TimeUtil.countOffDays(startTime, stopTime)
+        self.assertEqual(len(result),365)
+        self.assertEqual(result[0],'1999-01-01Z')
+        self.assertEqual(result[364],'1999-12-31Z')
 
     # Test of nextDay method, of class TimeUtil.
     def testNextDay(self):

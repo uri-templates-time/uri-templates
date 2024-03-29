@@ -11,6 +11,8 @@ import re
 #
 # @author jbf
 class TimeUtil:
+    VERSION = '20240329.1'
+
     # Number of time components: year, month, day, hour, minute, second, nanosecond
     TIME_DIGITS = 7
 
@@ -164,8 +166,8 @@ class TimeUtil:
         if not TimeUtil.gt(t2, t1):
             raise Exception('t1 is not smaller than t2')
         result = [0] * (TimeUtil.TIME_DIGITS * 2)
-        TimeUtil.setStartTime(result, t1)
-        TimeUtil.setStopTime(result, t2)
+        TimeUtil.setStartTime(t1, result)
+        TimeUtil.setStopTime(t2, result)
         return result
 
     # true if the year between 1582 and 2400 is a leap year.
@@ -260,11 +262,9 @@ class TimeUtil:
     #
     # @param startTime an iso time string
     # @param stopTime an iso time string
-    # @return array of times, complete days, in the form $Y-$m-$d
+    # @return array of times, complete days, in the form $Y-$m-$dZ
     @staticmethod
     def countOffDays(startTime, stopTime):
-        if len(stopTime) < 10 or stopTime[10].isdigit():
-            raise Exception('arguments must be $Y-$m-$dZ')
         try:
             t1 = TimeUtil.parseISO8601Time(startTime)
             t2 = TimeUtil.parseISO8601Time(stopTime)
