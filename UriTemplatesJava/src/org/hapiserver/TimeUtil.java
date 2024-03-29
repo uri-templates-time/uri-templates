@@ -357,7 +357,7 @@ public class TimeUtil {
      *
      * @param startTime an iso time string
      * @param stopTime an iso time string
-     * @return array of times, complete days, in the form $Y-$m-$d
+     * @return array of times, complete days, in the form $Y-$m-$dZ
      */
     public static String[] countOffDays(String startTime, String stopTime) {
         int[] t1,t2;
