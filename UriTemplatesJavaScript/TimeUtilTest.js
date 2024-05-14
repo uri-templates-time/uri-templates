@@ -408,8 +408,10 @@ class TimeUtilTest {
     testParseISO8601TimeRange() {
         console.info("parseISO8601TimeRange");
         var result;
-        var stringIn = "1998-01-02/1998-01-17";
-        var expResult = [1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0];
+        var stringIn;
+        var expResult;
+        stringIn = "1998-01-02/1998-01-17";
+        expResult = [1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0];
         try {
             result = TimeUtil.parseISO8601TimeRange(stringIn);
             assertArrayEquals(expResult, result);
@@ -442,6 +444,22 @@ class TimeUtilTest {
         }
         stringIn = "2013-01-01/07-01";
         expResult = [2013, 1, 1, 0, 0, 0, 0, 2013, 7, 1, 0, 0, 0, 0];
+        try {
+            result = TimeUtil.parseISO8601TimeRange(stringIn);
+            assertArrayEquals(expResult, result);
+        } catch (ex) {
+            throw new AssertionError(ex);
+        }
+        stringIn = "2017-09-13T13:06Z/2023-09-30T23:57:41Z";
+        expResult = [2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 57, 41, 0];
+        try {
+            result = TimeUtil.parseISO8601TimeRange(stringIn);
+            assertArrayEquals(expResult, result);
+        } catch (ex) {
+            throw new AssertionError(ex);
+        }
+        stringIn = "2017-09-13T13:06:00Z/2023-09-30T23:00Z";
+        expResult = [2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 0, 0, 0];
         try {
             result = TimeUtil.parseISO8601TimeRange(stringIn);
             assertArrayEquals(expResult, result);

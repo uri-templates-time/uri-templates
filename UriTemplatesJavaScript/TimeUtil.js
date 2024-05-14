@@ -24,7 +24,7 @@ function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
  * @author jbf
  */
 class TimeUtil {
-    static VERSION = "20240329.1";
+    static VERSION = "20240514.1";
 
     /**
      * Number of time components: year, month, day, hour, minute, second, nanosecond
@@ -733,6 +733,9 @@ class TimeUtil {
                 if (time.length < 7) {
                     throw "time must have 4 or greater than 7 characters";
                 }
+                if (/[0-9]/.test(time.charAt(4)) && /[0-9]/.test(time.charAt(5))) {
+                    throw "date and time must contain delimiters between fields";
+                }
                 if (time.length === 7) {
                     if (time.charAt(4) == 'W') {
                         // 2022W08
@@ -760,8 +763,13 @@ class TimeUtil {
                         }
                     } else {
                         if (time.charAt(8) == 'T') {
-                            result = [TimeUtil.parseInteger(time.substring(0, 4)), 1, TimeUtil.parseInteger(time.substring(5, 8)), 0, 0, 0, 0];
-                            time = time.substring(9);
+                            if (/[0-9]/.test(time.charAt(4))) {
+                                result = [TimeUtil.parseInteger(time.substring(0, 4)), TimeUtil.parseInteger(time.substring(4, 6)), TimeUtil.parseInteger(time.substring(6, 8)), 0, 0, 0, 0];
+                                time = time.substring(9);
+                            } else {
+                                result = [TimeUtil.parseInteger(time.substring(0, 4)), 1, TimeUtil.parseInteger(time.substring(5, 8)), 0, 0, 0, 0];
+                                time = time.substring(9);
+                            }
                         } else {
                             if (time.charAt(8) == 'Z') {
                                 result = [TimeUtil.parseInteger(time.substring(0, 4)), 1, TimeUtil.parseInteger(time.substring(5, 8)), 0, 0, 0, 0];
@@ -1189,8 +1197,12 @@ class TimeUtil {
                 if (ss[1].length === ss[0].length) {
                     stoptime = TimeUtil.isoTimeToArray(ss[1]);
                 } else {
-                    var partToShare = ss[0].length - ss[1].length;
-                    stoptime = TimeUtil.isoTimeToArray(ss[0].substring(0, partToShare) + ss[1]);
+                    if (ss[1].indexOf("T")!==-1) {
+                        stoptime = TimeUtil.isoTimeToArray(ss[1]);
+                    } else {
+                        var partToShare = ss[0].length - ss[1].length;
+                        stoptime = TimeUtil.isoTimeToArray(ss[0].substring(0, partToShare) + ss[1]);
+                    }
                 }
                 TimeUtil.setStartTime(starttime, result);
                 TimeUtil.setStopTime(stoptime, result);
