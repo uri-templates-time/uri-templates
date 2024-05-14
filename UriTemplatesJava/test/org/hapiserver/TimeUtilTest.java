@@ -445,8 +445,11 @@ public class TimeUtilTest {
         System.out.println("parseISO8601TimeRange");
         int[] result;
 
-        String stringIn = "1998-01-02/1998-01-17";
-        int[] expResult = new int[] { 1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0 };
+        String stringIn;
+        int[] expResult;
+        
+        stringIn = "1998-01-02/1998-01-17";
+        expResult = new int[] { 1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0 };
         try {
             result = TimeUtil.parseISO8601TimeRange(stringIn);
             assertArrayEquals(expResult, result);
@@ -484,6 +487,24 @@ public class TimeUtilTest {
         
         stringIn = "2013-01-01/07-01";
         expResult = new int[] { 2013, 1, 1, 0, 0, 0, 0, 2013, 7, 1, 0, 0, 0, 0 };
+        try {
+            result = TimeUtil.parseISO8601TimeRange(stringIn);
+            assertArrayEquals(expResult, result);
+        } catch (ParseException ex) {
+            throw new AssertionError(ex);
+        }
+        
+        stringIn = "2017-09-13T13:06Z/2023-09-30T23:57:41Z";
+        expResult = new int[] { 2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 57, 41, 0 };
+        try {
+            result = TimeUtil.parseISO8601TimeRange(stringIn);
+            assertArrayEquals(expResult, result);
+        } catch (ParseException ex) {
+            throw new AssertionError(ex);
+        }
+        
+        stringIn = "2017-09-13T13:06:00Z/2023-09-30T23:00Z";
+        expResult = new int[] { 2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 0, 0, 0 };
         try {
             result = TimeUtil.parseISO8601TimeRange(stringIn);
             assertArrayEquals(expResult, result);

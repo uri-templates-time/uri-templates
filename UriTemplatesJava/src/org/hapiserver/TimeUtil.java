@@ -1235,8 +1235,12 @@ public class TimeUtil {
             if ( ss[1].length()==ss[0].length() ) {
                 stoptime=  isoTimeToArray(ss[1]);
             } else {
-                int partToShare= ss[0].length() - ss[1].length();
-                stoptime= isoTimeToArray( ss[0].substring(0,partToShare) + ss[1] );
+                if ( ss[1].contains("T") ) {
+                    stoptime= isoTimeToArray( ss[1] );
+                } else {
+                    int partToShare= ss[0].length() - ss[1].length();
+                    stoptime= isoTimeToArray( ss[0].substring(0,partToShare) + ss[1] );
+                }
             }
             setStartTime( starttime, result );
             setStopTime( stoptime, result );
