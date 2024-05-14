@@ -25,8 +25,7 @@ import java.util.regex.Pattern;
  */
 public class TimeUtil {
 
-    // TODO: handle 20240329 properly.  For now just throw exception
-    public static final String VERSION = "20240329.2";
+    public static final String VERSION = "20240514.1";
     
     /**
      * Number of time components: year, month, day, hour, minute, second, nanosecond
