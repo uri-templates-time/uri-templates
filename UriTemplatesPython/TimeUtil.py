@@ -11,7 +11,7 @@ import re
 #
 # @author jbf
 class TimeUtil:
-    VERSION = '20240329.1'
+    VERSION = '20240514.1'
 
     # Number of time components: year, month, day, hour, minute, second, nanosecond
     TIME_DIGITS = 7
@@ -252,9 +252,6 @@ class TimeUtil:
             if dayOffset[i] < doy:
                 return i
         return 1
-
-    def __init__(self):
-        pass
 
     # count off the days between startTime and stopTime, but not including
     # stopTime.  For example, countOffDays("1999-12-31Z", "2000-01-03Z")
@@ -596,6 +593,8 @@ class TimeUtil:
         else:
             if len(time) < 7:
                 raise Exception('time must have 4 or greater than 7 characters')
+            if time[4].isdigit() and time[5].isdigit():
+                raise Exception('date and time must contain delimiters between fields')
             if len(time) == 7:
                 if time[4] == 'W':
                     # 2022W08
@@ -619,8 +618,12 @@ class TimeUtil:
                     result = [ TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0 ]
                     time = ''
             elif time[8] == 'T':
-                result = [ TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0 ]
-                time = time[9:]
+                if time[4].isdigit():
+                    result = [ TimeUtil.parseInteger(time[0:4]), TimeUtil.parseInteger(time[4:6]), TimeUtil.parseInteger(time[6:8]), 0, 0, 0, 0 ]
+                    time = time[9:]
+                else:
+                    result = [ TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0 ]
+                    time = time[9:]
             elif time[8] == 'Z':
                 result = [ TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0 ]
                 time = time[9:]
@@ -977,8 +980,11 @@ class TimeUtil:
             if len(ss[1]) == len(ss[0]):
                 stoptime = TimeUtil.isoTimeToArray(ss[1])
             else:
-                partToShare = len(ss[0]) - len(ss[1])
-                stoptime = TimeUtil.isoTimeToArray(ss[0][0:partToShare] + ss[1])
+                if 'T' in ss[1]:
+                    stoptime = TimeUtil.isoTimeToArray(ss[1])
+                else:
+                    partToShare = len(ss[0]) - len(ss[1])
+                    stoptime = TimeUtil.isoTimeToArray(ss[0][0:partToShare] + ss[1])
             TimeUtil.setStartTime(starttime, result)
             TimeUtil.setStopTime(stoptime, result)
             return result

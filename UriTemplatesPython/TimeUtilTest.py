@@ -345,6 +345,20 @@ class TimeUtilTest(unittest.TestCase):
             self.assertEqual(expResult,result)
         except Exception as ex: # J2J: exceptions
             raise AssertionError(ex)
+        stringIn = '2017-09-13T13:06Z/2023-09-30T23:57:41Z'
+        expResult = [ 2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 57, 41, 0 ]
+        try:
+            result = TimeUtil.parseISO8601TimeRange(stringIn)
+            self.assertEqual(expResult,result)
+        except Exception as ex: # J2J: exceptions
+            raise AssertionError(ex)
+        stringIn = '2017-09-13T13:06:00Z/2023-09-30T23:00Z'
+        expResult = [ 2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 0, 0, 0 ]
+        try:
+            result = TimeUtil.parseISO8601TimeRange(stringIn)
+            self.assertEqual(expResult,result)
+        except Exception as ex: # J2J: exceptions
+            raise AssertionError(ex)
 
     # Test of formatIso8601TimeRange method, of class TimeUtil.
     def testFormatIso8601TimeRange(self):
