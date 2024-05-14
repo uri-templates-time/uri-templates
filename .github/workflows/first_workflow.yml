@@ -22,5 +22,6 @@ jobs:
           git status
           echo "==="
           cd /var/www/cottagesystems.com/autoplot/git/uri-templates/UriTemplatesJava
+          export JAVA_HOME=/usr/local/jdk1.8
           ant clean jar
           echo "see https://cottagesystems.com/autoplot/git/uri-templates/UriTemplatesJava/dist/UriTemplatesJava.jar"
