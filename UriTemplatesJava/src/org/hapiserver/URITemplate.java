@@ -1241,7 +1241,7 @@ public class URITemplate {
                                     pos= -1;
                                 }
                                 if ( name.equals("div") && lengths[i]!=-1 ) {
-                                    div= Integer.parseInt(val);
+                                    div= (int)Float.parseFloat(val);
                                     int dig= (int)Math.log10(div);
                                     lengths[i]= Math.max(1,lengths[i]-dig);
                                     disallowCarryForStopTime=true;
@@ -1515,7 +1515,7 @@ public class URITemplate {
                     if ( qual!=null ) {
                         String s= getArg( qual, "div", null );
                         if ( s!=null ) { 
-                            int div= Integer.parseInt(s); // TODO: we really have to parse this each time?
+                            int div= (int)Float.parseFloat(s); // TODO: we really have to parse this each time?
                             digit= digit*div;
                         }
                     }
@@ -1991,7 +1991,7 @@ public class URITemplate {
                         // TODO: suboptimal
                         String div= getArg( this.qualifiersMaps[idigit], "div", null );
                         if ( div!=null ) {
-                            digit= digit / Integer.parseInt(div);
+                            digit= digit / (int)Float.parseFloat(div); // use parseFloat to support 1E6
                         }
                         String pad= getArg( this.qualifiersMaps[idigit], "pad", null );
                         if ( pad==null || pad.equals("zero") ) { 

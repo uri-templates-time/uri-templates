@@ -196,7 +196,7 @@ public class URITemplateTest {
             res= ut.format( nn[0], nn[1], Collections.EMPTY_MAP );
         } catch ( RuntimeException ex ) {
             System.out.println( "### " + ex.getMessage() );
-            return;
+            throw ex;
         }
         
         char arrow= (char)8594;
@@ -217,6 +217,8 @@ public class URITemplateTest {
     public void testFormat() throws Exception {
         System.out.println("# testFormat");
         //testTimeParser1( "$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03" );
+        doTestTimeFormat1( "$Y/$Y$(j;div=100)XX/$Y$j.dat", "2024/20241XX/2024187.dat", "2024-07-05/P1D"  );
+        doTestTimeParser1( "$(j;Y=2024).$H$M$S.$(N;div=1000000)", "017.020000.245", "2024-01-17T02:00:00.245/2024-01-17T02:00:00.246");        
         doTestTimeFormat1( "$Y$m$d-$(Y;end)$m$d", "20130202-20140303", "2013-02-02/2014-03-03" );
         doTestTimeFormat1( "_$Y$m$(d)_$(Y;end)$m$(d)",                 "_20130202_20130203", "2013-02-02/2013-02-03" );
         doTestTimeFormat1( "_$Y$m$(d;shift=1)_$(Y;end)$m$(d;shift=1)", "_20130201_20130202", "2013-02-02/2013-02-03" );
