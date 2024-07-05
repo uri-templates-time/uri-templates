@@ -1991,7 +1991,7 @@ public class URITemplate {
                         // TODO: suboptimal
                         String div= getArg( this.qualifiersMaps[idigit], "div", null );
                         if ( div!=null ) {
-                            digit= digit / (int)Float.parseFloat(div); // use parseFloat to support 1E6
+                            digit= digit / (int)Float.parseFloat(div); //  use parseFloat to support 1E6
                         }
                         String pad= getArg( this.qualifiersMaps[idigit], "pad", null );
                         if ( pad==null || pad.equals("zero") ) { 
