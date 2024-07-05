@@ -163,11 +163,22 @@ public class URITemplate {
      */
     private int externalContext;
     
-    private String[] valid_formatCodes = new String[]{"Y", "y", "j", "m", "d", "H", "M", "S", "N", "milli", "micro", "p", "z", "ignore", "b" };
-    private String[] formatName = new String[]{"Year", "2-digit-year", "day-of-year", "month", "day", "Hour", "Minute", "Second", "nanosecond", "millisecond", "microsecond",
-        "am/pm", "RFC-822 numeric time zone", "ignore", "3-char-month-name" };
-    private int[] formatCode_lengths = new int[]{4, 2, 3, 2, 2, 2, 2, 2, 9, 3, 3, 2, 5, -1, 3 };
-    private int[] precision =          new int[]{0, 0, 2, 1, 2, 3, 4, 5, 6, 6, 7,-1,-1, -1, 1 };
+    private String[] valid_formatCodes = new String[]{
+        "Y", "y", "j", "m", "d", 
+        "H", "M", "S", "N", "milli", 
+        "micro", "p", "z", "ignore", "b" };
+    private String[] formatName = new String[]{
+        "Year", "2-digit-year", "day-of-year", "month", "day", 
+        "Hour", "Minute", "Second", "nanosecond", "millisecond", 
+        "microsecond", "am/pm", "RFC-822 numeric time zone", "ignore", "3-char-month-name" };
+    private int[] formatCode_lengths = new int[]{
+        4, 2, 3, 2, 2, 
+        2, 2, 2, 9, 3, 
+        3, 2, 5, -1, 3 };
+    private int[] precision = new int[]{
+        0, 0, 2, 1, 2, 
+        3, 4, 5, 6, 6, 
+        7,-1,-1, -1, 1 };
     private char startTimeOnly;
     
     /**
@@ -1029,7 +1040,7 @@ public class URITemplate {
                     break;
                 }
             }
-
+            
             if ( fc[i].equals("H") ) {
                 haveHour= true;
             } else if ( fc[i].equals("p") ) {
@@ -1946,7 +1957,7 @@ public class URITemplate {
                         digit = timel[5];
                         break;
                     case 8:
-                        digit = timel[6]/1000000; //TODO verify
+                        digit = timel[6];
                         break;
                     case 9:
                         digit = timel[6]/1000; //TODO verify
