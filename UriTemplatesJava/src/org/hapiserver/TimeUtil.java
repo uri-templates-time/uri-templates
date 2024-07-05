@@ -1043,10 +1043,11 @@ public class TimeUtil {
         while (time[2] > d) {
             time[1] += 1;
             time[2] -= d;
-            d = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
-            if (time[1] > 12) {
-                throw new IllegalArgumentException("time[2] is too big");
+            if ( time[1]>12 ) {
+                time[0]+=1;
+                time[1]-=12;
             }
+            d = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
         }
     }
     
