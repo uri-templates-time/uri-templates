@@ -1878,6 +1878,7 @@ public class URITemplate {
         int length;
         
         String[] nf = new String[5];
+        nf[1] = "%1d";
         nf[2] = "%02d";
         nf[3] = "%03d";
         nf[4] = "%04d";
@@ -1990,7 +1991,7 @@ public class URITemplate {
                         // TODO: suboptimal
                         String div= getArg( this.qualifiersMaps[idigit], "div", null );
                         if ( div!=null ) {
-                            System.err.println("div found");
+                            digit= digit / Integer.parseInt(div);
                         }
                         String pad= getArg( this.qualifiersMaps[idigit], "pad", null );
                         if ( pad==null || pad.equals("zero") ) { 
