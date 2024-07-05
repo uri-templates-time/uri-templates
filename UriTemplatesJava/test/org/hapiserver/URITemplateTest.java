@@ -78,7 +78,7 @@ public class URITemplateTest {
         
         try {       
             res= ut.parse( test, new HashMap<>() );
-        } catch ( ParseException ex ) {
+        } catch ( Exception ex ) {
             fail(ex.getMessage());
             return;
         }
@@ -130,6 +130,7 @@ public class URITemplateTest {
     @Test
     public void testParse() throws Exception {
         System.out.println("# testParse");
+        doTestTimeParser1( "$Y$(j;div=100)XX", "20243XX", "2024-10-26T00:00Z/2025-01-01T00:00Z");
         doTestTimeParser1( "$Y$(j;div=100)XX/$j", "20243XX/365", "2024-12-30T00:00Z/2024-12-31T00:00Z");
         doTestTimeParser1( "$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
         dotestParse1();

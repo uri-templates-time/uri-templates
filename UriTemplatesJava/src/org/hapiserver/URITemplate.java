@@ -146,6 +146,11 @@ public class URITemplate {
     private int[] timeWidth;
     
     /**
+     * when adding (for example 100 days) don't allow stop time to be late in the year, truncate at the year boundary.
+     */
+    private boolean disallowCarryForStopTime= false;
+    
+    /**
      * the template explicitly defines the width, with delta or other specifiers.
      */
     private boolean timeWidthIsExplicit= false;
@@ -1239,6 +1244,7 @@ public class URITemplate {
                                     div= Integer.parseInt(val);
                                     int dig= (int)Math.log10(div);
                                     lengths[i]= Math.max(1,lengths[i]-dig);
+                                    disallowCarryForStopTime=true;
                                 }
                                 if ( qualifiersMaps[i]==null ) qualifiersMaps[i]= new HashMap();
                                 qualifiersMaps[i].put(name,val);
@@ -1499,7 +1505,7 @@ public class URITemplate {
 
             String field= timeString.substring(offs, offs + length).trim();
                         
-            logger.log(Level.WARNING, "handling \"{0}\" with {1}", new Object[]{field, handlers[idigit]});
+            logger.log(Level.FINE, "handling \"{0}\" with {1}", new Object[]{field, handlers[idigit]});
             
             try {
                 Map<String,String> qual= this.qualifiersMaps[idigit];
@@ -1624,7 +1630,15 @@ public class URITemplate {
             }
         } else {
             if ( stopTimeDigit==AFTERSTOP_INIT ) {
-                stopTime= TimeUtil.add( startTime, this.timeWidth );
+                if ( disallowCarryForStopTime ) {
+                    stopTime= TimeUtil.add( startTime, this.timeWidth  );
+                    if ( this.timeWidth[0]==0 && this.timeWidth[1]==0 && this.timeWidth[2]>1 ) {
+                        stopTime[1]= 1;
+                        stopTime[2]= 1;
+                    }
+                } else {
+                    stopTime= TimeUtil.add( startTime, this.timeWidth );
+                }
             }
         }
         
