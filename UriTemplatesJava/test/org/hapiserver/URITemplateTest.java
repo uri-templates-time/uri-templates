@@ -90,7 +90,7 @@ public class URITemplateTest {
             System.out.println( "### ranges do not match: "+spec + " " +test + arrow + toStr(res) + ", should be "+norm );
             //throw new IllegalStateException("ranges do not match: "+spec + " " +norm + "--> " + res + ", should be "+test );
         }
-        assertArrayEquals( res, inorm );
+        assertArrayEquals( inorm, res );
         
     }    
 
@@ -130,11 +130,14 @@ public class URITemplateTest {
     @Test
     public void testParse() throws Exception {
         System.out.println("# testParse");
+        doTestTimeParser1( "$Y$(j;div=100)XX/$j", "20243XX/365", "2024-12-30T00:00Z/2024-12-31T00:00Z");
         doTestTimeParser1( "$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
         dotestParse1();
         doTestParse2();
         doTestParse3();
         doTestTimeParser1( "$(j;Y=2012).$H$M$S.$N", "017.020000.245000000", "2012-01-17T02:00:00.245000000/2012-01-17T02:00:00.245000001");
+        doTestTimeParser1( "$(j;Y=2012).$H$M$S.$(N;div=1000000)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246");
+        doTestTimeParser1( "$(j;Y=2012).$H$M$S.$(N;div=1E6)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246");
         doTestTimeParser1( "ac27_crn$x_$Y$j00-$(Y;end)$(j;end)00.gif", "ac27_crn1926_199722300-199725000.gif", "1997-223T00:00/1997-250T00:00");
         doTestTimeParser1( "$Y $m $d $H $M", "2012 03 30 16 20", "2012-03-30T16:20/2012-03-30T16:21" );
         doTestTimeParser1( "$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03" );

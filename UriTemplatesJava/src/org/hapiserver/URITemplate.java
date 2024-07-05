@@ -1077,15 +1077,10 @@ public class URITemplate {
                     lengths[i] = formatCode_lengths[handler];
                 }
                 offsets[i] = pos;
-                if (lengths[i] < 1 || pos == -1) {
-                    pos = -1;
-                    //lengths[i] = -1; // bugfix: I wonder where this was used.  removed to support "$-1Y $-1m $-1d $H$M"
-                } else {
-                    pos += lengths[i];
-                }
             }
 
             int span=1;
+            int div=1;
 
             if ( qualifiers[i]!=null ) {
                 String[] ss2= qualifiers[i].split(";");
@@ -1193,6 +1188,9 @@ public class URITemplate {
                                         case 'S':
                                             lsd=5;
                                             break;
+                                        case 'N':
+                                            lsd=6;
+                                            break;
                                         default:
                                             break;
                                     }
@@ -1232,9 +1230,15 @@ public class URITemplate {
                             case "pad":
                             case "fmt":
                             case "case":
+                            case "div":
                                 if ( name.equals("pad") && val.equals("none") ) {
                                     lengths[i]= -1;
                                     pos= -1;
+                                }
+                                if ( name.equals("div") && lengths[i]!=-1 ) {
+                                    div= Integer.parseInt(val);
+                                    int dig= (int)Math.log10(div);
+                                    lengths[i]= Math.max(1,lengths[i]-dig);
                                 }
                                 if ( qualifiersMaps[i]==null ) qualifiersMaps[i]= new HashMap();
                                 qualifiersMaps[i].put(name,val);
@@ -1299,6 +1303,9 @@ public class URITemplate {
                         case 'S':
                             thisLsd=5;
                             break;
+                        case 'N':
+                            thisLsd=6;
+                            break;                     
                         default:
                             break;
                     }
@@ -1306,6 +1313,13 @@ public class URITemplate {
                         lsdMult= 1;
                     }
                 }
+            }
+
+            if (lengths[i] < 1 || pos == -1) {
+                pos = -1;
+                //lengths[i] = -1; // bugfix: I wonder where this was used.  removed to support "$-1Y $-1m $-1d $H$M"
+            } else {
+                pos += lengths[i];
             }
 
             if ( fc[i].length()==1 ) {
@@ -1339,7 +1353,7 @@ public class URITemplate {
             if (handler < 100) {
                 if ( precision[handler] > lsd && lsdMult==1 ) {  // omni2_h0_mrg1hr_$Y$(m,span=6)$d_v01.cdf.  Essentially we ignore the $d.
                     lsd = precision[handler];
-                    lsdMult= span;
+                    lsdMult= Math.max( span,div );
                     logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[]{lsd, lsdMult});
                 }
             }
@@ -1485,13 +1499,20 @@ public class URITemplate {
 
             String field= timeString.substring(offs, offs + length).trim();
                         
-            logger.log(Level.FINEST, "handling \"{0}\" with {1}", new Object[]{field, handlers[idigit]});
+            logger.log(Level.WARNING, "handling \"{0}\" with {1}", new Object[]{field, handlers[idigit]});
             
             try {
-
+                Map<String,String> qual= this.qualifiersMaps[idigit];
                 if (handlers[idigit] < 10) {
                     int digit;
                     digit= Integer.parseInt(field);
+                    if ( qual!=null ) {
+                        String s= getArg( qual, "div", null );
+                        if ( s!=null ) { 
+                            int div= Integer.parseInt(s); // TODO: we really have to parse this each time?
+                            digit= digit*div;
+                        }
+                    }
                     switch (handlers[idigit]) {
                         case 0:
                             time[YEAR] = digit;
@@ -1566,7 +1587,6 @@ public class URITemplate {
                     }
                 } else if (handlers[idigit] == 15) { // "x"
                     String name;
-                    Map<String,String> qual= this.qualifiersMaps[idigit];
                     if ( qual!=null ) {
                         name= getArg( qual, "name", "x" );
                     } else {
@@ -1954,6 +1974,10 @@ public class URITemplate {
                 } else {
                     if ( this.qualifiersMaps[idigit]!=null ) {
                         // TODO: suboptimal
+                        String div= getArg( this.qualifiersMaps[idigit], "div", null );
+                        if ( div!=null ) {
+                            System.err.println("div found");
+                        }
                         String pad= getArg( this.qualifiersMaps[idigit], "pad", null );
                         if ( pad==null || pad.equals("zero") ) { 
                             result.insert(offs, String.format(nf[length],digit) );
