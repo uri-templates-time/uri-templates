@@ -87,8 +87,8 @@ public class URITemplateTest {
         if ( Arrays.equals( res, inorm  ) ) {
             System.out.println( String.format( "%s:  \t\"%s\"%s\t\"%s\"", spec, test, arrow, toStr(res) ) );
         } else {    
-            System.out.println( "### ranges do not match: "+spec + " " +test + arrow + toStr(res) + ", should be "+norm );
-            //throw new IllegalStateException("ranges do not match: "+spec + " " +norm + "--> " + res + ", should be "+test );
+            //System.out.println( "### ranges do not match: "+spec + " " +test + arrow + toStr(res) + ", should be "+norm );
+            throw new IllegalStateException("ranges do not match: "+spec + " " +norm + "--> " + res + ", should be "+test );
         }
         assertArrayEquals( inorm, res );
         
@@ -130,6 +130,7 @@ public class URITemplateTest {
     @Test
     public void testParse() throws Exception {
         System.out.println("# testParse");
+        doTestTimeParser1( "data_$Y_$j_$(Y;end)_$(j;shift=1;phasestart=2009-001).dat", "data_2009_001_2009_002.dat", "2009-01-01/2009-01-03T00:00Z" );
         doTestTimeParser1( "$Y$(j;div=100)XX", "20243XX", "2024-10-26T00:00Z/2025-01-01T00:00Z");
         doTestTimeParser1( "$Y$(j;div=100)XX/$j", "20243XX/365", "2024-12-30T00:00Z/2024-12-31T00:00Z");
         doTestTimeParser1( "$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
