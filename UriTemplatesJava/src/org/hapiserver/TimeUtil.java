@@ -94,13 +94,21 @@ public class TimeUtil {
     };
     
     /**
-     * short English abbreviations for month names.  Note monthNames[0] is "Jan", not monthNames[1].
+     * short English abbreviations for month names.  
      */
     private static final String[] MONTH_NAMES = { "",
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     };
 
+    /**
+     * short English abbreviations for month names.  
+     */
+    private static final String[] MONTH_NAMES_FULL = { "",
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    };
+    
     /**
      * This class is not to be instantiated.
      */
@@ -274,6 +282,17 @@ public class TimeUtil {
         return MONTH_NAMES[i];
     }
 
+    /**
+     * return the English month name, abbreviated to three letters, for the
+     * month number.
+     *
+     * @param i month number, from 1 to 12.
+     * @return the month name, like "January" or "December"
+     */
+    public static String monthNameFull(int i) {
+        return MONTH_NAMES_FULL[i];
+    }
+    
     /**
      * return the month number for the English month name, such as "Jan" (1) or
      * "December" (12). The first three letters are used to look up the number,

@@ -40,6 +40,17 @@ public class TimeUtilTest {
     }
 
     /**
+     * Test of monthNameAbbrev method, of class TimeUtil.
+     */
+    @Test
+    public void testMonthNameFull() {
+        System.out.println("monthNameFull");
+        String expResult = "March";
+        String result = TimeUtil.monthNameFull(3);
+        assertEquals(expResult, result);
+    }    
+    
+    /**
      * Test of monthNumber method, of class TimeUtil.
      */
     @Test
