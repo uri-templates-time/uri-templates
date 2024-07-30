@@ -1471,6 +1471,9 @@ public class URITemplate {
         
         System.arraycopy( context, 0, time, 0, NUM_TIME_DIGITS );
 
+        int lastOffset=0;
+        int lastLength=0;
+        
         for (int idigit = 1; idigit < ndigits; idigit++) {
             
             if ( idigit==stopTimeDigit ) {
@@ -1480,7 +1483,6 @@ public class URITemplate {
             }
             
             if (offsets[idigit] != -1) {  // note offsets[0] is always known
-
                 offs = offsets[idigit];
             } else {
                 offs += length + this.delims[idigit - 1].length();
@@ -1509,7 +1511,15 @@ public class URITemplate {
                     }
                 }
             }
-
+            
+            String foundDelim= timeString.substring(lastOffset+lastLength,offs);
+            if ( !foundDelim.equals(delims[idigit-1]) ) {
+                throw new ParseException("Expected \""+delims[idigit-1]+"\" before $" +fc[idigit]+", got: "+foundDelim,lastOffset);
+            }
+            
+            lastOffset= offs;
+            lastLength= length;
+            
             if ( timeString.length()<offs+length ) {
                 throw new ParseException( "string is too short: "+timeString, timeString.length() );
             }
@@ -1618,7 +1628,12 @@ public class URITemplate {
             }
 
         }
-  
+              
+        String foundDelim= timeString.substring(lastOffset+lastLength);
+        if ( !foundDelim.equals(delims[ndigits-1]) ) {
+            throw new ParseException("Expected \""+delims[ndigits-1]+"\" after $" +fc[ndigits-1]+", got: "+foundDelim,lastOffset+lastLength);
+        }
+            
         if ( this.phasestart!=null ) {
             if ( timeWidth==null ) {
                 logger.warning("phasestart cannot be used for month or year resolution");
