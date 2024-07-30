@@ -44,6 +44,16 @@ class TimeUtilTest {
     }
 
     /**
+     * Test of monthNameAbbrev method, of class TimeUtil.
+     */
+    testMonthNameFull() {
+        console.info("monthNameFull");
+        var expResult = "March";
+        var result = TimeUtil.monthNameFull(3);
+        assertEquals(expResult, result);
+    }
+
+    /**
      * Test of monthNumber method, of class TimeUtil.
      */
     testMonthNumber() {
@@ -565,6 +575,7 @@ class TimeUtilTest {
 test = new TimeUtilTest();
 test.testReformatIsoTime();
 test.testMonthNameAbbrev();
+test.testMonthNameFull();
 test.testMonthNumber();
 test.testCountOffDays();
 test.testNextDay();

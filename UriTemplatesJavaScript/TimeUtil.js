@@ -24,7 +24,7 @@ function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
  * @author jbf
  */
 class TimeUtil {
-    static VERSION = "20240514.1";
+    static VERSION = "20240730.2";
 
     /**
      * Number of time components: year, month, day, hour, minute, second, nanosecond
@@ -87,9 +87,14 @@ class TimeUtil {
     static DAY_OFFSET = [[0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365], [0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]];
 
     /**
-     * short English abbreviations for month names.  Note monthNames[0] is "Jan", not monthNames[1].
+     * short English abbreviations for month names.  
      */
     static MONTH_NAMES = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    /**
+     * short English abbreviations for month names.  
+     */
+    static MONTH_NAMES_FULL = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
     /**
      * fast parser requires that each character of string is a digit.  Note this 
@@ -234,6 +239,17 @@ class TimeUtil {
     }
 
     /**
+     * return the English month name, abbreviated to three letters, for the
+     * month number.
+     *
+     * @param i month number, from 1 to 12.
+     * @return the month name, like "January" or "December"
+     */
+    static monthNameFull(i) {
+        return TimeUtil.MONTH_NAMES_FULL[i];
+    }
+
+    /**
      * return the month number for the English month name, such as "Jan" (1) or
      * "December" (12). The first three letters are used to look up the number,
      * and must be one of: "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -306,12 +322,6 @@ class TimeUtil {
             }
         }
         return 1;
-    }
-
-    /**
-     * This class is not to be instantiated.
-     */
-    constructor() {
     }
 
     /**
@@ -630,7 +640,7 @@ class TimeUtil {
             parseInt(s.substring(14,16)),
             parseInt(s.substring(17,19)),
             parseInt(s.substring(20,23)) * 1000000 
-        ]
+        ];
     }
 
     /**
@@ -1007,10 +1017,11 @@ class TimeUtil {
         while (time[2] > d) {
             time[1] += 1;
             time[2] -= d;
-            d = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
             if (time[1] > 12) {
-                throw "time[2] is too big";
+                time[0] += 1;
+                time[1] -= 12;
             }
+            d = TimeUtil.DAYS_IN_MONTH[leap][time[1]];
         }
     }
 
