@@ -53,6 +53,10 @@ public class URITemplateTest {
     }
         
     private void doTestTimeParser1( String spec, String test, String norm ) throws Exception {
+        doTestTimeParser1(spec,test,norm,false);
+    }
+    
+    private void doTestTimeParser1( String spec, String test, String norm, boolean expectException ) throws Exception {
         URITemplate ut;
         try {
             ut = new URITemplate(spec);
@@ -78,9 +82,14 @@ public class URITemplateTest {
         
         try {       
             res= ut.parse( test, new HashMap<>() );
-        } catch ( Exception ex ) {
-            fail(ex.getMessage());
-            return;
+        } catch ( ParseException ex ) {
+            if ( expectException ) {
+                throw ex;
+            } else {
+                fail(ex.getMessage());
+                return;                
+            }
+            
         }
         
         char arrow= (char)8594;
@@ -123,6 +132,16 @@ public class URITemplateTest {
         assertEquals(6,digits[9]);
     }
     
+    @Test(expected = ParseException.class)
+    public void testDelimiterExceptionLeading() throws Exception {
+        doTestTimeParser1( "ac_$Y$j00-$(Y;end)$(j;end)00.gif", "AC_199811900-199812000.gif",  "1998-04-29T00:00Z/1998-04-30T00:00Z", true );    
+    }
+    
+    @Test(expected = ParseException.class)
+    public void testDelimiterExceptionTrailing() throws Exception {
+        doTestTimeParser1( "ac_$Y$j00-$(Y;end)$(j;end)00.gif", "ac_199811900-199812000-this-shouldnt-match.gif",  "1998-04-29T00:00Z/1998-04-30T00:00Z", true );    
+    }
+
     /**
      * Test of parse method, of class URITemplate.
      * @throws java.lang.Exception
