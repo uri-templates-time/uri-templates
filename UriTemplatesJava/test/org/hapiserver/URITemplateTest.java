@@ -189,6 +189,16 @@ public class URITemplateTest {
         doTestTimeParser1( "/gif/ac_$Y$j$H-$(Y;end)$j$H.gif", "/gif/ac_199733000-199733100.gif",  "1997-11-26T00:00Z/1997-11-27T00:00Z" );
     }
     
+    @Test
+    public void testFloorDiv() throws Exception {
+        assertEquals( URITemplate.floorDiv(0,7), 0 );
+        assertEquals( URITemplate.floorDiv(1,7), 0 );
+        assertEquals( URITemplate.floorDiv(7,7), 1 );
+        assertEquals( URITemplate.floorDiv(-1,7), -1 );
+        assertEquals( URITemplate.floorDiv(-7,7), -1 );
+        assertEquals( URITemplate.floorDiv(-8,7), -2 );
+    }
+    
     /**
      * Use the spec, format the test time and verify that we get norm.
      * @param spec

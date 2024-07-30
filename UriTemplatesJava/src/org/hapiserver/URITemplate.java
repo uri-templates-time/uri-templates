@@ -39,7 +39,7 @@ public class URITemplate {
        
     private static final Logger logger= Logger.getLogger("hapiserver.uritemplates");
     
-    public static String VERSION= "20240730.1";
+    public static String VERSION= "20240730.2";
     
     public static String getVersion() {
         return VERSION;
@@ -911,7 +911,7 @@ public class URITemplate {
      * @param timeWidth
      * @return the integer number of widths which result in a number below ndays.
      */
-    private static int floorDiv( int ndays, int timeWidth ) {
+    protected static int floorDiv( int ndays, int timeWidth ) {
         int ncycles;
         if ( ndays<0 ) {
             ncycles= ( ndays + 1 ) / timeWidth - 1;
@@ -1862,19 +1862,7 @@ public class URITemplate {
      * @return formatted time, often a resolvable URI.
      */    
     public String formatTimeRange( int[] timeRange ) {
-        int[] start= TimeUtil.getStartTime(timeRange);
-        int[] stop= TimeUtil.getStopTime(timeRange);
-        return formatStartStopRange( start, stop, Collections.emptyMap() );
-    }
-    
-    /**
-     * return the formatted name, using the spec and the given time range.
-     * @param startTime seven-component start time
-     * @param stopTime seven-component stop time
-     * @return formatted time, often a resolvable URI.
-     */    
-    public String formatStartStopRange( int[] startTime, int[] stopTime ) {
-        return formatStartStopRange( startTime, stopTime, Collections.emptyMap() );
+        return formatTimeRange( timeRange, Collections.emptyMap() );
     }
     
     /**
@@ -1888,7 +1876,17 @@ public class URITemplate {
         int[] stop= TimeUtil.getStopTime(timeRange);
         return formatStartStopRange( start, stop, extra );
     }
-    
+
+    /**
+     * return the formatted name, using the spec and the given time range.
+     * @param startTime seven-component start time
+     * @param stopTime seven-component stop time
+     * @return formatted time, often a resolvable URI.
+     */    
+    public String formatStartStopRange( int[] startTime, int[] stopTime ) {
+        return formatStartStopRange( startTime, stopTime, Collections.emptyMap() );
+    }
+        
     /**
      * return the formatted name, using the spec and the given time range.
      * @param startTime seven-component start time
