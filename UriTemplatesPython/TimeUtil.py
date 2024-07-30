@@ -11,7 +11,7 @@ import re
 #
 # @author jbf
 class TimeUtil:
-    VERSION = '20240514.1'
+    VERSION = '20240730.1'
 
     # Number of time components: year, month, day, hour, minute, second, nanosecond
     TIME_DIGITS = 7
@@ -49,8 +49,14 @@ class TimeUtil:
     # the number of days to the first of each month.  DAY_OFFSET[0][12] is offset to December 1st of a non-leap year
     DAY_OFFSET = [[0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365], [0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]]
 
-    # short English abbreviations for month names.  Note monthNames[0] is "Jan", not monthNames[1].
+    # short English abbreviations for month names.  
     MONTH_NAMES = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+    # short English abbreviations for month names.  
+    MONTH_NAMES_FULL = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+    def __init__(self):
+        pass
 
     # fast parser requires that each character of string is a digit.  Note this 
     # does not check the the numbers are digits!
@@ -187,6 +193,15 @@ class TimeUtil:
     @staticmethod
     def monthNameAbbrev(i):
         return TimeUtil.MONTH_NAMES[i]
+
+    # return the English month name, abbreviated to three letters, for the
+    # month number.
+    #
+    # @param i month number, from 1 to 12.
+    # @return the month name, like "January" or "December"
+    @staticmethod
+    def monthNameFull(i):
+        return TimeUtil.MONTH_NAMES_FULL[i]
 
     # return the month number for the English month name, such as "Jan" (1) or
     # "December" (12). The first three letters are used to look up the number,
@@ -463,11 +478,11 @@ class TimeUtil:
             if nanoseconds == 0:
                 sb+= str(seconds)
             elif nanoseconds % 1000000 == 0:
-                sb+= '%.3f' % ( seconds + nanoseconds / 1e9 )
+                sb+= str('%.3f' % ( seconds + nanoseconds / 1e9 ) )
             elif nanoseconds % 1000 == 0:
-                sb+= '%.6f' % ( seconds + nanoseconds / 1e9 )
+                sb+= str('%.6f' % ( seconds + nanoseconds / 1e9 ) )
             else:
-                sb+= '%.9f' % ( seconds + nanoseconds / 1e9 )
+                sb+= str('%.9f' % ( seconds + nanoseconds / 1e9 ) )
             sb+= 'S'
         if len(sb) == 1:
             if len(nn) > 3:
@@ -818,9 +833,10 @@ class TimeUtil:
         while time[2] > d:
             time[1] += 1
             time[2] -= d
-            d = TimeUtil.DAYS_IN_MONTH[leap][time[1]]
             if time[1] > 12:
-                raise Exception('time[2] is too big')
+                time[0] += 1
+                time[1] -= 12
+            d = TimeUtil.DAYS_IN_MONTH[leap][time[1]]
 
     # return the julianDay for the year month and day. This was verified
     # against another calculation (julianDayWP, commented out above) from

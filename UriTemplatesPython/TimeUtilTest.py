@@ -21,6 +21,13 @@ class TimeUtilTest(unittest.TestCase):
         result = TimeUtil.monthNameAbbrev(3)
         self.assertEqual(expResult,result)
 
+    # Test of monthNameAbbrev method, of class TimeUtil.
+    def testMonthNameFull(self):
+        print('monthNameFull')
+        expResult = 'March'
+        result = TimeUtil.monthNameFull(3)
+        self.assertEqual(expResult,result)
+
     # Test of monthNumber method, of class TimeUtil.
     def testMonthNumber(self):
         print('monthNumber')
