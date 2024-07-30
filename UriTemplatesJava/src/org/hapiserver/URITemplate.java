@@ -166,19 +166,19 @@ public class URITemplate {
     private String[] valid_formatCodes = new String[]{
         "Y", "y", "j", "m", "d", 
         "H", "M", "S", "N", "milli", 
-        "micro", "p", "z", "ignore", "b" };
+        "micro", "z", "ignore", "b", "p" };
     private String[] formatName = new String[]{
         "Year", "2-digit-year", "day-of-year", "month", "day", 
         "Hour", "Minute", "Second", "nanosecond", "millisecond", 
-        "microsecond", "am/pm", "RFC-822 numeric time zone", "ignore", "3-char-month-name" };
+        "microsecond", "RFC-822 numeric time zone", "ignore", "3-char-month-name", "am/pm" };
     private int[] formatCode_lengths = new int[]{
         4, 2, 3, 2, 2, 
         2, 2, 2, 9, 3, 
-        3, 2, 5, -1, 3 };
+        3, 5, -1, 3, 2 };
     private int[] precision = new int[]{
         0, 0, 2, 1, 2, 
         3, 4, 5, 6, 6, 
-        7,-1,-1, -1, 1 };
+        7,-1, -1, 1,-1 };
     private char startTimeOnly;
     
     /**
@@ -186,6 +186,28 @@ public class URITemplate {
      */
     private int[] phasestart;
     private int startLsd;
+    
+    
+    /**
+     * parse the formatted arguments into a map from name to value.
+     * @param args formatted arguments, like A=1;B=2;fmt=lc
+     * @return map of arguments { 'A':'1'; 'B':'2'; 'fmt':'lc' }
+     */
+    private static Map<String,String> parseArgs( String args ) {
+        Map<String,String> argv= new HashMap();
+        if ( args!=null ) {
+            String[] ss2= args.split(";",-2);
+            for (String ss21 : ss2) {
+                int i3 = ss21.indexOf("=");
+                if (i3==-1) {
+                    argv.put(ss21.trim(), "");
+                } else {
+                    argv.put(ss21.substring(0, i3).trim(), ss21.substring(i3+1).trim());
+                }
+            }
+        }
+        return argv;
+    }
     
     /**
      * return the value within the map, or the deft if the argument is not in the map.
@@ -195,6 +217,7 @@ public class URITemplate {
      * @return the value.
      */
     private static String getArg( Map<String,String> args, String arg, String deft ) {
+        if ( args==null ) return deft;
         if ( args.containsKey(arg) ) {
             return args.get(arg);
         } else {
@@ -965,9 +988,7 @@ public class URITemplate {
         regex1.append(ss[0].replaceAll("\\+","\\\\+"));//TODO: I thought we did this already.
 
         lengths = new int[ndigits];
-        for (int i = 0; i < lengths.length; i++) {
-            lengths[i] = -1; // -1 indicates not known, but we'll figure out as many as we can.
-        }
+        for (int i = 0; i < lengths.length; i++) lengths[i] = -1; // -1 indicates not known, but we'll figure out as many as we can.
         
         startShift= null;
         stopShift= null;
@@ -983,7 +1004,7 @@ public class URITemplate {
             while ( ssi.length()>pp && ( Character.isDigit(ssi.charAt(pp)) || ssi.charAt(pp) == '-') ) {
                 pp+=1;
             }
-            if (pp > 0) { // Note length ($5Y) is not supported in http://tsds.org/uri_templates.
+            if (pp > 0) { // Note length ($5Y) is not supported in https://github.com/hapi-server/uri-templates/wiki/Specification, but is in this library.
                 lengths[i] = Integer.parseInt(ssi.substring(0, pp));
             } else {
                 lengths[i] = 0; // determine later by field type
@@ -1293,6 +1314,14 @@ public class URITemplate {
                         }
                     }
                 }
+
+                if ( handler==13 ) { // Month name might be full, so length is not known.
+                    String fmt= getArg( qualifiersMaps[i], "fmt", null );
+                    if ( "full".equals(fmt) ) {
+                        lengths[i]=-1;
+                    }
+                }   
+
             } else {
                 // http://sourceforge.net/p/autoplot/bugs/1506/
                 if ( fc[i].length()==1 ) {
@@ -2059,9 +2088,26 @@ public class URITemplate {
                 }
 
             } else if (handlers[idigit] == 13) { // month names
-
-                result.insert(offs, TimeUtil.monthNameAbbrev(timel[1]));
-                offs += length;
+                String cas= getArg( this.qualifiersMaps[idigit], "case", null );
+                String fmt= getArg( this.qualifiersMaps[idigit], "fmt", null );
+                String ins;
+                
+                if ( "full".equals(fmt) ) {
+                    ins= TimeUtil.monthNameFull(timel[1]);
+                } else {
+                    ins= TimeUtil.monthNameAbbrev(timel[1]);
+                }
+                
+                if ( cas==null || cas.equals("lc") ) {
+                    ins= ins.toLowerCase();
+                } else if ( cas.equals("cap") ) {
+                    // nothing more
+                } else if ( cas.equals("uc") ) {
+                    ins= ins.toUpperCase();
+                }
+                
+                result.insert(offs, ins);
+                offs += ins.length();
 
             } else if (handlers[idigit] == 12 || handlers[idigit]==14 ) { // ignore
                 throw new RuntimeException("cannot format spec containing ignore");

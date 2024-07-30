@@ -228,6 +228,19 @@ public class URITemplateTest {
         }
         assertEquals( res, test );
     }
+    
+    @Test
+    public void testFormatMonth() throws Exception {
+        //String month = "$Y-$(b;case=lc)";
+        //URITemplate ut = new URITemplate(month);
+            
+        //System.err.println( ut.format("2024-02-01T00:00Z","2024-03-01T00:00Z") );
+        doTestTimeFormat1( "$(b)", "feb", "2024-02-01/2024-03-01" );
+        doTestTimeFormat1( "$(b;case=lc)", "feb", "2024-02-01/2024-03-01" );
+        doTestTimeFormat1( "$(b;fmt=full)", "february", "2024-02-01/2024-03-01" );
+        doTestTimeFormat1( "$(b;fmt=full;case=uc)", "FEBRUARY", "2024-02-01/2024-03-01" );
+        doTestTimeFormat1( "$(b;fmt=full;case=cap) $(d;pad=none), $Y", "February 2, 2022", "2022-02-02/2022-02-03" );
+    }
 
     /**
      * Test of format method, of class URITemplate.
