@@ -145,6 +145,10 @@ public class URITemplateTest {
      */
     @Test
     public void testParse() throws Exception {
+        doTestTimeParser1( "$(y;start=2000)", "72",  "2072-01-01T00:00Z/2073-01-01T00:00Z", false );
+        doTestTimeParser1( "$(y;start=1958)", "72",  "1972-01-01T00:00Z/1973-01-01T00:00Z", false );
+        doTestTimeParser1( "$(y;start=1958)", "57",  "2057-01-01T00:00Z/2058-01-01T00:00Z", false );
+        
         System.out.println("# testParse");
         doTestTimeParser1( "data_$Y_$j_$(Y;end)_$(j;shift=1;phasestart=2009-001).dat", "data_2009_001_2009_002.dat", "2009-01-01/2009-01-03T00:00Z", false );
         doTestTimeParser1( "$Y$(j;div=100)XX", "20243XX", "2024-10-26T00:00Z/2025-01-01T00:00Z", false);
@@ -185,7 +189,7 @@ public class URITemplateTest {
         doTestTimeParser1( "$y $j ($(m;pad=none) $(d;pad=none)) $H", "99 003 (1 3) 00", "1999-01-03T00:00/1999-01-03T01:00", false );        
         doTestTimeParser1( "/gif/ac_$Y$j$H-$(Y;end)$j$H.gif", "/gif/ac_199733000-199733100.gif",  "1997-11-26T00:00Z/1997-11-27T00:00Z", false );
         doTestTimeParser1( "$Y_$(b;case=uc;fmt=full)_$d_$v", "2000_NOVEMBER_23_00",  "2000-11-23T00:00Z/2000-11-24T00:00Z", false );
-        //doTestTimeParser1( "$(y;start=2000)", "72",  "2072-01-01T00:00Z/2073-01-01T00:00Z", false );
+        doTestTimeParser1( "$(y;start=2000)", "72",  "2072-01-01T00:00Z/2073-01-01T00:00Z", false );
         
     }
     

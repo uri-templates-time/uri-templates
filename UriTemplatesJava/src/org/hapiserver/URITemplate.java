@@ -187,6 +187,7 @@ public class URITemplate {
     private int[] phasestart;
     private int startLsd;
     
+    private int twoDigitYearStart=1950;
     
     /**
      * parse the formatted arguments into a map from name to value.
@@ -1246,6 +1247,11 @@ public class URITemplate {
                                     logger.log(Level.SEVERE, null, ex);
                                 }
                                 break;
+                            case "start":
+                                if ( handler==1 ) {
+                                    twoDigitYearStart= Integer.parseInt(val);
+                                }
+                                break;
                             case "shift":
                                 //TODO: handle end before shift.
                                 if ( val.length()==0 ) throw new IllegalArgumentException("shift is empty");
@@ -1575,10 +1581,12 @@ public class URITemplate {
                             time[YEAR] = digit;
                             break;
                         case 1:
-                            if ( digit<58 ) {
-                                time[YEAR] = 2000 + digit;
+                            int mod= twoDigitYearStart % 100;
+                            int cent= twoDigitYearStart / 100;
+                            if ( digit>=mod ) {
+                                time[YEAR] = cent * 100 + digit;
                             } else {
-                                time[YEAR] = 1900 + digit;
+                                time[YEAR] = (cent+1) * 100 + digit;
                             }
                             break;
                         case 2:
