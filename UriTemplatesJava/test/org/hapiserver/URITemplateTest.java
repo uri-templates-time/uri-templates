@@ -51,10 +51,6 @@ public class URITemplateTest {
         String t2= TimeUtil.isoTimeFromArray( TimeUtil.getStopTime(res) ).substring(0,16);
         return t1+"/"+t2;
     }
-        
-    private void doTestTimeParser1( String spec, String test, String norm ) throws Exception {
-        doTestTimeParser1(spec,test,norm,false);
-    }
     
     private void doTestTimeParser1( String spec, String test, String norm, boolean expectException ) throws Exception {
         URITemplate ut;
@@ -97,7 +93,7 @@ public class URITemplateTest {
             System.out.println( String.format( "%s:  \t\"%s\"%s\t\"%s\"", spec, test, arrow, toStr(res) ) );
         } else {    
             //System.out.println( "### ranges do not match: "+spec + " " +test + arrow + toStr(res) + ", should be "+norm );
-            throw new IllegalStateException("ranges do not match: "+spec + " " +norm + "--> " + res + ", should be "+test );
+            throw new IllegalStateException("ranges do not match: "+spec + " " +test + "--> " + toStr(res) + ", should be "+norm );
         }
         assertArrayEquals( inorm, res );
         
@@ -149,44 +145,47 @@ public class URITemplateTest {
     @Test
     public void testParse() throws Exception {
         System.out.println("# testParse");
-        doTestTimeParser1( "data_$Y_$j_$(Y;end)_$(j;shift=1;phasestart=2009-001).dat", "data_2009_001_2009_002.dat", "2009-01-01/2009-01-03T00:00Z" );
-        doTestTimeParser1( "$Y$(j;div=100)XX", "20243XX", "2024-10-26T00:00Z/2025-01-01T00:00Z");
-        doTestTimeParser1( "$Y$(j;div=100)XX/$j", "20243XX/365", "2024-12-30T00:00Z/2024-12-31T00:00Z");
-        doTestTimeParser1( "$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
+        doTestTimeParser1( "data_$Y_$j_$(Y;end)_$(j;shift=1;phasestart=2009-001).dat", "data_2009_001_2009_002.dat", "2009-01-01/2009-01-03T00:00Z", false );
+        doTestTimeParser1( "$Y$(j;div=100)XX", "20243XX", "2024-10-26T00:00Z/2025-01-01T00:00Z", false);
+        doTestTimeParser1( "$Y$(j;div=100)XX/$j", "20243XX/365", "2024-12-30T00:00Z/2024-12-31T00:00Z", false);
+        doTestTimeParser1( "$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00", false);
         dotestParse1();
         doTestParse2();
         doTestParse3();
-        doTestTimeParser1( "$(j;Y=2012).$H$M$S.$N", "017.020000.245000000", "2012-01-17T02:00:00.245000000/2012-01-17T02:00:00.245000001");
-        doTestTimeParser1( "$(j;Y=2012).$H$M$S.$(N;div=1000000)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246");
-        doTestTimeParser1( "$(j;Y=2012).$H$M$S.$(N;div=1E6)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246");
-        doTestTimeParser1( "ac27_crn$x_$Y$j00-$(Y;end)$(j;end)00.gif", "ac27_crn1926_199722300-199725000.gif", "1997-223T00:00/1997-250T00:00");
-        doTestTimeParser1( "$Y $m $d $H $M", "2012 03 30 16 20", "2012-03-30T16:20/2012-03-30T16:21" );
-        doTestTimeParser1( "$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03" );
-        doTestTimeParser1( "$Y$m$d-$(Y;end)$m$d", "20130202-20140303", "2013-02-02/2014-03-03" );
-        doTestTimeParser1( "$Y$m$d-$(Y;end)$m$(d;shift=1)", "20200101-20200107", "2020-01-01/2020-01-08" );
-        doTestTimeParser1( "$Y$m$d-$(d;end)", "20130202-13", "2013-02-02/2013-02-13" );
-        doTestTimeParser1( "$(periodic;offset=0;start=2000-001;period=P1D)", "0",  "2000-001/P1D");
-        doTestTimeParser1( "$(periodic;offset=0;start=2000-001;period=P1D)", "20", "2000-021/P1D");        
-        doTestTimeParser1( "$(periodic;offset=2285;start=2000-346;period=P27D)", "1", "1832-02-08/P27D");
-        doTestTimeParser1( "$(periodic;offset=2285;start=2000-346;period=P27D)", "2286", "2001-007/P27D");        
-        doTestTimeParser1( "$(j;Y=2012)$(hrinterval;names=01,02,03,04)", "01702", "2012-01-17T06:00/PT6H");
-        doTestTimeParser1( "$(j;Y=2012).$H$M$S.$(subsec;places=3)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246");
+        doTestTimeParser1( "$(j;Y=2012).$H$M$S.$N", "017.020000.245000000", "2012-01-17T02:00:00.245000000/2012-01-17T02:00:00.245000001", false);
+        doTestTimeParser1( "$(j;Y=2012).$H$M$S.$(N;div=1000000)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246", false);
+        doTestTimeParser1( "$(j;Y=2012).$H$M$S.$(N;div=1E6)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246", false);
+        doTestTimeParser1( "ac27_crn$x_$Y$j00-$(Y;end)$(j;end)00.gif", "ac27_crn1926_199722300-199725000.gif", "1997-223T00:00/1997-250T00:00", false);
+        doTestTimeParser1( "$Y $m $d $H $M", "2012 03 30 16 20", "2012-03-30T16:20/2012-03-30T16:21", false );
+        doTestTimeParser1( "$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03", false );
+        doTestTimeParser1( "$Y$m$d-$(Y;end)$m$d", "20130202-20140303", "2013-02-02/2014-03-03", false );
+        doTestTimeParser1( "$Y$m$d-$(Y;end)$m$(d;shift=1)", "20200101-20200107", "2020-01-01/2020-01-08", false );
+        doTestTimeParser1( "$Y$m$d-$(d;end)", "20130202-13", "2013-02-02/2013-02-13", false );
+        doTestTimeParser1( "$(periodic;offset=0;start=2000-001;period=P1D)", "0",  "2000-001/P1D", false);
+        doTestTimeParser1( "$(periodic;offset=0;start=2000-001;period=P1D)", "20", "2000-021/P1D", false);        
+        doTestTimeParser1( "$(periodic;offset=2285;start=2000-346;period=P27D)", "1", "1832-02-08/P27D", false);
+        doTestTimeParser1( "$(periodic;offset=2285;start=2000-346;period=P27D)", "2286", "2001-007/P27D", false);        
+        doTestTimeParser1( "$(j;Y=2012)$(hrinterval;names=01,02,03,04)", "01702", "2012-01-17T06:00/PT6H", false);
+        doTestTimeParser1( "$(j;Y=2012).$H$M$S.$(subsec;places=3)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246", false);
         //This should not parse: doTestTimeParser1( "$(j;Y=2012).$x.$X.$(ignore).$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
-        doTestTimeParser1( "$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
+        doTestTimeParser1( "$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00", false);
         // The following shows a bug where it doesn't consider the length of $H and just stops on the next period.
         // A field cannot contain the following delimiter.
         //testTimeParser1( "$(j,Y=2012).*.$H",     "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
         //Orbits are not supported.
         //testTimeParser1( "$(o;id=rbspa-pp)", "31",  "2012-09-10T14:48:30.914Z/2012-09-10T23:47:34.973Z"); 
-        doTestTimeParser1( "$(j;Y=2012)$(hrinterval;names=01,02,03,04)", "01702", "2012-01-17T06:00/2012-01-17T12:00");
-        doTestTimeParser1( "$-1Y $-1m $-1d $H$M", "2012 3 30 1620", "2012-03-30T16:20/2012-03-30T16:21" );
-        doTestTimeParser1( "$Y",            "2012",     "2012-01-01T00:00/2013-01-01T00:00");
-        doTestTimeParser1( "$Y-$j",         "2012-017", "2012-01-17T00:00/2012-01-18T00:00");
-        doTestTimeParser1( "$(j,Y=2012)",   "017",      "2012-01-17T00:00/2012-01-18T00:00");
-        doTestTimeParser1( "ace_mag_$Y_$j_to_$(Y;end)_$j.cdf",   "ace_mag_2005_001_to_2005_003.cdf",      "2005-001T00:00/2005-003T00:00");    
-        doTestTimeParser1( "$y $(m;pad=none) $(d;pad=none) $(H;pad=none)", "99 1 3 0", "1999-01-03T00:00/1999-01-03T01:00" );
-        doTestTimeParser1( "$y $j ($(m;pad=none) $(d;pad=none)) $H", "99 003 (1 3) 00", "1999-01-03T00:00/1999-01-03T01:00" );        
-        doTestTimeParser1( "/gif/ac_$Y$j$H-$(Y;end)$j$H.gif", "/gif/ac_199733000-199733100.gif",  "1997-11-26T00:00Z/1997-11-27T00:00Z" );
+        doTestTimeParser1( "$(j;Y=2012)$(hrinterval;names=01,02,03,04)", "01702", "2012-01-17T06:00/2012-01-17T12:00", false);
+        doTestTimeParser1( "$-1Y $-1m $-1d $H$M", "2012 3 30 1620", "2012-03-30T16:20/2012-03-30T16:21", false );
+        doTestTimeParser1( "$Y",            "2012",     "2012-01-01T00:00/2013-01-01T00:00", false);
+        doTestTimeParser1( "$Y-$j",         "2012-017", "2012-01-17T00:00/2012-01-18T00:00", false);
+        doTestTimeParser1( "$(j,Y=2012)",   "017",      "2012-01-17T00:00/2012-01-18T00:00", false);
+        doTestTimeParser1( "ace_mag_$Y_$j_to_$(Y;end)_$j.cdf",   "ace_mag_2005_001_to_2005_003.cdf",      "2005-001T00:00/2005-003T00:00", false);    
+        doTestTimeParser1( "$y $(m;pad=none) $(d;pad=none) $(H;pad=none)", "99 1 3 0", "1999-01-03T00:00/1999-01-03T01:00", false );
+        doTestTimeParser1( "$y $j ($(m;pad=none) $(d;pad=none)) $H", "99 003 (1 3) 00", "1999-01-03T00:00/1999-01-03T01:00", false );        
+        doTestTimeParser1( "/gif/ac_$Y$j$H-$(Y;end)$j$H.gif", "/gif/ac_199733000-199733100.gif",  "1997-11-26T00:00Z/1997-11-27T00:00Z", false );
+        doTestTimeParser1( "$Y_$(b;case=uc;fmt=full)_$d_$v", "2000_NOVEMBER_23_00",  "2000-11-23T00:00Z/2000-11-24T00:00Z", false );
+        doTestTimeParser1( "$(y;start=2000)", "72",  "2072-01-01T00:00Z/2073-01-01T00:00Z", false );
+        
     }
     
     @Test
