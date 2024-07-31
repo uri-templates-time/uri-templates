@@ -70,10 +70,10 @@ class TimeUtil:
             c = s[i]
             if ord(c) < 48 or ord(c) >= 58:
                 raise Exception('only digits are allowed in string')
-        if length==2:
+        if length == 2:
             result = 10 * (ord(s[0]) - 48) + (ord(s[1]) - 48)
             return result
-        elif length==3:
+        elif length == 3:
             result = 100 * (ord(s[0]) - 48) + 10 * (ord(s[1]) - 48) + (ord(s[2]) - 48)
             return result
         else:
@@ -137,7 +137,8 @@ class TimeUtil:
     # @param timerange the fourteen-element time range.
     @staticmethod
     def setStartTime(time, timerange):
-        if len(timerange) != 14: raise Exception('timerange should be 14-element array.')
+        if len(timerange) != 14:
+            raise Exception('timerange should be 14-element array.')
         timerange[0:TimeUtil.TIME_DIGITS]=time[0:TimeUtil.TIME_DIGITS]
 
     # copy the components of time into the stop position (indeces 7-14) of the time range.
@@ -145,7 +146,8 @@ class TimeUtil:
     # @param timerange the fourteen-element time range.
     @staticmethod
     def setStopTime(time, timerange):
-        if len(timerange) != 14: raise Exception('timerange should be 14-element array.')
+        if len(timerange) != 14:
+            raise Exception('timerange should be 14-element array.')
         timerange[TimeUtil.TIME_DIGITS:2*TimeUtil.TIME_DIGITS]=time[0:TimeUtil.TIME_DIGITS]
 
     # format the time as (non-leap) milliseconds since 1970-01-01T00:00.000Z into a string.  The
@@ -216,7 +218,7 @@ class TimeUtil:
             raise Exception('need at least three letters')
         s = s[0:3]
         for i in range(1, 13):
-            if s.lower()==TimeUtil.MONTH_NAMES[i].lower():
+            if s.lower() == TimeUtil.MONTH_NAMES[i].lower():
                 return i
         raise Exception('Unable to parse month')
 
@@ -260,7 +262,8 @@ class TimeUtil:
         else:
             leap = 0
         dayOffset = TimeUtil.DAY_OFFSET[leap]
-        if doy < 1: raise Exception('doy must be 1 or more')
+        if doy < 1:
+            raise Exception('doy must be 1 or more')
         if doy > dayOffset[13]:
             raise Exception('doy must be less than or equal to ' + str(dayOffset[13]))
         for i in range(12, 1, -1):
@@ -292,7 +295,8 @@ class TimeUtil:
         while time < stopTime:
             result[i] = time
             nn[2] = nn[2] + 1
-            if nn[2] > 28: TimeUtil.normalizeTime(nn)
+            if nn[2] > 28:
+                TimeUtil.normalizeTime(nn)
             time = '%04d-%02d-%02dZ' % (nn[0], nn[1], nn[2])
             i += 1
         return result
@@ -333,7 +337,7 @@ class TimeUtil:
     @staticmethod
     def ceil(time):
         time = TimeUtil.normalizeTimeString(time)
-        if time[11:]=='00:00:00.000000000Z':
+        if time[11:] == '00:00:00.000000000Z':
             return time
         else:
             return TimeUtil.nextDay(time[0:11])[0:10] + 'T00:00:00.000000000Z'
@@ -346,7 +350,7 @@ class TimeUtil:
     @staticmethod
     def floor(time):
         time = TimeUtil.normalizeTimeString(time)
-        if time[11:]=='00:00:00.000000000Z':
+        if time[11:] == '00:00:00.000000000Z':
             return time
         else:
             return time[0:10] + 'T00:00:00.000000000Z'
@@ -409,15 +413,15 @@ class TimeUtil:
         firstNonZeroDigit = 7
         while firstNonZeroDigit > 3 and timerange[firstNonZeroDigit - 1] == 0 and timerange[firstNonZeroDigit + TimeUtil.TIME_DIGITS - 1] == 0:
             firstNonZeroDigit -= 1
-        if firstNonZeroDigit==2:
+        if firstNonZeroDigit == 2:
             return ss1[0:10] + '/' + ss2[0:10]
-        elif firstNonZeroDigit==3:
+        elif firstNonZeroDigit == 3:
             return ss1[0:10] + '/' + ss2[0:10]
-        elif firstNonZeroDigit==4:
+        elif firstNonZeroDigit == 4:
             return ss1[0:16] + 'Z/' + ss2[0:16] + 'Z'
-        elif firstNonZeroDigit==5:
+        elif firstNonZeroDigit == 5:
             return ss1[0:16] + 'Z/' + ss2[0:16] + 'Z'
-        elif firstNonZeroDigit==6:
+        elif firstNonZeroDigit == 6:
             return ss1[0:19] + 'Z/' + ss2[0:19] + 'Z'
         else:
             return ss1 + '/' + ss2
@@ -430,9 +434,9 @@ class TimeUtil:
     # @see #isoTimeFromArray(int[]) 
     @staticmethod
     def formatIso8601TimeInTimeRange(nn, offset):
-        if offset==0:
+        if offset == 0:
             return TimeUtil.isoTimeFromArray(nn)
-        elif offset==7:
+        elif offset == 7:
             copy = TimeUtil.getStopTime(nn)
             return TimeUtil.isoTimeFromArray(copy)
         else:
@@ -452,8 +456,9 @@ class TimeUtil:
     # @return ISO8601 duration
     @staticmethod
     def formatIso8601Duration(nn):
-        units = [ 'Y', 'M', 'D', 'H', 'M', 'S' ]
-        if len(nn) > 7: raise Exception('decomposed time can have at most 7 digits')
+        units = ['Y', 'M', 'D', 'H', 'M', 'S']
+        if len(nn) > 7:
+            raise Exception('decomposed time can have at most 7 digits')
         sb = 'P'
         if (len(nn) < 5):
             n = len(nn)
@@ -461,7 +466,8 @@ class TimeUtil:
             n = 5
         needT = False
         for i in range(0, n):
-            if i == 3: needT = True
+            if i == 3:
+                needT = True
             if nn[i] > 0:
                 if needT:
                     sb+= 'T'
@@ -478,11 +484,11 @@ class TimeUtil:
             if nanoseconds == 0:
                 sb+= str(seconds)
             elif nanoseconds % 1000000 == 0:
-                sb+= str('%.3f' % ( seconds + nanoseconds / 1e9 ) )
+                sb+= str('%.3f' % (seconds + nanoseconds / 1e9))
             elif nanoseconds % 1000 == 0:
-                sb+= str('%.6f' % ( seconds + nanoseconds / 1e9 ) )
+                sb+= str('%.6f' % (seconds + nanoseconds / 1e9))
             else:
-                sb+= str('%.9f' % ( seconds + nanoseconds / 1e9 ) )
+                sb+= str('%.9f' % (seconds + nanoseconds / 1e9))
             sb+= 'S'
         if len(sb) == 1:
             if len(nn) > 3:
@@ -514,11 +520,11 @@ class TimeUtil:
     @staticmethod
     def parseISO8601Duration(stringIn):
         m = TimeUtil.iso8601DurationPattern.match(stringIn)
-        if m!=None:
+        if m != None:
             dsec = TimeUtil.parseDouble(m.group(13), 0)
             sec = int(dsec)
             nanosec = int(((dsec - sec) * 1e9))
-            return [ TimeUtil.parseIntegerDeft(m.group(2), 0), TimeUtil.parseIntegerDeft(m.group(4), 0), TimeUtil.parseIntegerDeft(m.group(6), 0), TimeUtil.parseIntegerDeft(m.group(9), 0), TimeUtil.parseIntegerDeft(m.group(11), 0), sec, nanosec ]
+            return [TimeUtil.parseIntegerDeft(m.group(2), 0), TimeUtil.parseIntegerDeft(m.group(4), 0), TimeUtil.parseIntegerDeft(m.group(6), 0), TimeUtil.parseIntegerDeft(m.group(9), 0), TimeUtil.parseIntegerDeft(m.group(11), 0), sec, nanosec]
         else:
             if 'P' in stringIn and 'S' in stringIn and not 'T' in stringIn:
                 raise Exception('ISO8601 duration expected but not found.  Was the T missing before S?')
@@ -559,7 +565,7 @@ class TimeUtil:
     @staticmethod
     def isoTimeToArray(time):
         if len(time) == 4:
-            result = [ int(time), 1, 1, 0, 0, 0, 0 ]
+            result = [int(time), 1, 1, 0, 0, 0, 0]
         elif time.startswith('now') or time.startswith('last'):
             remainder = None
             if time.startswith('now'):
@@ -568,21 +574,21 @@ class TimeUtil:
             else:
                 p = re.compile('last([a-z]+)([\\+|\\-]P.*)?')
                 m = p.match(time)
-                if m!=None:
+                if m != None:
                     n = TimeUtil.now()
                     unit = m.group(1)
                     remainder = m.group(2)
-                    if unit=="year":
+                    if unit == "year":
                         idigit = 1
-                    elif unit=="month":
+                    elif unit == "month":
                         idigit = 2
-                    elif unit=="day":
+                    elif unit == "day":
                         idigit = 3
-                    elif unit=="hour":
+                    elif unit == "hour":
                         idigit = 4
-                    elif unit=="minute":
+                    elif unit == "minute":
                         idigit = 5
-                    elif unit=="second":
+                    elif unit == "second":
                         idigit = 6
                     else:
                         raise Exception('unsupported unit: ' + unit)
@@ -615,35 +621,35 @@ class TimeUtil:
                     # 2022W08
                     year = TimeUtil.parseInteger(time[0:4])
                     week = TimeUtil.parseInteger(time[5:])
-                    result = [ year, 0, 0, 0, 0, 0, 0 ]
+                    result = [year, 0, 0, 0, 0, 0, 0]
                     TimeUtil.fromWeekOfYear(year, week, result)
                     time = ''
                 else:
-                    result = [ TimeUtil.parseInteger(time[0:4]), TimeUtil.parseInteger(time[5:7]), 1, 0, 0, 0, 0 ]
+                    result = [TimeUtil.parseInteger(time[0:4]), TimeUtil.parseInteger(time[5:7]), 1, 0, 0, 0, 0]
                     time = ''
             elif len(time) == 8:
                 if time[5] == 'W':
                     # 2022-W08
                     year = TimeUtil.parseInteger(time[0:4])
                     week = TimeUtil.parseInteger(time[6:])
-                    result = [ year, 0, 0, 0, 0, 0, 0 ]
+                    result = [year, 0, 0, 0, 0, 0, 0]
                     TimeUtil.fromWeekOfYear(year, week, result)
                     time = ''
                 else:
-                    result = [ TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0 ]
+                    result = [TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0]
                     time = ''
             elif time[8] == 'T':
                 if time[4].isdigit():
-                    result = [ TimeUtil.parseInteger(time[0:4]), TimeUtil.parseInteger(time[4:6]), TimeUtil.parseInteger(time[6:8]), 0, 0, 0, 0 ]
+                    result = [TimeUtil.parseInteger(time[0:4]), TimeUtil.parseInteger(time[4:6]), TimeUtil.parseInteger(time[6:8]), 0, 0, 0, 0]
                     time = time[9:]
                 else:
-                    result = [ TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0 ]
+                    result = [TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0]
                     time = time[9:]
             elif time[8] == 'Z':
-                result = [ TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0 ]
+                result = [TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0]
                 time = time[9:]
             else:
-                result = [ TimeUtil.parseInteger(time[0:4]), TimeUtil.parseInteger(time[5:7]), TimeUtil.parseInteger(time[8:10]), 0, 0, 0, 0 ]
+                result = [TimeUtil.parseInteger(time[0:4]), TimeUtil.parseInteger(time[5:7]), TimeUtil.parseInteger(time[8:10]), 0, 0, 0, 0]
                 if len(time) == 10:
                     time = ''
                 else:
@@ -684,12 +690,12 @@ class TimeUtil:
     def reformatIsoTime(exampleForm, time):
         c = exampleForm[8]
         nn = TimeUtil.isoTimeToArray(TimeUtil.normalizeTimeString(time))
-        if c=='T':
+        if c == 'T':
             # $Y-$jT
             nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2])
             nn[1] = 1
             time = '%d-%03dT%02d:%02d:%02d.%09dZ' % (nn[0], nn[2], nn[3], nn[4], nn[5], nn[6])
-        elif c=='Z':
+        elif c == 'Z':
             nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2])
             nn[1] = 1
             time = '%d-%03dZ' % (nn[0], nn[2])
@@ -720,11 +726,15 @@ class TimeUtil:
     @staticmethod
     def isValidTime(time):
         year = time[0]
-        if year < TimeUtil.VALID_FIRST_YEAR: raise Exception('invalid year at position 0')
-        if year > TimeUtil.VALID_LAST_YEAR: raise Exception('invalid year at position 0')
+        if year < TimeUtil.VALID_FIRST_YEAR:
+            raise Exception('invalid year at position 0')
+        if year > TimeUtil.VALID_LAST_YEAR:
+            raise Exception('invalid year at position 0')
         month = time[1]
-        if month < 1: raise Exception('invalid month at position 1')
-        if month > 12: raise Exception('invalid month at position 1')
+        if month < 1:
+            raise Exception('invalid month at position 1')
+        if month > 12:
+            raise Exception('invalid month at position 1')
         if TimeUtil.isLeapYear(year):
             leap = 1
         else:
@@ -736,7 +746,8 @@ class TimeUtil:
         else:
             if dayOfMonth > TimeUtil.DAY_OFFSET[leap][13]:
                 raise Exception('day of year is too large at position 2')
-        if dayOfMonth < 1: raise Exception('day is less than 1 at position 2')
+        if dayOfMonth < 1:
+            raise Exception('day is less than 1 at position 2')
         return True
 
     # return the number of days in the month.
@@ -901,7 +912,8 @@ class TimeUtil:
         jd = TimeUtil.julianDay(year, month, day)
         daysSince2022 = jd - TimeUtil.julianDay(2022, 1, 1)
         mod7 = (daysSince2022 - 2) % 7
-        if mod7 < 0: mod7 = mod7 + 7
+        if mod7 < 0:
+            mod7 = mod7 + 7
         return mod7
 
     # calculate the week of year, inserting the month into time[1] and day into time[2]

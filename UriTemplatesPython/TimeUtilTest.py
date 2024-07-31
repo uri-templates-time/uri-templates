@@ -41,17 +41,17 @@ class TimeUtilTest(unittest.TestCase):
         print('countOffDays')
         startTime = '1999-12-31'
         stopTime = '2000-01-03'
-        expResult = [ '1999-12-31Z', '2000-01-01Z', '2000-01-02Z' ]
+        expResult = ['1999-12-31Z', '2000-01-01Z', '2000-01-02Z']
         result = TimeUtil.countOffDays(startTime, stopTime)
         self.assertEqual(expResult,result)
         startTime = '1999-12-31Z'
         stopTime = '2000-01-03Z'
-        expResult = [ '1999-12-31Z', '2000-01-01Z', '2000-01-02Z' ]
+        expResult = ['1999-12-31Z', '2000-01-01Z', '2000-01-02Z']
         result = TimeUtil.countOffDays(startTime, stopTime)
         self.assertEqual(expResult,result)
         startTime = '1999-12-31T12:00Z'
         stopTime = '2000-01-03T12:00Z'
-        expResult = [ '1999-12-31Z', '2000-01-01Z', '2000-01-02Z' ]
+        expResult = ['1999-12-31Z', '2000-01-01Z', '2000-01-02Z']
         result = TimeUtil.countOffDays(startTime, stopTime)
         self.assertEqual(expResult,result)
         startTime = '1999'
@@ -133,31 +133,31 @@ class TimeUtilTest(unittest.TestCase):
 
     def testNormalizeTime(self):
         print('normalizeTime')
-        time = [ 2000, 1, 1, 24, 0, 0, 0 ]
-        expResult = [ 2000, 1, 2, 0, 0, 0, 0 ]
+        time = [2000, 1, 1, 24, 0, 0, 0]
+        expResult = [2000, 1, 2, 0, 0, 0, 0]
         TimeUtil.normalizeTime(time)
         self.assertEqual(expResult,time)
-        time = [ 2000, 1, 1, -1, 0, 0, 0 ]
-        expResult = [ 1999, 12, 31, 23, 0, 0, 0 ]
+        time = [2000, 1, 1, -1, 0, 0, 0]
+        expResult = [1999, 12, 31, 23, 0, 0, 0]
         TimeUtil.normalizeTime(time)
         self.assertEqual(expResult,time)
-        time = [ 1979, 13, 6, 0, 0, 0, 0 ]
-        expResult = [ 1980, 1, 6, 0, 0, 0, 0 ]
+        time = [1979, 13, 6, 0, 0, 0, 0]
+        expResult = [1980, 1, 6, 0, 0, 0, 0]
         TimeUtil.normalizeTime(time)
         self.assertEqual(expResult,time)
-        time = [ 1979, 12, 37, 0, 0, 0, 0 ]
-        expResult = [ 1980, 1, 6, 0, 0, 0, 0 ]
+        time = [1979, 12, 37, 0, 0, 0, 0]
+        expResult = [1980, 1, 6, 0, 0, 0, 0]
         TimeUtil.normalizeTime(time)
         self.assertEqual(expResult,time)
 
     # Test of isoTimeFromArray method, of class TimeUtil.
     def testIsoTimeFromArray(self):
         print('isoTimeFromArray')
-        nn = [ 1999, 12, 31, 23, 0, 0, 0 ]
+        nn = [1999, 12, 31, 23, 0, 0, 0]
         expResult = '1999-12-31T23:00:00.000000000Z'
         result = TimeUtil.isoTimeFromArray(nn)
         self.assertEqual(expResult,result)
-        nn = [ 2000, 1, 45, 23, 0, 0, 0 ]
+        nn = [2000, 1, 45, 23, 0, 0, 0]
         expResult = '2000-02-14T23:00:00.000000000Z'
         result = TimeUtil.isoTimeFromArray(nn)
         self.assertEqual(expResult,result)
@@ -166,10 +166,10 @@ class TimeUtilTest(unittest.TestCase):
     def testIsoTimeToArray(self):
         print('isoTimeToArray')
         time = ''
-        expResult = [ 2020, 2, 3, 6, 7, 8, 10001 ]
+        expResult = [2020, 2, 3, 6, 7, 8, 10001]
         result = TimeUtil.isoTimeToArray('2020-034T06:07:08.000010001')
         self.assertEqual(expResult,result)
-        expResult = [ 2012, 1, 17, 2, 0, 0, 245000000 ]
+        expResult = [2012, 1, 17, 2, 0, 0, 245000000]
         result = TimeUtil.isoTimeToArray('2012-01-17T02:00:00.245')
         self.assertEqual(expResult,result)
         TimeUtil.isoTimeToArray('2020-033T06:07:08.000010001')
@@ -207,15 +207,15 @@ class TimeUtilTest(unittest.TestCase):
     def testParseISO8601Duration(self):
         print('parseISO8601Duration')
         stringIn = 'PT5H4M'
-        expResult = [ 0, 0, 0, 5, 4, 0, 0 ]
+        expResult = [0, 0, 0, 5, 4, 0, 0]
         result = TimeUtil.parseISO8601Duration(stringIn)
         self.assertEqual(expResult,result)
-        expResult = [ 0, 0, 0, 0, 0, 0, 123000 ]
+        expResult = [0, 0, 0, 0, 0, 0, 123000]
         result = TimeUtil.parseISO8601Duration('PT0.000123S')
         self.assertEqual(expResult,result)
         result = TimeUtil.parseISO8601Duration('PT52.000000S')
         # Das2 parsing has a problem with this.
-        expResult = [ 0, 0, 0, 0, 0, 52, 0 ]
+        expResult = [0, 0, 0, 0, 0, 52, 0]
         self.assertEqual(expResult,result)
 
     # Test of julianDay method, of class TimeUtil.
@@ -236,7 +236,7 @@ class TimeUtilTest(unittest.TestCase):
     def testFromJulianDay(self):
         print('fromJulianDay')
         julian = 2459040
-        expResult = [ 2020, 7, 9, 0, 0, 0, 0 ]
+        expResult = [2020, 7, 9, 0, 0, 0, 0]
         result = TimeUtil.fromJulianDay(julian)
         self.assertEqual(expResult,result)
 
@@ -253,58 +253,58 @@ class TimeUtilTest(unittest.TestCase):
     # Test of subtract method, of class TimeUtil.
     def testSubtract(self):
         print('subtract')
-        base = [ 2020, 7, 9, 1, 0, 0, 0 ]
-        offset = [ 0, 0, 0, 2, 0, 0, 0 ]
-        expResult = [ 2020, 7, 8, 23, 0, 0, 0 ]
+        base = [2020, 7, 9, 1, 0, 0, 0]
+        offset = [0, 0, 0, 2, 0, 0, 0]
+        expResult = [2020, 7, 8, 23, 0, 0, 0]
         result = TimeUtil.subtract(base, offset)
         self.assertEqual(expResult,result)
 
     # Test of add method, of class TimeUtil.
     def testAdd(self):
         print('add')
-        base = [ 2020, 7, 8, 23, 0, 0, 0 ]
-        offset = [ 0, 0, 0, 2, 0, 0, 0 ]
-        expResult = [ 2020, 7, 9, 1, 0, 0, 0 ]
+        base = [2020, 7, 8, 23, 0, 0, 0]
+        offset = [0, 0, 0, 2, 0, 0, 0]
+        expResult = [2020, 7, 9, 1, 0, 0, 0]
         result = TimeUtil.add(base, offset)
         self.assertEqual(expResult,result)
-        base = [ 1979, 12, 27, 0, 0, 0, 0 ]
-        offset = [ 0, 0, 10, 0, 0, 0, 0 ]
-        expResult = [ 1980, 1, 6, 0, 0, 0, 0 ]
+        base = [1979, 12, 27, 0, 0, 0, 0]
+        offset = [0, 0, 10, 0, 0, 0, 0]
+        expResult = [1980, 1, 6, 0, 0, 0, 0]
         result = TimeUtil.add(base, offset)
         self.assertEqual(expResult,result)
 
     # Test of formatIso8601Duration method, of class TimeUtil.
     def testFormatIso8601Duration(self):
         print('formatIso8601Duration')
-        nn = [ 0, 0, 7, 0, 0, 6 ]
+        nn = [0, 0, 7, 0, 0, 6]
         expResult = 'P7DT6S'
         result = TimeUtil.formatIso8601Duration(nn)
         self.assertEqual(expResult,result)
-        nn = [ 0, 0, 0, 0, 0, 0, 200000 ]
+        nn = [0, 0, 0, 0, 0, 0, 200000]
         expResult = 'PT0.000200S'
         result = TimeUtil.formatIso8601Duration(nn)
         self.assertEqual(expResult,result)
-        nn = [ 0, 0, 0, 0, 0, 0, 200000000 ]
+        nn = [0, 0, 0, 0, 0, 0, 200000000]
         expResult = 'PT0.200S'
         result = TimeUtil.formatIso8601Duration(nn)
         self.assertEqual(expResult,result)
-        nn = [ 0, 0, 0, 0, 0, 0, 200 ]
+        nn = [0, 0, 0, 0, 0, 0, 200]
         expResult = 'PT0.000000200S'
         result = TimeUtil.formatIso8601Duration(nn)
         self.assertEqual(expResult,result)
-        nn = [ 0, 0, 0, 0, 0, 2, 200000 ]
+        nn = [0, 0, 0, 0, 0, 2, 200000]
         expResult = 'PT2.000200S'
         result = TimeUtil.formatIso8601Duration(nn)
         self.assertEqual(expResult,result)
-        nn = [ 0, 0, 0, 0, 0, 0, 0 ]
+        nn = [0, 0, 0, 0, 0, 0, 0]
         expResult = 'PT0S'
         result = TimeUtil.formatIso8601Duration(nn)
         self.assertEqual(expResult,result)
-        nn = [ 0, 0, 1, 0, 0, 0, 0 ]
+        nn = [0, 0, 1, 0, 0, 0, 0]
         expResult = 'P1D'
         result = TimeUtil.formatIso8601Duration(nn)
         self.assertEqual(expResult,result)
-        nn = [ 0, 0 ]
+        nn = [0, 0]
         expResult = 'P0D'
         result = TimeUtil.formatIso8601Duration(nn)
         self.assertEqual(expResult,result)
@@ -318,49 +318,49 @@ class TimeUtilTest(unittest.TestCase):
     def testParseISO8601TimeRange(self):
         print('parseISO8601TimeRange')
         stringIn = '1998-01-02/1998-01-17'
-        expResult = [ 1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0 ]
+        expResult = [1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0]
         try:
             result = TimeUtil.parseISO8601TimeRange(stringIn)
             self.assertEqual(expResult,result)
         except Exception as ex: # J2J: exceptions
             raise AssertionError(ex)
         stringIn = '2022-W13/P7D'
-        expResult = [ 2022, 3, 28, 0, 0, 0, 0, 2022, 4, 4, 0, 0, 0, 0 ]
+        expResult = [2022, 3, 28, 0, 0, 0, 0, 2022, 4, 4, 0, 0, 0, 0]
         try:
             result = TimeUtil.parseISO8601TimeRange(stringIn)
             self.assertEqual(expResult,result)
         except Exception as ex: # J2J: exceptions
             raise AssertionError(ex)
         stringIn = 'P7D/2022-01-02'
-        expResult = [ 2021, 12, 26, 0, 0, 0, 0, 2022, 1, 2, 0, 0, 0, 0 ]
+        expResult = [2021, 12, 26, 0, 0, 0, 0, 2022, 1, 2, 0, 0, 0, 0]
         try:
             result = TimeUtil.parseISO8601TimeRange(stringIn)
             self.assertEqual(expResult,result)
         except Exception as ex: # J2J: exceptions
             raise AssertionError(ex)
         stringIn = '2023-01-18T17:00/18:00'
-        expResult = [ 2023, 1, 18, 17, 0, 0, 0, 2023, 1, 18, 18, 0, 0, 0 ]
+        expResult = [2023, 1, 18, 17, 0, 0, 0, 2023, 1, 18, 18, 0, 0, 0]
         try:
             result = TimeUtil.parseISO8601TimeRange(stringIn)
             self.assertEqual(expResult,result)
         except Exception as ex: # J2J: exceptions
             raise AssertionError(ex)
         stringIn = '2013-01-01/07-01'
-        expResult = [ 2013, 1, 1, 0, 0, 0, 0, 2013, 7, 1, 0, 0, 0, 0 ]
+        expResult = [2013, 1, 1, 0, 0, 0, 0, 2013, 7, 1, 0, 0, 0, 0]
         try:
             result = TimeUtil.parseISO8601TimeRange(stringIn)
             self.assertEqual(expResult,result)
         except Exception as ex: # J2J: exceptions
             raise AssertionError(ex)
         stringIn = '2017-09-13T13:06Z/2023-09-30T23:57:41Z'
-        expResult = [ 2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 57, 41, 0 ]
+        expResult = [2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 57, 41, 0]
         try:
             result = TimeUtil.parseISO8601TimeRange(stringIn)
             self.assertEqual(expResult,result)
         except Exception as ex: # J2J: exceptions
             raise AssertionError(ex)
         stringIn = '2017-09-13T13:06:00Z/2023-09-30T23:00Z'
-        expResult = [ 2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 0, 0, 0 ]
+        expResult = [2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 0, 0, 0]
         try:
             result = TimeUtil.parseISO8601TimeRange(stringIn)
             self.assertEqual(expResult,result)
@@ -370,19 +370,19 @@ class TimeUtilTest(unittest.TestCase):
     # Test of formatIso8601TimeRange method, of class TimeUtil.
     def testFormatIso8601TimeRange(self):
         print('formatIso8601TimeRange')
-        nn = [ 1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0 ]
+        nn = [1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0]
         expResult = '1998-01-02/1998-01-17'
         result = TimeUtil.formatIso8601TimeRange(nn)
         self.assertEqual(expResult,result)
-        nn = [ 1998, 1, 2, 0, 3, 0, 0, 1998, 1, 17, 0, 3, 0, 0 ]
+        nn = [1998, 1, 2, 0, 3, 0, 0, 1998, 1, 17, 0, 3, 0, 0]
         expResult = '1998-01-02T00:03Z/1998-01-17T00:03Z'
         result = TimeUtil.formatIso8601TimeRange(nn)
         self.assertEqual(expResult,result)
-        nn = [ 1998, 1, 2, 0, 0, 2, 0, 1998, 1, 17, 0, 0, 6, 0 ]
+        nn = [1998, 1, 2, 0, 0, 2, 0, 1998, 1, 17, 0, 0, 6, 0]
         expResult = '1998-01-02T00:00:02Z/1998-01-17T00:00:06Z'
         result = TimeUtil.formatIso8601TimeRange(nn)
         self.assertEqual(expResult,result)
-        nn = [ 1998, 1, 2, 0, 0, 0, 300, 1998, 1, 2, 0, 0, 0, 500 ]
+        nn = [1998, 1, 2, 0, 0, 0, 300, 1998, 1, 2, 0, 0, 0, 500]
         expResult = '1998-01-02T00:00:00.000000300Z/1998-01-02T00:00:00.000000500Z'
         result = TimeUtil.formatIso8601TimeRange(nn)
         self.assertEqual(expResult,result)
@@ -390,7 +390,7 @@ class TimeUtilTest(unittest.TestCase):
     # Test of formatIso8601Time method, of class TimeUtil.
     def testFormatIso8601TimeInTimeRange(self):
         print('formatIso8601Time')
-        nn = [ 1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0 ]
+        nn = [1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0]
         offset = 7
         expResult = '1998-01-17T00:00:00.000000000Z'
         result = TimeUtil.formatIso8601TimeInTimeRange(nn, offset)
@@ -399,7 +399,7 @@ class TimeUtilTest(unittest.TestCase):
     # Test of formatIso8601Time method, of class TimeUtil.
     def testFormatIso8601TimeInTime(self):
         print('formatIso8601Time')
-        nn = [ 1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0 ]
+        nn = [1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0]
         expResult = '1998-01-02T00:00:00.000000000Z'
         result = TimeUtil.formatIso8601Time(nn)
         self.assertEqual(expResult,result)
@@ -421,20 +421,20 @@ class TimeUtilTest(unittest.TestCase):
         weekOfYear = 13
         result = [0] * 7
         TimeUtil.fromWeekOfYear(year, weekOfYear, result)
-        expResult = [ 2022, 3, 28, 0, 0, 0, 0 ]
+        expResult = [2022, 3, 28, 0, 0, 0, 0]
         self.assertEqual(expResult,result)
         year = 2022
         weekOfYear = 0
         result = [0] * 7
         TimeUtil.fromWeekOfYear(year, weekOfYear, result)
-        expResult = [ 2021, 12, 27, 0, 0, 0, 0 ]
+        expResult = [2021, 12, 27, 0, 0, 0, 0]
         self.assertEqual(expResult,result)
 
     # Test of parseISO8601Time method, of class TimeUtil.
     def testParseISO8601Time(self):
         print('parseISO8601Time')
         string = '2020-033T00:00'
-        expResult = [ 2020, 2, 2, 0, 0, 0, 0 ]
+        expResult = [2020, 2, 2, 0, 0, 0, 0]
         try:
             result = TimeUtil.parseISO8601Time(string)
             self.assertEqual(expResult,result)
