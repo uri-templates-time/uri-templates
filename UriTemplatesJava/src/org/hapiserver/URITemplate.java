@@ -974,6 +974,7 @@ public class URITemplate {
         this.fieldHandlersById= new HashMap();
 
         formatString= makeCanonical(formatString);
+        this.spec= formatString;
         //this.formatString = formatString;
         
         String[] ss = formatString.split("\\$");
@@ -1523,7 +1524,7 @@ public class URITemplate {
                     if (idigit == ndigits - 1) {
                         length = timeString.length() - offs;
                     } else {
-                        throw new IllegalArgumentException("No delimer specified after unknown length field, \"" + formatName[handlers[idigit]] + "\", field number=" + (1 + idigit) + "");
+                        throw new IllegalArgumentException("No delimiter specified after unknown length field, \"" + formatName[handlers[idigit]] + "\", field number=" + (1 + idigit) + "");
                     }
                 } else {
                     while ( offs<timeString.length() && Character.isWhitespace( timeString.charAt(offs) ) ) offs+=1;
@@ -1635,7 +1636,7 @@ public class URITemplate {
                         extra.put( "ignore", timeString.substring(offs, offs + length) );
                     }
                 } else if (handlers[idigit] == 13) { // month name
-                    time[MINUTE] = TimeUtil.monthNumber(timeString.substring(offs, offs + length));
+                    time[MONTH] = TimeUtil.monthNumber(timeString.substring(offs, offs + length));
 
                 } else if (handlers[idigit] == 14) { // "X"
                     if ( length>=0 ) {
@@ -2155,6 +2156,11 @@ public class URITemplate {
         result.insert(offs, this.delims[ndigits - 1]);
         return result.toString().trim();
 
+    }
+    
+    @Override
+    public String toString() {
+        return "URITemplate "+this.spec;
     }
     
     private static void printUsage() {
