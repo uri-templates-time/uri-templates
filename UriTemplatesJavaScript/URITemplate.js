@@ -42,8 +42,8 @@ class FieldHandler {
      * exception should be thrown because there is an error that the 
      * developer is going to have to deal with.
      * 
-     * @param startTime the startTime in [ Y, m, d, H, M, S, nanoseconds ]
-     * @param timeWidth the width in [ Y, m, d, H, M, S, nanoseconds ]
+     * @param startTime the startTime in [ Y, m, d, H, M, S, N ]
+     * @param timeWidth the width in [ Y, m, d, H, M, S, N ]
      * @param length, -1 or the length of the field.
      * @param extra extra data, such as version numbers, are passed in here.
      * @return the string representing the time range specified.
@@ -536,7 +536,7 @@ class URITemplate {
     // J2J: Name is used twice in class: URITemplate formatTimeRange
     // J2J: Name is used twice in class: URITemplate formatStartStopRange
     // J2J: private static final Logger logger = Logger.getLogger("hapiserver.uritemplates");
-    static VERSION = "20240227.1";
+    static VERSION = "20240730.2";
 
     static getVersion() {
         return URITemplate.VERSION;
@@ -652,6 +652,11 @@ class URITemplate {
     timeWidth;
 
     /**
+     * when adding (for example 100 days) don't allow stop time to be late in the year, truncate at the year boundary.
+     */
+    disallowCarryForStopTime = false;
+
+    /**
      * the template explicitly defines the width, with delta or other specifiers.
      */
     timeWidthIsExplicit = false;
@@ -665,13 +670,13 @@ class URITemplate {
      */
     externalContext;
 
-    valid_formatCodes = ["Y", "y", "j", "m", "d", "H", "M", "S", "milli", "micro", "p", "z", "ignore", "b"];
+    valid_formatCodes = ["Y", "y", "j", "m", "d", "H", "M", "S", "N", "milli", "micro", "z", "ignore", "b", "p"];
 
-    formatName = ["Year", "2-digit-year", "day-of-year", "month", "day", "Hour", "Minute", "Second", "millisecond", "microsecond", "am/pm", "RFC-822 numeric time zone", "ignore", "3-char-month-name"];
+    formatName = ["Year", "2-digit-year", "day-of-year", "month", "day", "Hour", "Minute", "Second", "nanosecond", "millisecond", "microsecond", "RFC-822 numeric time zone", "ignore", "3-char-month-name", "am/pm"];
 
-    formatCode_lengths = [4, 2, 3, 2, 2, 2, 2, 2, 3, 3, 2, 5, -1, 3];
+    formatCode_lengths = [4, 2, 3, 2, 2, 2, 2, 2, 9, 3, 3, 5, -1, 3, 2];
 
-    precision = [0, 0, 2, 1, 2, 3, 4, 5, 6, 7, -1, -1, -1, 1];
+    precision = [0, 0, 2, 1, 2, 3, 4, 5, 6, 6, 7, -1, -1, 1, -1];
 
     startTimeOnly;
 
@@ -683,6 +688,27 @@ class URITemplate {
     startLsd;
 
     /**
+     * parse the formatted arguments into a map from name to value.
+     * @param args formatted arguments, like A=1;B=2;fmt=lc
+     * @return map of arguments { 'A':'1'; 'B':'2'; 'fmt':'lc' }
+     */
+    static parseArgs(args) {
+        var argv = new Map();
+        if (args !== null) {
+            var ss2 = args.split(";");
+            ss2.forEach( function ( ss21 ) {
+                 var i3 = ss21.indexOf("=");
+                if (i3 === -1) {
+                    argv.set(ss21.trim(), "");
+                } else {
+                    argv.set(ss21.substring(0, i3).trim(), ss21.substring(i3 + 1).trim());
+                }
+            }, this )
+        }
+        return argv;
+    }
+
+    /**
      * return the value within the map, or the deft if the argument is not in the map.
      * @param args a map (or dictionary) of the arguments
      * @param arg the argument to retrieve
@@ -690,9 +716,7 @@ class URITemplate {
      * @return the value.
      */
     static getArg(args, arg, deft) {
-        if ( args===undefined ) { //TODO: look into when args is undefined.
-            return deft;
-        }
+        if ( args === undefined || args === null) return deft;
         if (args.has(arg)) {
             return args.get(arg);
         } else {
@@ -946,7 +970,7 @@ class URITemplate {
                 pp += 1;
             }
             if (pp > 0) {
-                // Note length ($5Y) is not supported in http://tsds.org/uri_templates.
+                // Note length ($5Y) is not supported in https://github.com/hapi-server/uri-templates/wiki/Specification, but is in this library.
                 this.lengths[i] = parseInt(ssi.substring(0, pp));
             } else {
                 this.lengths[i] = 0;
@@ -1049,13 +1073,9 @@ class URITemplate {
                     this.lengths[i] = this.formatCode_lengths[handler];
                 }
                 this.offsets[i] = pos;
-                if (this.lengths[i] < 1 || pos === -1) {
-                    pos = -1;
-                } else {
-                    pos += this.lengths[i];
-                }
             }
             var span = 1;
+            var div = 1;
             if (this.qualifiers[i]!== undefined && this.qualifiers[i] !== null) {
                 var ss2 = this.qualifiers[i].split(";");
                 this.qualifiersMaps[i] = new Map();
@@ -1163,6 +1183,9 @@ class URITemplate {
                                         case 'S':
                                             this.lsd = 5;
                                             break
+                                        case 'N':
+                                            this.lsd = 6;
+                                            break
                                         default:
                                             break
                                     }
@@ -1207,9 +1230,17 @@ class URITemplate {
                             case "pad":
                             case "fmt":
                             case "case":
+                            case "div":
                                 if (name=="pad" && val=="none") {
                                     this.lengths[i] = -1;
                                     pos = -1;
+                                }
+
+                                if (name=="div" && this.lengths[i] !== -1) {
+                                    div = Math.trunc( parseFloat(val) );
+                                    var dig = Math.trunc( Math.log10(div) );
+                                    this.lengths[i] = Math.max(1, this.lengths[i] - dig);
+                                    this.disallowCarryForStopTime = true;
                                 }
 
                                 if (this.qualifiersMaps[i] === null) this.qualifiersMaps[i] = new Map();
@@ -1252,6 +1283,13 @@ class URITemplate {
                         }
                     }
                 }, this )
+                if (handler === 13) {
+                    // Month name might be full, so length is not known.
+                    var fmt = URITemplate.getArg(this.qualifiersMaps[i], "fmt", null);
+                    if ("full"==fmt) {
+                        this.lengths[i] = -1;
+                    }
+                }
             } else {
                 if (this.fc[i].length === 1) {
                     var code = this.fc[i].charAt(0);
@@ -1278,6 +1316,9 @@ class URITemplate {
                         case 'S':
                             thisLsd = 5;
                             break
+                        case 'N':
+                            thisLsd = 6;
+                            break
                         default:
                             break
                     }
@@ -1286,6 +1327,11 @@ class URITemplate {
                         lsdMult = 1;
                     }
                 }
+            }
+            if (this.lengths[i] < 1 || pos === -1) {
+                pos = -1;
+            } else {
+                pos += this.lengths[i];
             }
             if (this.fc[i].length === 1) {
                 switch (this.fc[i].charAt(0)) {
@@ -1318,7 +1364,7 @@ class URITemplate {
                 if (this.precision[handler] > this.lsd && lsdMult === 1) {
                     // omni2_h0_mrg1hr_$Y$(m,span=6)$d_v01.cdf.  Essentially we ignore the $d.
                     this.lsd = this.precision[handler];
-                    lsdMult = span;
+                    lsdMult = Math.max(span, div);
                     // J2J (logger) logger.log(Level.FINER, "lsd is now {0}, width={1}", new Object[] { lsd, lsdMult });
                 }
             }
@@ -1394,6 +1440,8 @@ class URITemplate {
         stopTime = [0,0,0,0,0,0,0];
         time = startTime;
         arraycopy( this.context, 0, time, 0, URITemplate.NUM_TIME_DIGITS );
+        var lastOffset = 0;
+        var lastLength = 0;
         for ( var idigit = 1; idigit < this.ndigits; idigit++) {
             if (idigit === this.stopTimeDigit) {
                 // J2J (logger) logger.finer("switching to parsing end time");
@@ -1431,15 +1479,30 @@ class URITemplate {
                     }
                 }
             }
+            var foundDelim = timeString.substring(lastOffset + lastLength, offs);
+            if (foundDelim!=this.delims[idigit - 1]) {
+                throw "Expected \"" + this.delims[idigit - 1] + "\" before $" + this.fc[idigit] + ", got: " + foundDelim;
+            }
+            lastOffset = offs;
+            lastLength = length;
             if (timeString.length < offs + length) {
                 throw "string is too short: " + timeString;
             }
             var field = timeString.substring(offs, offs + length).trim();
-            // J2J (logger) logger.log(Level.FINEST, "handling \"{0}\" with {1}", new Object[] { field, handlers[idigit] });
+            // J2J (logger) logger.log(Level.FINE, "handling \"{0}\" with {1}", new Object[] { field, handlers[idigit] });
             try {
+                var qual = this.qualifiersMaps[idigit];
                 if (this.handlers[idigit] < 10) {
                     var digit;
                     digit = parseInt(field);
+                    if (qual !== undefined && qual !== null) {
+                        var s = URITemplate.getArg(qual, "div", null);
+                        if (s !== null) {
+                            var div = Math.trunc( parseFloat(s) );
+                            // TODO: we really have to parse this each time?
+                            digit = digit * div;
+                        }
+                    }
                     switch (this.handlers[idigit]) {
                         case 0:
                             time[URITemplate.YEAR] = digit;
@@ -1524,7 +1587,6 @@ class URITemplate {
                                             if (this.handlers[idigit] === 15) {
                                                 // "x"
                                                 var name;
-                                                var qual = this.qualifiersMaps[idigit];
                                                 if (qual !== null) {
                                                     name = URITemplate.getArg(qual, "name", "x");
                                                 } else {
@@ -1544,6 +1606,10 @@ class URITemplate {
             } catch (ex) {
                 throw sprintf("fail to parse digit number %d: %s",idigit, field);
             }
+        }
+        var foundDelim = timeString.substring(lastOffset + lastLength);
+        if (foundDelim!=this.delims[this.ndigits - 1]) {
+            throw "Expected \"" + this.delims[this.ndigits - 1] + "\" after $" + this.fc[this.ndigits - 1] + ", got: " + foundDelim;
         }
         if (this.phasestart !== null) {
             if (this.timeWidth === null) {
@@ -1569,7 +1635,15 @@ class URITemplate {
             }
         } else {
             if (this.stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
-                stopTime = TimeUtil.add(startTime, this.timeWidth);
+                if (this.disallowCarryForStopTime) {
+                    stopTime = TimeUtil.add(startTime, this.timeWidth);
+                    if (this.timeWidth[0] === 0 && this.timeWidth[1] === 0 && this.timeWidth[2] > 1) {
+                        stopTime[1] = 1;
+                        stopTime[2] = 1;
+                    }
+                } else {
+                    stopTime = TimeUtil.add(startTime, this.timeWidth);
+                }
             }
         }
         var result = [];
@@ -1726,19 +1800,7 @@ class URITemplate {
      * @return formatted time, often a resolvable URI.
      */
     formatTimeRange(timeRange) {
-        var start = TimeUtil.getStartTime(timeRange);
-        var stop = TimeUtil.getStopTime(timeRange);
-        return this.formatStartStopRange(start, stop, {});
-    }
-
-    /**
-     * return the formatted name, using the spec and the given time range.
-     * @param startTime seven-component start time
-     * @param stopTime seven-component stop time
-     * @return formatted time, often a resolvable URI.
-     */
-    formatStartStopRange(startTime, stopTime) {
-        return this.formatStartStopRange(startTime, stopTime, {});
+        return this.formatTimeRange(timeRange, Collections.emptyMap());
     }
 
     /**
@@ -1751,6 +1813,16 @@ class URITemplate {
         var start = TimeUtil.getStartTime(timeRange);
         var stop = TimeUtil.getStopTime(timeRange);
         return this.formatStartStopRange(start, stop, extra);
+    }
+
+    /**
+     * return the formatted name, using the spec and the given time range.
+     * @param startTime seven-component start time
+     * @param stopTime seven-component stop time
+     * @return formatted time, often a resolvable URI.
+     */
+    formatStartStopRange(startTime, stopTime) {
+        return this.formatStartStopRange(startTime, stopTime, Collections.emptyMap());
     }
 
     /**
@@ -1790,6 +1862,7 @@ class URITemplate {
         var offs = 0;
         var length;
         var nf = [0,0,0,0,0];
+        nf[1] = "%1d";
         nf[2] = "%02d";
         nf[3] = "%03d";
         nf[4] = "%04d";
@@ -1855,7 +1928,7 @@ class URITemplate {
                         digit = timel[5];
                         break
                     case 8:
-                        digit = Math.trunc(timel[6] / 1000000);
+                        digit = timel[6];
                         break
                     case 9:
                         digit = Math.trunc(timel[6] / 1000);
@@ -1897,6 +1970,10 @@ class URITemplate {
                 } else {
                     if (this.qualifiersMaps[idigit] !== null) {
                         // TODO: suboptimal
+                        var div = URITemplate.getArg(this.qualifiersMaps[idigit], "div", null);
+                        if (div !== null) {
+                            digit = Math.trunc(digit / Math.trunc( parseFloat(div) ));
+                        }
                         var pad = URITemplate.getArg(this.qualifiersMaps[idigit], "pad", null);
                         if (pad === null || pad=="zero") {
                             result = result.substring(0,offs)+sprintf(nf[length],digit)+result.substring(offs);  // J2J expr -> assignment;
@@ -1936,8 +2013,26 @@ class URITemplate {
             } else {
                 if (this.handlers[idigit] === 13) {
                     // month names
-                    result = result.substring(0,offs)+TimeUtil.monthNameAbbrev(timel[1])+result.substring(offs);  // J2J expr -> assignment;
-                    offs += length;
+                    var cas = URITemplate.getArg(this.qualifiersMaps[idigit], "case", null);
+                    var fmt = URITemplate.getArg(this.qualifiersMaps[idigit], "fmt", null);
+                    var ins;
+                    if ("full"==fmt) {
+                        ins = TimeUtil.monthNameFull(timel[1]);
+                    } else {
+                        ins = TimeUtil.monthNameAbbrev(timel[1]);
+                    }
+                    if (cas === null || cas=="lc") {
+                        ins = ins.toLowerCase();
+                    } else {
+                        if (cas=="cap") {
+                        } else {
+                            if (cas=="uc") {
+                                ins = ins.toUpperCase();
+                            }
+                        }
+                    }
+                    result = result.substring(0,offs)+ins+result.substring(offs);  // J2J expr -> assignment;
+                    offs += ins.length;
                 } else {
                     if (this.handlers[idigit] === 12 || this.handlers[idigit] === 14) {
                         throw "cannot format spec containing ignore";

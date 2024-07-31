@@ -46,6 +46,7 @@ function fail(msg) {
  * @author jbf
  */
 class URITemplateTest {
+    // J2J: Name is used twice in class: URITemplateTest doTestTimeParser1
     /**
      * Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
      */
@@ -69,6 +70,10 @@ class URITemplateTest {
     }
 
     doTestTimeParser1(spec, test, norm) {
+        this.doTestTimeParser1(spec, test, norm, false);
+    }
+
+    doTestTimeParser1(spec, test, norm, expectException) {
         var ut;
         try {
             ut = new URITemplate(spec);
@@ -89,8 +94,13 @@ class URITemplateTest {
         try {
             res = ut.parse(test, new Map());
         } catch (ex) {
-            fail(ex.getMessage());
-            return;
+            if (expectException) {
+                fail(ex); // TODO: this needs more study
+                return;
+            } else {
+                fail(ex);
+                return;
+            }
         }
         var arrow = String.fromCharCode( 8594 );
         if (arrayequals( res, inorm )) {
@@ -98,7 +108,7 @@ class URITemplateTest {
         } else {
             console.info("### ranges do not match: " + spec + " " + test + arrow + URITemplateTest.toStr(res) + ", should be " + norm);
         }
-        assertArrayEquals(res, inorm);
+        assertArrayEquals(inorm, res);
     }
 
     dotestParse1() {
@@ -129,16 +139,30 @@ class URITemplateTest {
         assertEquals(6, digits[9]);
     }
 
+    testDelimiterExceptionLeading() {
+        //this.doTestTimeParser1("ac_$Y$j00-$(Y;end)$(j;end)00.gif", "AC_199811900-199812000.gif", "1998-04-29T00:00Z/1998-04-30T00:00Z", true);
+    }
+
+    testDelimiterExceptionTrailing() {
+        //this.doTestTimeParser1("ac_$Y$j00-$(Y;end)$(j;end)00.gif", "ac_199811900-199812000-this-shouldnt-match.gif", "1998-04-29T00:00Z/1998-04-30T00:00Z", true);
+    }
+
     /**
      * Test of parse method, of class URITemplate.
      * @throws java.lang.Exception
      */
     testParse() {
         console.info("# testParse");
+        this.doTestTimeParser1("data_$Y_$j_$(Y;end)_$(j;shift=1;phasestart=2009-001).dat", "data_2009_001_2009_002.dat", "2009-01-01/2009-01-03T00:00Z");
+        this.doTestTimeParser1("$Y$(j;div=100)XX", "20243XX", "2024-10-26T00:00Z/2025-01-01T00:00Z");
+        this.doTestTimeParser1("$Y$(j;div=100)XX/$j", "20243XX/365", "2024-12-30T00:00Z/2024-12-31T00:00Z");
         this.doTestTimeParser1("$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
         this.dotestParse1();
         this.doTestParse2();
         this.doTestParse3();
+        this.doTestTimeParser1("$(j;Y=2012).$H$M$S.$N", "017.020000.245000000", "2012-01-17T02:00:00.245000000/2012-01-17T02:00:00.245000001");
+        this.doTestTimeParser1("$(j;Y=2012).$H$M$S.$(N;div=1000000)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246");
+        this.doTestTimeParser1("$(j;Y=2012).$H$M$S.$(N;div=1E6)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246");
         this.doTestTimeParser1("ac27_crn$x_$Y$j00-$(Y;end)$(j;end)00.gif", "ac27_crn1926_199722300-199725000.gif", "1997-223T00:00/1997-250T00:00");
         this.doTestTimeParser1("$Y $m $d $H $M", "2012 03 30 16 20", "2012-03-30T16:20/2012-03-30T16:21");
         this.doTestTimeParser1("$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03");
@@ -165,6 +189,15 @@ class URITemplateTest {
         this.doTestTimeParser1("/gif/ac_$Y$j$H-$(Y;end)$j$H.gif", "/gif/ac_199733000-199733100.gif", "1997-11-26T00:00Z/1997-11-27T00:00Z");
     }
 
+    testFloorDiv() {
+        assertEquals(URITemplate.floorDiv(0, 7), 0);
+        assertEquals(URITemplate.floorDiv(1, 7), 0);
+        assertEquals(URITemplate.floorDiv(7, 7), 1);
+        assertEquals(URITemplate.floorDiv(-1, 7), -1);
+        assertEquals(URITemplate.floorDiv(-7, 7), -1);
+        assertEquals(URITemplate.floorDiv(-8, 7), -2);
+    }
+
     /**
      * Use the spec, format the test time and verify that we get norm.
      * @param spec
@@ -188,8 +221,8 @@ class URITemplateTest {
         try {
             res = ut.format(nn[0], nn[1], new Map());
         } catch (ex) {
-            console.info("### " + (ex.getMessage()));
-            return;
+            console.info("### " + ex);
+            throw ex;
         }
         var arrow = String.fromCharCode( 8594 );
         if (res==test) {
@@ -200,6 +233,15 @@ class URITemplateTest {
         assertEquals(res, test);
     }
 
+    testFormatMonth() {
+        //System.err.println( ut.format("2024-02-01T00:00Z","2024-03-01T00:00Z") );
+        this.doTestTimeFormat1("$(b)", "feb", "2024-02-01/2024-03-01");
+        this.doTestTimeFormat1("$(b;case=lc)", "feb", "2024-02-01/2024-03-01");
+        this.doTestTimeFormat1("$(b;fmt=full)", "february", "2024-02-01/2024-03-01");
+        this.doTestTimeFormat1("$(b;fmt=full;case=uc)", "FEBRUARY", "2024-02-01/2024-03-01");
+        this.doTestTimeFormat1("$(b;fmt=full;case=cap) $(d;pad=none), $Y", "February 2, 2022", "2022-02-02/2022-02-03");
+    }
+
     /**
      * Test of format method, of class URITemplate.
      * @throws java.lang.Exception
@@ -207,6 +249,9 @@ class URITemplateTest {
     testFormat() {
         console.info("# testFormat");
         //testTimeParser1( "$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03" );
+        this.doTestTimeFormat1("/gif/ac_$Y$j$H-$(Y;end)$j$H.gif", "/gif/ac_199733000-199733100.gif", "1997-11-26T00:00Z/1997-11-27T00:00Z");
+        this.doTestTimeFormat1("$Y/$Y$(j;div=100)XX/$Y$j.dat", "2024/20241XX/2024187.dat", "2024-07-05/P1D");
+        this.doTestTimeFormat1("$(j;Y=2024).$H$M$S.$(N;div=1000000)", "017.020000.245", "2024-01-17T02:00:00.245/2024-01-17T02:00:00.246");
         this.doTestTimeFormat1("$Y$m$d-$(Y;end)$m$d", "20130202-20140303", "2013-02-02/2014-03-03");
         this.doTestTimeFormat1("_$Y$m$(d)_$(Y;end)$m$(d)", "_20130202_20130203", "2013-02-02/2013-02-03");
         this.doTestTimeFormat1("_$Y$m$(d;shift=1)_$(Y;end)$m$(d;shift=1)", "_20130201_20130202", "2013-02-02/2013-02-03");
@@ -732,7 +777,11 @@ class URITemplateTest {
 }
 test = new URITemplateTest();
 test.testMakeCanonical();
+test.testDelimiterExceptionLeading();
+test.testDelimiterExceptionTrailing();
 test.testParse();
+test.testFloorDiv();
+test.testFormatMonth();
 test.testFormat();
 test.testFormatHapiServerSite();
 test.testFormatRange();
