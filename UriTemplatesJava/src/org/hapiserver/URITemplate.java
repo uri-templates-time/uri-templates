@@ -584,6 +584,7 @@ public class URITemplate {
         String regex;
         Pattern pattern;
         String name;
+        String pad;
         
         @Override
         public String configure(Map<String, String> args) {
@@ -592,6 +593,7 @@ public class URITemplate {
                 pattern= Pattern.compile(regex);
             }
             name= getArg( args, "name", "unnamed" );
+            pad= getArg( args, "pad", "none" );
             return null;
         }
 
@@ -607,8 +609,20 @@ public class URITemplate {
                     throw new ParseException("ignore content doesn't match regex: "+fieldContent,0);
                 }
             }
+            if ( !pad.equals("none") ) {
+                if ( pad.equals("_") || pad.equals("underscore") ) {
+                    int i0= 0;
+                    while ( i0<fieldContent.length() && fieldContent.charAt(i0)=='_') i0++;
+                    int i1= fieldContent.length()-1;
+                    while ( i1>i0 && fieldContent.charAt(i1)=='_' ) i1--;
+                    fieldContent= fieldContent.substring(i0,i1+1);
+                }
+            }
             if ( !name.equals("unnamed") ) {
-                extra.put( name, fieldContent );
+                String o= extra.get(name);
+                if ( !fieldContent.equals(o) ) { // allow for immutable object to be used.
+                    extra.put( name, fieldContent );
+                }
             }
         }
 
@@ -687,6 +701,9 @@ public class URITemplate {
         @Override
         public String configure( Map<String,String> args ) {
             String sep= getArg( args, "sep", null );
+            if ( sep==null ) {
+                sep= getArg( args, "separator", null );
+            }
             if ( sep==null && args.containsKey("dotnotation")) {
                 sep= "T";
             }
@@ -1292,11 +1309,16 @@ public class URITemplate {
                                 if ( stopTimeDigit==AFTERSTOP_INIT ) {
                                     startLsd= lsd;
                                     stopTimeDigit= i;
-                                }   break;
+                                }   
+                                break;
+                            case "len":
+                                lengths[i]= Integer.parseInt(val);
+                                break;
                             default:
                                 if ( !fieldHandlers.containsKey(fc[i]) ) {
                                     throw new IllegalArgumentException("unrecognized/unsupported field: "+name + " in "+qual );
-                                }   break;
+                                }   
+                                break;
                         }
                         okay= true;
                     } else if ( !okay ) {
@@ -2147,7 +2169,29 @@ public class URITemplate {
                         logger.log(Level.SEVERE, null, ex);
                     }
                     if ( length>-1 && ins.length()!=length ) {
-                        throw new IllegalArgumentException("length of fh is incorrect, should be "+length+", got \""+ins+"\"");
+                        String p= getArg( this.qualifiersMaps[idigit], "pad", null );
+                        if ( p==null ) {
+                            throw new IllegalArgumentException("length of fh is incorrect, should be "+length+", got \""+ins+"\", and pad is not defined.");
+                        }
+                        if ( length<ins.length()  ) {
+                            throw new IllegalArgumentException("length of fh is incorrect, should be "+length+", got \""+ins+"\", which has too many characters.");
+                        } else {
+                            int l= length-ins.length();
+                            String padx;
+                            switch (p) {
+                                case "underscore":
+                                case "_":
+                                case "none":
+                                    padx= "____________________".substring(0,l); //TODO: spec should declare a maximum field length
+                                    break;
+                                case "space":
+                                    padx= "                    ".substring(0,l);
+                                    break;
+                                default:
+                                    throw new IllegalArgumentException("unsupported pad.  Must be underscore, _, or space");
+                            }
+                            ins = padx + ins;
+                        }
                     }
                     result.insert( offs, ins );
                     offs+= ins.length();

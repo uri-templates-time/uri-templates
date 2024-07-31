@@ -145,10 +145,6 @@ public class URITemplateTest {
      */
     @Test
     public void testParse() throws Exception {
-        doTestTimeParser1( "$(y;start=2000)", "72",  "2072-01-01T00:00Z/2073-01-01T00:00Z", false );
-        doTestTimeParser1( "$(y;start=1958)", "72",  "1972-01-01T00:00Z/1973-01-01T00:00Z", false );
-        doTestTimeParser1( "$(y;start=1958)", "57",  "2057-01-01T00:00Z/2058-01-01T00:00Z", false );
-        
         System.out.println("# testParse");
         doTestTimeParser1( "data_$Y_$j_$(Y;end)_$(j;shift=1;phasestart=2009-001).dat", "data_2009_001_2009_002.dat", "2009-01-01/2009-01-03T00:00Z", false );
         doTestTimeParser1( "$Y$(j;div=100)XX", "20243XX", "2024-10-26T00:00Z/2025-01-01T00:00Z", false);
@@ -190,6 +186,9 @@ public class URITemplateTest {
         doTestTimeParser1( "/gif/ac_$Y$j$H-$(Y;end)$j$H.gif", "/gif/ac_199733000-199733100.gif",  "1997-11-26T00:00Z/1997-11-27T00:00Z", false );
         doTestTimeParser1( "$Y_$(b;case=uc;fmt=full)_$d_$v", "2000_NOVEMBER_23_00",  "2000-11-23T00:00Z/2000-11-24T00:00Z", false );
         doTestTimeParser1( "$(y;start=2000)", "72",  "2072-01-01T00:00Z/2073-01-01T00:00Z", false );
+        doTestTimeParser1( "$(y;start=1958)", "72",  "1972-01-01T00:00Z/1973-01-01T00:00Z", false );
+        doTestTimeParser1( "$(y;start=1958)", "57",  "2057-01-01T00:00Z/2058-01-01T00:00Z", false );
+                
         
     }
     
@@ -216,6 +215,7 @@ public class URITemplateTest {
             ut = new URITemplate(spec);
         } catch ( IllegalArgumentException ex ) {
             System.out.println("### unable to parse spec: "+spec);
+            fail("unable to parse spec: "+spec);
             return;
         }
         
@@ -256,6 +256,23 @@ public class URITemplateTest {
         doTestTimeFormat1( "$(b;fmt=full;case=cap) $(d;pad=none), $Y", "February 2, 2022", "2022-02-02/2022-02-03" );
     }
 
+    @Test
+    public void testFormatX() {
+        URITemplate t;
+        t= new URITemplate("/tmp/ap/$(x;name=sc;len=6;pad=_).dat");
+        Map<String,String> e= Collections.singletonMap("sc", "Apple");
+        assertEquals( "/tmp/ap/_Apple.dat",t.format( "2000-01-01", "2000-01-02", e ) );
+    }
+    
+    @Test
+    public void testParseX() throws ParseException {
+        URITemplate t;
+        t= new URITemplate("/tmp/ap/$Y_$(x;name=sc;len=6;pad=_).dat");
+        Map<String,String> e= new HashMap<String,String>();
+        int[] r= t.parse( "/tmp/ap/2024__Apple.dat", e );
+        assertArrayEquals( new int[] { 2024,1,1,0,0,0,0, 2025,1,1,0,0,0,0 }, r );
+    }
+    
     /**
      * Test of format method, of class URITemplate.
      * @throws java.lang.Exception
