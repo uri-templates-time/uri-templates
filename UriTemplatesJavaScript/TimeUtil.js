@@ -24,7 +24,7 @@ function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
  * @author jbf
  */
 class TimeUtil {
-    static VERSION = "20240730.2";
+    static VERSION = "20240730.1";
 
     /**
      * Number of time components: year, month, day, hour, minute, second, nanosecond
@@ -146,7 +146,7 @@ class TimeUtil {
      * @return the start time.
      */
     static getStartTime(timerange) {
-        var result = [];
+        var result = Array(TimeUtil.TIME_DIGITS);
         arraycopy( timerange, 0, result, 0, TimeUtil.TIME_DIGITS );
         return result;
     }
@@ -159,7 +159,7 @@ class TimeUtil {
      * @return the stop time.
      */
     static getStopTime(timerange) {
-        var result = [];
+        var result = Array(TimeUtil.TIME_DIGITS);
         arraycopy( timerange, TimeUtil.TIME_DIGITS, result, 0, TimeUtil.TIME_DIGITS );
         return result;
     }
@@ -344,7 +344,7 @@ class TimeUtil {
         }
         var j1 = TimeUtil.julianDay(t1[0], t1[1], t1[2]);
         var j2 = TimeUtil.julianDay(t2[0], t2[1], t2[2]);
-        var result = [];
+        var result = new Array(j2-j1);
         var time = TimeUtil.normalizeTimeString(startTime).substring(0, 10) + 'Z';
         stopTime = TimeUtil.floor(stopTime).substring(0, 10) + 'Z';
         var i = 0;
@@ -563,17 +563,15 @@ class TimeUtil {
             var nanoseconds = nn.length === 7 ? nn[6] : 0;
             if (nanoseconds === 0) {
                 sb+= String(seconds);
+            } else if (nanoseconds % 1000000 === 0) {
+                sb+= sprintf("%.3f",seconds + nanoseconds / 1e9);
+            } else if (nanoseconds % 1000 === 0) {
+                sb+= sprintf("%.6f",seconds + nanoseconds / 1e9);
             } else {
-                if (nanoseconds % 1000000 === 0) {
-                    sb+= sprintf("%.3f",seconds + nanoseconds / 1e9);
-                } else {
-                    if (nanoseconds % 1000 === 0) {
-                        sb+= sprintf("%.6f",seconds + nanoseconds / 1e9);
-                    } else {
-                        sb+= sprintf("%.9f",seconds + nanoseconds / 1e9);
-                    }
-                }
+                sb+= sprintf("%.9f",seconds + nanoseconds / 1e9);
             }
+            
+            
             sb+= "S";
         }
         if (sb.length === 1) {
@@ -672,147 +670,141 @@ class TimeUtil {
         var result;
         if (time.length === 4) {
             result = [parseInt(time), 1, 1, 0, 0, 0, 0];
-        } else {
-            if (time.startsWith("now") || time.startsWith("last")) {
-                var n;
-                var remainder = null;
-                if (time.startsWith("now")) {
-                    n = TimeUtil.now();
-                    remainder = time.substring(3);
-                } else {
-                    var p = new RegExp("last([a-z]+)([\\+|\\-]P.*)?");
-                    var m = p.exec(time);
-                    if (m!=null) {
-                        n = TimeUtil.now();
-                        var unit = m[1];
-                        remainder = m[2];
-                        var idigit;
-                        switch (unit) {
-                            case "year":
-                                idigit = 1;
-                                break
-                            case "month":
-                                idigit = 2;
-                                break
-                            case "day":
-                                idigit = 3;
-                                break
-                            case "hour":
-                                idigit = 4;
-                                break
-                            case "minute":
-                                idigit = 5;
-                                break
-                            case "second":
-                                idigit = 6;
-                                break
-                            default:
-                                throw "unsupported unit: " + unit;
-                        }
-                        for ( var id = Math.max(1, idigit); id < TimeUtil.DATE_DIGITS; id++) {
-                            n[id] = 1;
-                        }
-                        for ( var id = Math.max(TimeUtil.DATE_DIGITS, idigit); id < TimeUtil.TIME_DIGITS; id++) {
-                            n[id] = 0;
-                        }
-                    } else {
-                        throw "expected lastday+P1D, etc";
-                    }
-                }
-                if ( remainder === undefined || remainder === null || remainder.length === 0) {
-                    return n;
-                } else {
-                    if (remainder.charAt(0) == '-') {
-                        try {
-                            return TimeUtil.subtract(n, TimeUtil.parseISO8601Duration(remainder.substring(1)));
-                        } catch (ex) {
-                            throw ex;
-                        }
-                    } else {
-                        if (remainder.charAt(0) == '+') {
-                            try {
-                                return TimeUtil.add(n, TimeUtil.parseISO8601Duration(remainder.substring(1)));
-                            } catch (ex) {
-                                throw ex;
-                            }
-                        }
-                    }
-                }
-                return TimeUtil.now();
+        } else if (time.startsWith("now") || time.startsWith("last")) {
+            var n;
+            var remainder = null;
+            if (time.startsWith("now")) {
+                n = TimeUtil.now();
+                remainder = time.substring(3);
             } else {
-                if (time.length < 7) {
-                    throw "time must have 4 or greater than 7 characters";
-                }
-                if (/[0-9]/.test(time.charAt(4)) && /[0-9]/.test(time.charAt(5))) {
-                    throw "date and time must contain delimiters between fields";
-                }
-                if (time.length === 7) {
-                    if (time.charAt(4) == 'W') {
-                        // 2022W08
-                        var year = TimeUtil.parseInteger(time.substring(0, 4));
-                        var week = TimeUtil.parseInteger(time.substring(5));
-                        result = [year, 0, 0, 0, 0, 0, 0];
-                        TimeUtil.fromWeekOfYear(year, week, result);
-                        time = "";
-                    } else {
-                        result = [TimeUtil.parseInteger(time.substring(0, 4)), TimeUtil.parseInteger(time.substring(5, 7)), 1, 0, 0, 0, 0];
-                        time = "";
+                var p = new RegExp("last([a-z]+)([\\+|\\-]P.*)?");
+                var m = p.exec(time);
+                if (m!=null) {
+                    n = TimeUtil.now();
+                    var unit = m[1];
+                    remainder = m[2];
+                    var idigit;
+                    switch (unit) {
+                        case "year":
+                            idigit = 1;
+                            break
+                        case "month":
+                            idigit = 2;
+                            break
+                        case "day":
+                            idigit = 3;
+                            break
+                        case "hour":
+                            idigit = 4;
+                            break
+                        case "minute":
+                            idigit = 5;
+                            break
+                        case "second":
+                            idigit = 6;
+                            break
+                        default:
+                            throw "unsupported unit: " + unit;
+                    }
+                    for ( var id = Math.max(1, idigit); id < TimeUtil.DATE_DIGITS; id++) {
+                        n[id] = 1;
+                    }
+                    for ( var id = Math.max(TimeUtil.DATE_DIGITS, idigit); id < TimeUtil.TIME_DIGITS; id++) {
+                        n[id] = 0;
                     }
                 } else {
-                    if (time.length === 8) {
-                        if (time.charAt(5) == 'W') {
-                            // 2022-W08
-                            var year = TimeUtil.parseInteger(time.substring(0, 4));
-                            var week = TimeUtil.parseInteger(time.substring(6));
-                            result = [year, 0, 0, 0, 0, 0, 0];
-                            TimeUtil.fromWeekOfYear(year, week, result);
-                            time = "";
-                        } else {
-                            result = [TimeUtil.parseInteger(time.substring(0, 4)), 1, TimeUtil.parseInteger(time.substring(5, 8)), 0, 0, 0, 0];
-                            time = "";
-                        }
-                    } else {
-                        if (time.charAt(8) == 'T') {
-                            if (/[0-9]/.test(time.charAt(4))) {
-                                result = [TimeUtil.parseInteger(time.substring(0, 4)), TimeUtil.parseInteger(time.substring(4, 6)), TimeUtil.parseInteger(time.substring(6, 8)), 0, 0, 0, 0];
-                                time = time.substring(9);
-                            } else {
-                                result = [TimeUtil.parseInteger(time.substring(0, 4)), 1, TimeUtil.parseInteger(time.substring(5, 8)), 0, 0, 0, 0];
-                                time = time.substring(9);
-                            }
-                        } else {
-                            if (time.charAt(8) == 'Z') {
-                                result = [TimeUtil.parseInteger(time.substring(0, 4)), 1, TimeUtil.parseInteger(time.substring(5, 8)), 0, 0, 0, 0];
-                                time = time.substring(9);
-                            } else {
-                                result = [TimeUtil.parseInteger(time.substring(0, 4)), TimeUtil.parseInteger(time.substring(5, 7)), TimeUtil.parseInteger(time.substring(8, 10)), 0, 0, 0, 0];
-                                if (time.length === 10) {
-                                    time = "";
-                                } else {
-                                    time = time.substring(11);
-                                }
-                            }
-                        }
-                    }
+                    throw "expected lastday+P1D, etc";
                 }
-                if (time.endsWith("Z")) {
-                    time = time.substring(0, time.length - 1);
-                }
-                if (time.length >= 2) {
-                    result[3] = TimeUtil.parseInteger(time.substring(0, 2));
-                }
-                if (time.length >= 5) {
-                    result[4] = TimeUtil.parseInteger(time.substring(3, 5));
-                }
-                if (time.length >= 8) {
-                    result[5] = TimeUtil.parseInteger(time.substring(6, 8));
-                }
-                if (time.length > 9) {
-                    result[6] = Math.trunc( (Math.pow(10, 18 - time.length)) ) * TimeUtil.parseInteger(time.substring(9));
-                }
-                TimeUtil.normalizeTime(result);
             }
+            if (remainder === undefined || remainder === null || remainder.length === 0) {
+                return n;
+            } else if (remainder.charAt(0) == '-') {
+                try {
+                    return TimeUtil.subtract(n, TimeUtil.parseISO8601Duration(remainder.substring(1)));
+                } catch (ex) {
+                    throw ex;
+                }
+            } else if (remainder.charAt(0) == '+') {
+                try {
+                    return TimeUtil.add(n, TimeUtil.parseISO8601Duration(remainder.substring(1)));
+                } catch (ex) {
+                    throw ex;
+                }
+            }
+            
+            
+            return TimeUtil.now();
+        } else {
+            if (time.length < 7) {
+                throw "time must have 4 or greater than 7 characters";
+            }
+            if (/[0-9]/.test(time.charAt(4)) && /[0-9]/.test(time.charAt(5))) {
+                throw "date and time must contain delimiters between fields";
+            }
+            if (time.length === 7) {
+                if (time.charAt(4) == 'W') {
+                    // 2022W08
+                    var year = TimeUtil.parseInteger(time.substring(0, 4));
+                    var week = TimeUtil.parseInteger(time.substring(5));
+                    result = [year, 0, 0, 0, 0, 0, 0];
+                    TimeUtil.fromWeekOfYear(year, week, result);
+                    time = "";
+                } else {
+                    result = [TimeUtil.parseInteger(time.substring(0, 4)), TimeUtil.parseInteger(time.substring(5, 7)), 1, 0, 0, 0, 0];
+                    time = "";
+                }
+            } else if (time.length === 8) {
+                if (time.charAt(5) == 'W') {
+                    // 2022-W08
+                    var year = TimeUtil.parseInteger(time.substring(0, 4));
+                    var week = TimeUtil.parseInteger(time.substring(6));
+                    result = [year, 0, 0, 0, 0, 0, 0];
+                    TimeUtil.fromWeekOfYear(year, week, result);
+                    time = "";
+                } else {
+                    result = [TimeUtil.parseInteger(time.substring(0, 4)), 1, TimeUtil.parseInteger(time.substring(5, 8)), 0, 0, 0, 0];
+                    time = "";
+                }
+            } else if (time.charAt(8) == 'T') {
+                if (/[0-9]/.test(time.charAt(4))) {
+                    result = [TimeUtil.parseInteger(time.substring(0, 4)), TimeUtil.parseInteger(time.substring(4, 6)), TimeUtil.parseInteger(time.substring(6, 8)), 0, 0, 0, 0];
+                    time = time.substring(9);
+                } else {
+                    result = [TimeUtil.parseInteger(time.substring(0, 4)), 1, TimeUtil.parseInteger(time.substring(5, 8)), 0, 0, 0, 0];
+                    time = time.substring(9);
+                }
+            } else if (time.charAt(8) == 'Z') {
+                result = [TimeUtil.parseInteger(time.substring(0, 4)), 1, TimeUtil.parseInteger(time.substring(5, 8)), 0, 0, 0, 0];
+                time = time.substring(9);
+            } else {
+                result = [TimeUtil.parseInteger(time.substring(0, 4)), TimeUtil.parseInteger(time.substring(5, 7)), TimeUtil.parseInteger(time.substring(8, 10)), 0, 0, 0, 0];
+                if (time.length === 10) {
+                    time = "";
+                } else {
+                    time = time.substring(11);
+                }
+            }
+            
+            
+            
+            if (time.endsWith("Z")) {
+                time = time.substring(0, time.length - 1);
+            }
+            if (time.length >= 2) {
+                result[3] = TimeUtil.parseInteger(time.substring(0, 2));
+            }
+            if (time.length >= 5) {
+                result[4] = TimeUtil.parseInteger(time.substring(3, 5));
+            }
+            if (time.length >= 8) {
+                result[5] = TimeUtil.parseInteger(time.substring(6, 8));
+            }
+            if (time.length > 9) {
+                result[6] = Math.trunc( (Math.pow(10, 18 - time.length)) ) * TimeUtil.parseInteger(time.substring(9));
+            }
+            TimeUtil.normalizeTime(result);
         }
+        
         return result;
     }
 
@@ -862,11 +854,10 @@ class TimeUtil {
                 if (c == 'T') {
                     // $Y-$jT
                     time = sprintf("%d-%02d-%02dT%02d:%02d:%02d.%09dZ",nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6]);
-                } else {
-                    if (c == 'Z') {
-                        time = sprintf("%d-%02d-%02dZ",nn[0], nn[1], nn[2]);
-                    }
+                } else if (c == 'Z') {
+                    time = sprintf("%d-%02d-%02dZ",nn[0], nn[1], nn[2]);
                 }
+                
 
                 break
         }
@@ -1180,7 +1171,7 @@ class TimeUtil {
         if (!(TimeUtil.isValidFormattedTime(ss[1]))) {
             throw "second time/duration is misformatted.  Should be ISO8601 time or duration like P1D.";
         }
-        var result = [0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+        var result = new Array(14);
         if (ss[0].startsWith("P")) {
             var duration = TimeUtil.parseISO8601Duration(ss[0]);
             var time = TimeUtil.isoTimeToArray(ss[1]);
@@ -1190,36 +1181,35 @@ class TimeUtil {
             TimeUtil.normalizeTime(result);
             TimeUtil.setStopTime(time, result);
             return result;
+        } else if (ss[1].startsWith("P")) {
+            var time = TimeUtil.isoTimeToArray(ss[0]);
+            var duration = TimeUtil.parseISO8601Duration(ss[1]);
+            TimeUtil.setStartTime(time, result);
+            var stoptime = [0,0,0,0,0,0,0];
+            for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
+                stoptime[i] = time[i] + duration[i];
+            }
+            TimeUtil.normalizeTime(stoptime);
+            TimeUtil.setStopTime(stoptime, result);
+            return result;
         } else {
-            if (ss[1].startsWith("P")) {
-                var time = TimeUtil.isoTimeToArray(ss[0]);
-                var duration = TimeUtil.parseISO8601Duration(ss[1]);
-                TimeUtil.setStartTime(time, result);
-                var stoptime = [0,0,0,0,0,0,0];
-                for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
-                    stoptime[i] = time[i] + duration[i];
-                }
-                TimeUtil.normalizeTime(stoptime);
-                TimeUtil.setStopTime(stoptime, result);
-                return result;
+            var starttime = TimeUtil.isoTimeToArray(ss[0]);
+            var stoptime;
+            if (ss[1].length === ss[0].length) {
+                stoptime = TimeUtil.isoTimeToArray(ss[1]);
             } else {
-                var starttime = TimeUtil.isoTimeToArray(ss[0]);
-                var stoptime;
-                if (ss[1].length === ss[0].length) {
+                if (ss[1].indexOf("T")!==-1) {
                     stoptime = TimeUtil.isoTimeToArray(ss[1]);
                 } else {
-                    if (ss[1].indexOf("T")!==-1) {
-                        stoptime = TimeUtil.isoTimeToArray(ss[1]);
-                    } else {
-                        var partToShare = ss[0].length - ss[1].length;
-                        stoptime = TimeUtil.isoTimeToArray(ss[0].substring(0, partToShare) + ss[1]);
-                    }
+                    var partToShare = ss[0].length - ss[1].length;
+                    stoptime = TimeUtil.isoTimeToArray(ss[0].substring(0, partToShare) + ss[1]);
                 }
-                TimeUtil.setStartTime(starttime, result);
-                TimeUtil.setStopTime(stoptime, result);
-                return result;
             }
+            TimeUtil.setStartTime(starttime, result);
+            TimeUtil.setStopTime(stoptime, result);
+            return result;
         }
+        
     }
 
     /**
@@ -1269,11 +1259,10 @@ class TimeUtil {
         for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
             if (t1[i] > t2[i]) {
                 return true;
-            } else {
-                if (t1[i] < t2[i]) {
-                    return false;
-                }
+            } else if (t1[i] < t2[i]) {
+                return false;
             }
+            
         }
         return false;
     }
@@ -1326,13 +1315,12 @@ class TimeUtil {
         } else {
             if (millis === 0) {
                 return stime.substring(0, 23) + "Z";
+            } else if (micros === 0) {
+                return stime.substring(0, 26) + "Z";
             } else {
-                if (micros === 0) {
-                    return stime.substring(0, 26) + "Z";
-                } else {
-                    return stime;
-                }
+                return stime;
             }
+            
         }
     }
 
@@ -1347,8 +1335,8 @@ class TimeUtil {
      * @return 14-component time interval.
      */
     static nextRange(timerange) {
-        var result = [0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-        var width = [0,0,0,0,0,0,0];
+        var result = Array(TimeUtil.TIME_RANGE_DIGITS);
+        var width = Array(TimeUtil.TIME_DIGITS);
         for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
             width[i] = timerange[i + TimeUtil.TIME_DIGITS] - timerange[i];
         }
@@ -1391,8 +1379,8 @@ class TimeUtil {
      * @return 14-component time interval.
      */
     static previousRange(timerange) {
-        var result = [0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-        var width = [0,0,0,0,0,0,0];
+        var result = Array(TimeUtil.TIME_RANGE_DIGITS);
+        var width = Array(TimeUtil.TIME_DIGITS);
         for ( var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
             width[i] = timerange[i + TimeUtil.TIME_DIGITS] - timerange[i];
         }
