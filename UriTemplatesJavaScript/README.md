@@ -16,3 +16,7 @@ So the procedure is as follows:
 * load the web page which runs the unit tests and verify the results in the console.
 * Similarly convert URI_Templates.java.
 * Versioning is done in Java as inner classes and this needed to be converted by hand.
+
+# Use 
+Client software using this library should refer to URITemplateTest.html, noting
+how sprintf must also be imported.
