@@ -54,7 +54,7 @@ class FieldHandler {
 
 }
 /**
- * $(subsec;places=6)  "36" &rarr; "36 microseconds"
+ * $(subsec;places=6)  "36" → "36 microseconds"
  */
 class SubsecFieldHandler extends FieldHandler {
     places;
@@ -251,11 +251,10 @@ class PeriodicFieldHandler extends FieldHandler {
         var result = sprintf("%d",deltad);
         if (length > 16) {
             throw "length>16 not supported";
-        } else {
-            if (length > -1) {
-                result = "_________________".substring(0, length - result.length) + result;
-            }
+        } else if (length > -1) {
+            result = "_________________".substring(0, length - result.length) + result;
         }
+        
         return result;
     }
 
@@ -271,7 +270,7 @@ class EnumFieldHandler extends FieldHandler {
     configure(args) {
         this.values = new Set();
         var svalues = URITemplate.getArg(args, "values", null);
-        if (svalues === null) return "need values";
+        if (svalues === undefined || svalues === null) return "need values";
         var ss = svalues.split(",");
         if (ss.length === 1) {
             var ss2 = svalues.split("|");
@@ -339,12 +338,15 @@ class IgnoreFieldHandler extends FieldHandler {
 
     name;
 
+    pad;
+
     configure(args) {
         this.regex = URITemplate.getArg(args, "regex", null);
         if (this.regex !== null) {
             this.pattern = new RegExp(this.regex);
         }
         this.name = URITemplate.getArg(args, "name", "unnamed");
+        this.pad = URITemplate.getArg(args, "pad", "none");
         return null;
     }
 
@@ -358,8 +360,25 @@ class IgnoreFieldHandler extends FieldHandler {
                 throw "ignore content doesn't match regex: " + fieldContent;
             }
         }
+        if (this.pad!="none") {
+            if (this.pad=="_" || this.pad=="underscore") {
+                var i0 = 0;
+                while (i0 < fieldContent.length && fieldContent.charAt(i0) == '_') {
+                    i0++;                    
+                }
+                var i1 = fieldContent.length - 1;
+                while (i1 > i0 && fieldContent.charAt(i1) == '_') {
+                    i1--;                    
+                }
+                fieldContent = fieldContent.substring(i0, i1 + 1);
+            }
+        }
         if (this.name!="unnamed") {
-            extra.set(this.name, fieldContent);
+            var o = extra.get(this.name);
+            if (fieldContent!=o) {
+                // allow for immutable object to be used.
+                extra.set(this.name, fieldContent);
+            }
         }
     }
 
@@ -394,10 +413,8 @@ class IgnoreFieldHandler extends FieldHandler {
             var d2 = parseInt(ss2[i]);
             if (d1 < d2) {
                 return -1;
-            } else {
-                if (d1 > d2) {
-                    return 1;
-                }
+            } else if (d1 > d2) {
+                return 1;
             }
         }
         return ss1.length - ss2.length;
@@ -422,22 +439,24 @@ class IgnoreFieldHandler extends FieldHandler {
          */
         configure(args) {
             var sep = URITemplate.getArg(args, "sep", null);
-            if (sep === null && args.has("dotnotation")) {
+            if (sep === undefined || sep === null) {
+                sep = URITemplate.getArg(args, "separator", null);
+            }
+            if (sep === undefined || sep === null && args.has("dotnotation")) {
                 sep = "T";
             }
             var alpha = URITemplate.getArg(args, "alpha", null);
-            if (alpha === null && args.has("alphanumeric")) {
+            if (alpha === undefined || alpha === null && args.has("alphanumeric")) {
                 alpha = "T";
             }
             var type = URITemplate.getArg(args, "type", null);
-            if (type !== null) {
+            if (type !== undefined && type !== null) {
                 if (type=="sep" || type=="dotnotation") {
                     sep = "T";
-                } else {
-                    if (type=="alpha" || type=="alphanumeric") {
-                        alpha = "T";
-                    }
+                } else if (type=="alpha" || type=="alphanumeric") {
+                    alpha = "T";
                 }
+                
             }
             if (args.has("gt")) {
                 throw "gt specified but not supported: must be ge or lt";
@@ -446,21 +465,21 @@ class IgnoreFieldHandler extends FieldHandler {
                 throw "le specified but not supported: must be ge or lt";
             }
             var ge = URITemplate.getArg(args, "ge", null);
-            if (ge !== null) {
+            if (ge !== undefined && ge !== null) {
                 this.versionGe = ge;
             }
             var lt = URITemplate.getArg(args, "lt", null);
-            if (lt !== null) {
+            if (lt !== undefined && lt !== null) {
                 this.versionLt = lt;
             }
-            if (alpha !== null) {
-                if (sep !== null) {
+            if (alpha !== undefined && alpha !== null) {
+                if (sep !== undefined && sep !== null) {
                     return "alpha with split not supported";
                 } else {
                     this.versioningType = VersioningType.alphanumeric;
                 }
             } else {
-                if (sep !== null) {
+                if (sep !== undefined && sep !== null) {
                     this.versioningType = VersioningType.numericSplit;
                 } else {
                     this.versioningType = VersioningType.numeric;
@@ -471,7 +490,7 @@ class IgnoreFieldHandler extends FieldHandler {
 
         parse(fieldContent, startTime, timeWidth, extra) {
             var v = URITemplate.getArg(extra, "v", null);
-            if (v !== null) {
+            if (v !== undefined && v !== null) {
                 this.versioningType = VersioningType.numericSplit;
                 fieldContent = v + "." + fieldContent;
             }
@@ -536,7 +555,7 @@ class URITemplate {
     // J2J: Name is used twice in class: URITemplate formatTimeRange
     // J2J: Name is used twice in class: URITemplate formatStartStopRange
     // J2J: private static final Logger logger = Logger.getLogger("hapiserver.uritemplates");
-    static VERSION = "20240730.2";
+    static VERSION = "20240731.1";
 
     static getVersion() {
         return URITemplate.VERSION;
@@ -687,6 +706,8 @@ class URITemplate {
 
     startLsd;
 
+    twoDigitYearStart = 1950;
+
     /**
      * parse the formatted arguments into a map from name to value.
      * @param args formatted arguments, like A=1;B=2;fmt=lc
@@ -694,7 +715,7 @@ class URITemplate {
      */
     static parseArgs(args) {
         var argv = new Map();
-        if (args !== null) {
+        if (args !== undefined && args !== null) {
             var ss2 = args.split(";");
             ss2.forEach( function ( ss21 ) {
                  var i3 = ss21.indexOf("=");
@@ -716,7 +737,7 @@ class URITemplate {
      * @return the value.
      */
     static getArg(args, arg, deft) {
-        if ( args === undefined || args === null) return deft;
+        if (args === undefined || args === null) return deft;
         if (args.has(arg)) {
             return args.get(arg);
         } else {
@@ -817,11 +838,10 @@ class URITemplate {
             } else {
                 if (ch == ',' && expectSemi) {
                     result[i] = ';';
-                } else {
-                    if (ch == ';') {
-                        expectSemi = false;
-                    }
+                } else if (ch == ';') {
+                    expectSemi = false;
                 }
+                
             }
         }
         var rr = result.join( "" );
@@ -837,8 +857,8 @@ class URITemplate {
      * @return 
      */
     static maybeInitialize(digits) {
-        if (digits === null) {
-            return [0,0,0,0,0,0,0];
+        if (digits === undefined || digits === null) {
+            return Array.apply(null, Array(TimeUtil.TIME_DIGITS)).map(function (x, i) { return 0; });
         } else {
             return digits;
         }
@@ -945,10 +965,11 @@ class URITemplate {
         //result.fieldHandlers = fieldHandlers;
         this.fieldHandlersById = new Map();
         formatString = URITemplate.makeCanonical(formatString);
+        this.spec = formatString;
         //this.formatString = formatString;
         var ss = formatString.split("$");
-        this.fc = [];
-        this.qualifiers = [];
+        this.fc = Array(ss.length);
+        this.qualifiers = Array(ss.length);
         var delim = [];
         this.ndigits = ss.length;
         var regex1 = "";
@@ -980,22 +1001,21 @@ class URITemplate {
             if (ssi.charAt(pp) !== '(') {
                 this.fc[i] = ssi.substring(pp, pp + 1);
                 delim[i] = ssi.substring(pp + 1);
-            } else {
-                if (ssi.charAt(pp) == '(') {
-                    var endIndex = ssi.indexOf(')', pp);
-                    if (endIndex === -1) {
-                        throw "opening paren but no closing paren in \"" + ssi + "\"";
-                    }
-                    var semi = ssi.indexOf(";", pp);
-                    if (semi !== -1) {
-                        this.fc[i] = ssi.substring(pp + 1, semi);
-                        this.qualifiers[i] = ssi.substring(semi + 1, endIndex);
-                    } else {
-                        this.fc[i] = ssi.substring(pp + 1, endIndex);
-                    }
-                    delim[i] = ssi.substring(endIndex + 1);
+            } else if (ssi.charAt(pp) == '(') {
+                var endIndex = ssi.indexOf(')', pp);
+                if (endIndex === -1) {
+                    throw "opening paren but no closing paren in \"" + ssi + "\"";
                 }
+                var semi = ssi.indexOf(";", pp);
+                if (semi !== -1) {
+                    this.fc[i] = ssi.substring(pp + 1, semi);
+                    this.qualifiers[i] = ssi.substring(semi + 1, endIndex);
+                } else {
+                    this.fc[i] = ssi.substring(pp + 1, endIndex);
+                }
+                delim[i] = ssi.substring(endIndex + 1);
             }
+            
         }
         this.handlers = [];
         this.offsets = [];
@@ -1023,13 +1043,12 @@ class URITemplate {
             }
             if (this.fc[i]=="H") {
                 haveHour = true;
-            } else {
-                if (this.fc[i]=="p") {
-                    if (!(haveHour)) {
-                        throw "$H must preceed $p";
-                    }
+            } else if (this.fc[i]=="p") {
+                if (!(haveHour)) {
+                    throw "$H must preceed $p";
                 }
             }
+            
             if (handler === 9999) {
                 if (!(this.fieldHandlers.has(this.fc[i]))) {
                     throw "bad format code: \"" + this.fc[i] + "\" in \"" + formatString + "\"";
@@ -1059,11 +1078,11 @@ class URITemplate {
                         }, this )
                     }
                     var errm = fh.configure(argv);
-                    if (errm !== null) {
+                    if (errm !== undefined && errm !== null) {
                         throw errm;
                     }
                     var id = URITemplate.getArg(argv, "id", null);
-                    if (id !== null) {
+                    if (id !== undefined && id !== null) {
                         this.fieldHandlersById.set(id, fh);
                     }
                 }
@@ -1076,7 +1095,7 @@ class URITemplate {
             }
             var span = 1;
             var div = 1;
-            if (this.qualifiers[i]!== undefined && this.qualifiers[i] !== null) {
+            if (this.qualifiers[i] !== undefined && this.qualifiers[i] !== null) {
                 var ss2 = this.qualifiers[i].split(";");
                 this.qualifiersMaps[i] = new Map();
                 ss2.forEach( function ( ss21 ) {
@@ -1206,6 +1225,12 @@ class URITemplate {
                                 }
 
                                 break
+                            case "start":
+                                if (handler === 1) {
+                                    this.twoDigitYearStart = parseInt(val);
+                                }
+
+                                break
                             case "shift":
                                 if (val.length === 0) throw "shift is empty";
 
@@ -1243,7 +1268,7 @@ class URITemplate {
                                     this.disallowCarryForStopTime = true;
                                 }
 
-                                if (this.qualifiersMaps[i] === null) this.qualifiersMaps[i] = new Map();
+                                if (this.qualifiersMaps[i] === undefined || this.qualifiersMaps[i] === null) this.qualifiersMaps[i] = new Map();
 
                                 this.qualifiersMaps[i].set(name, val);
                                 break
@@ -1254,6 +1279,9 @@ class URITemplate {
                                 }
 
                                 break
+                            case "len":
+                                this.lengths[i] = parseInt(val);
+                                break
                             default:
                                 if (!(this.fieldHandlers.has(this.fc[i]))) {
                                     throw "unrecognized/unsupported field: " + name + " in " + qual;
@@ -1262,18 +1290,17 @@ class URITemplate {
                                 break
                         }
                         okay = true;
-                    } else {
-                        if (!(okay)) {
-                            var name = qual.trim();
-                            if (name=="end") {
-                                if (this.stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
-                                    this.startLsd = this.lsd;
-                                    this.stopTimeDigit = i;
-                                }
-                                okay = true;
+                    } else if (!(okay)) {
+                        var name = qual.trim();
+                        if (name=="end") {
+                            if (this.stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
+                                this.startLsd = this.lsd;
+                                this.stopTimeDigit = i;
                             }
+                            okay = true;
                         }
                     }
+                    
                     if (!(okay) && (qual=="Y" || qual=="m" || qual=="d" || qual=="j" || qual=="H" || qual=="M" || qual=="S")) {
                         throw sprintf("%s must be assigned an integer value (e.g. %s=1) in %s",qual, qual, ss[i]);
                     }
@@ -1396,7 +1423,7 @@ class URITemplate {
                 break
         }
         if (this.stopTimeDigit == URITemplate.AFTERSTOP_INIT) {
-            if (this.startShift !== null) {
+            if (this.startShift !== undefined && this.startShift !== null) {
                 this.stopShift = this.startShift;
             }
         }
@@ -1461,7 +1488,7 @@ class URITemplate {
                     if (idigit === this.ndigits - 1) {
                         length = timeString.length - offs;
                     } else {
-                        throw "No delimer specified after unknown length field, \"" + this.formatName[this.handlers[idigit]] + "\", field number=" + (1 + idigit) + "";
+                        throw "No delimiter specified after unknown length field, \"" + this.formatName[this.handlers[idigit]] + "\", field number=" + (1 + idigit) + "";
                     }
                 } else {
                     while (offs < timeString.length && /\s/.test(timeString.charAt(offs))) {
@@ -1497,7 +1524,7 @@ class URITemplate {
                     digit = parseInt(field);
                     if (qual !== undefined && qual !== null) {
                         var s = URITemplate.getArg(qual, "div", null);
-                        if (s !== null) {
+                        if (s !== undefined && s !== null) {
                             var div = Math.trunc( parseFloat(s) );
                             // TODO: we really have to parse this each time?
                             digit = digit * div;
@@ -1508,10 +1535,12 @@ class URITemplate {
                             time[URITemplate.YEAR] = digit;
                             break
                         case 1:
-                            if (digit < 58) {
-                                time[URITemplate.YEAR] = 2000 + digit;
+                            var mod = this.twoDigitYearStart % 100;
+                            var cent = Math.trunc(this.twoDigitYearStart / 100);
+                            if (digit >= mod) {
+                                time[URITemplate.YEAR] = cent * 100 + digit;
                             } else {
-                                time[URITemplate.YEAR] = 1900 + digit;
+                                time[URITemplate.YEAR] = (cent + 1) * 100 + digit;
                             }
 
                             break
@@ -1540,69 +1569,55 @@ class URITemplate {
                         default:
                             throw "handlers[idigit] was not expected value (which shouldn't happen)";
                     }
-                } else {
-                    if (this.handlers[idigit] === 100) {
-                        var handler = (this.fieldHandlers.get(this.fc[idigit]));
-                        handler.parse(timeString.substring(offs, offs + length), time, this.timeWidth, extra);
-                    } else {
-                        if (this.handlers[idigit] === 10) {
-                            // AM/PM -- code assumes hour has been read already
-                            var ch = timeString.charAt(offs);
-                            if (ch == 'P' || ch == 'p') {
-                                if (time[URITemplate.HOUR] === 12) {
-                                } else {
-                                    time[URITemplate.HOUR] += 12;
-                                }
-                            } else {
-                                if (ch == 'A' || ch == 'a') {
-                                    if (time[URITemplate.HOUR] === 12) {
-                                        time[URITemplate.HOUR] -= 12;
-                                    } else {
-                                    }
-                                }
-                            }
+                } else if (this.handlers[idigit] === 100) {
+                    var handler = (this.fieldHandlers.get(this.fc[idigit]));
+                    handler.parse(timeString.substring(offs, offs + length), time, this.timeWidth, extra);
+                } else if (this.handlers[idigit] === 10) {
+                    // AM/PM -- code assumes hour has been read already
+                    var ch = timeString.charAt(offs);
+                    if (ch == 'P' || ch == 'p') {
+                        if (time[URITemplate.HOUR] === 12) {
                         } else {
-                            if (this.handlers[idigit] === 11) {
-                                // TimeZone is not supported, see code elsewhere.
-                                var offset;
-                                offset = parseInt(timeString.substring(offs, offs + length));
-                                time[URITemplate.HOUR] -= Math.trunc(offset / 100);
-                                // careful!
-                                time[URITemplate.MINUTE] -= offset % 100;
-                            } else {
-                                if (this.handlers[idigit] === 12) {
-                                    if (length >= 0) {
-                                        extra.set("ignore", timeString.substring(offs, offs + length));
-                                    }
-                                } else {
-                                    if (this.handlers[idigit] === 13) {
-                                        // month name
-                                        time[URITemplate.MINUTE] = TimeUtil.monthNumber(timeString.substring(offs, offs + length));
-                                    } else {
-                                        if (this.handlers[idigit] === 14) {
-                                            if (length >= 0) {
-                                                extra.set("X", timeString.substring(offs, offs + length));
-                                            }
-                                        } else {
-                                            if (this.handlers[idigit] === 15) {
-                                                // "x"
-                                                var name;
-                                                if (qual !== null) {
-                                                    name = URITemplate.getArg(qual, "name", "x");
-                                                } else {
-                                                    name = "x";
-                                                }
-                                                if (length >= 0) {
-                                                    extra.set(name, timeString.substring(offs, offs + length));
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            time[URITemplate.HOUR] += 12;
+                        }
+                    } else if (ch == 'A' || ch == 'a') {
+                        if (time[URITemplate.HOUR] === 12) {
+                            time[URITemplate.HOUR] -= 12;
+                        } else {
                         }
                     }
+                    
+                } else if (this.handlers[idigit] === 11) {
+                    // TimeZone is not supported, see code elsewhere.
+                    var offset;
+                    offset = parseInt(timeString.substring(offs, offs + length));
+                    time[URITemplate.HOUR] -= Math.trunc(offset / 100);
+                    // careful!
+                    time[URITemplate.MINUTE] -= offset % 100;
+                } else if (this.handlers[idigit] === 12) {
+                    if (length >= 0) {
+                        extra.set("ignore", timeString.substring(offs, offs + length));
+                    }
+                } else if (this.handlers[idigit] === 13) {
+                    // month name
+                    time[URITemplate.MONTH] = TimeUtil.monthNumber(timeString.substring(offs, offs + length));
+                } else if (this.handlers[idigit] === 14) {
+                    if (length >= 0) {
+                        extra.set("X", timeString.substring(offs, offs + length));
+                    }
+                } else if (this.handlers[idigit] === 15) {
+                    // "x"
+                    var name;
+                    if (qual !== undefined && qual !== null) {
+                        name = URITemplate.getArg(qual, "name", "x");
+                    } else {
+                        name = "x";
+                    }
+                    if (length >= 0) {
+                        extra.set(name, timeString.substring(offs, offs + length));
+                    }
                 }
+   
             } catch (ex) {
                 throw sprintf("fail to parse digit number %d: %s",idigit, field);
             }
@@ -1611,26 +1626,22 @@ class URITemplate {
         if (foundDelim!=this.delims[this.ndigits - 1]) {
             throw "Expected \"" + this.delims[this.ndigits - 1] + "\" after $" + this.fc[this.ndigits - 1] + ", got: " + foundDelim;
         }
-        if (this.phasestart !== null) {
-            if (this.timeWidth === null) {
+        if (this.phasestart !== undefined && this.phasestart !== null) {
+            if (this.timeWidth === undefined || this.timeWidth === null) {
                 // J2J (logger) logger.warning("phasestart cannot be used for month or year resolution");
             } else {
                 if (this.timeWidth[1] > 0) {
                     startTime[1] = (Math.trunc((startTime[1] - this.phasestart[1]) / this.timeWidth[1])) * this.timeWidth[1] + this.phasestart[1];
+                } else if (this.timeWidth[0] > 0) {
+                    startTime[0] = (Math.trunc((startTime[0] - this.phasestart[0]) / this.timeWidth[0])) * this.timeWidth[0] + this.phasestart[0];
+                } else if (this.timeWidth[2] > 1) {
+                    var phaseStartJulian = TimeUtil.julianDay(this.phasestart[0], this.phasestart[1], this.phasestart[2]);
+                    var ndays = TimeUtil.julianDay(startTime[0], startTime[1], startTime[2]) - phaseStartJulian;
+                    var ncycles = URITemplate.floorDiv(ndays, this.timeWidth[2]);
+                    startTime = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * this.timeWidth[2]);
                 } else {
-                    if (this.timeWidth[0] > 0) {
-                        startTime[0] = (Math.trunc((startTime[0] - this.phasestart[0]) / this.timeWidth[0])) * this.timeWidth[0] + this.phasestart[0];
-                    } else {
-                        if (this.timeWidth[2] > 1) {
-                            var phaseStartJulian = TimeUtil.julianDay(this.phasestart[0], this.phasestart[1], this.phasestart[2]);
-                            var ndays = TimeUtil.julianDay(startTime[0], startTime[1], startTime[2]) - phaseStartJulian;
-                            var ncycles = URITemplate.floorDiv(ndays, this.timeWidth[2]);
-                            startTime = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * this.timeWidth[2]);
-                        } else {
-                            // J2J (logger) logger.log(Level.WARNING, "phasestart can only be used when step size is integer number of days greater than 1: {0}", TimeUtil.formatIso8601Duration(timeWidth));
-                        }
-                    }
-                }
+                    // J2J (logger) logger.log(Level.WARNING, "phasestart can only be used when step size is integer number of days greater than 1: {0}", TimeUtil.formatIso8601Duration(timeWidth));
+                }         
                 stopTime = TimeUtil.add(startTime, this.timeWidth);
             }
         } else {
@@ -1648,7 +1659,7 @@ class URITemplate {
         }
         var result = [];
         var noShift;
-        noShift = this.startShift === null;
+        noShift = this.startShift === undefined || this.startShift === null;
         if (noShift) {
             arraycopy( startTime, 0, result, 0, URITemplate.NUM_TIME_DIGITS );
             TimeUtil.normalizeTime(result);
@@ -1658,7 +1669,7 @@ class URITemplate {
             }
             TimeUtil.normalizeTime(result);
         }
-        noShift = this.stopShift === null;
+        noShift = this.stopShift === undefined || this.stopShift === null;
         if (noShift) {
             TimeUtil.normalizeTime(stopTime);
             arraycopy( stopTime, 0, result, URITemplate.NUM_TIME_DIGITS, URITemplate.NUM_TIME_DIGITS );
@@ -1737,7 +1748,7 @@ class URITemplate {
         var i = 0;
         var externalContext = ut.getExternalContext();
         if (externalContext > 0) {
-            var context = [0,0,0,0,0,0,0];
+            var context = Array.apply(null, Array(TimeUtil.TIME_DIGITS)).map(function (x, i) { return 0; });
             arraycopy( stopDigits, 0, context, 0, externalContext );
             ut.setContext(context);
         }
@@ -1839,14 +1850,14 @@ class URITemplate {
         } else {
             timeWidthl = TimeUtil.subtract(stopTime, startTime);
         }
-        if (this.startShift !== null) {
+        if (this.startShift !== undefined && this.startShift !== null) {
             startTime = TimeUtil.subtract(startTime, this.startShift);
         }
-        if (this.stopShift !== null) {
+        if (this.stopShift !== undefined && this.stopShift !== null) {
             stopTime = TimeUtil.subtract(stopTime, this.stopShift);
         }
         if (this.timeWidthIsExplicit) {
-            if (this.phasestart !== null && this.timeWidth[2] > 0) {
+            if (this.phasestart !== undefined && this.phasestart !== null && this.timeWidth[2] > 0) {
                 var phaseStartJulian = TimeUtil.julianDay(this.phasestart[0], this.phasestart[1], this.phasestart[2]);
                 var ndays = TimeUtil.julianDay(startTime[0], startTime[1], startTime[2]) - phaseStartJulian;
                 var ncycles = URITemplate.floorDiv(ndays, this.timeWidth[2]);
@@ -1886,13 +1897,13 @@ class URITemplate {
                 var qualm = this.qualifiersMaps[idigit];
                 var digit;
                 var delta = 1;
-                if (qualm !== null) {
+                if (qualm !== undefined && qualm !== null) {
                     var ddelta = URITemplate.getArg(qualm, "delta", null);
-                    if (ddelta !== null) {
+                    if (ddelta !== undefined && ddelta !== null) {
                         delta = parseInt(ddelta);
                     } else {
                         ddelta = URITemplate.getArg(qualm, "span", null);
-                        if (ddelta !== null) {
+                        if (ddelta !== undefined && ddelta !== null) {
                             delta = parseInt(ddelta);
                         }
                     }
@@ -1945,7 +1956,7 @@ class URITemplate {
                             digit = ((Math.trunc((digit - 1) / delta)) * delta) + 1;
                             break
                         case 4:
-                            if (this.phasestart !== null) {
+                            if (this.phasestart !== undefined && this.phasestart !== null) {
                                 var phaseStartJulian = TimeUtil.julianDay(this.phasestart[0], this.phasestart[1], this.phasestart[2]);
                                 var ndays = TimeUtil.julianDay(timel[0], timel[1], timel[2]) - phaseStartJulian;
                                 var ncycles = URITemplate.floorDiv(ndays, this.timeWidth[2]);
@@ -1968,14 +1979,14 @@ class URITemplate {
                     result = result.substring(0,offs)+ss+result.substring(offs);  // J2J expr -> assignment;
                     offs += ss.length;
                 } else {
-                    if (this.qualifiersMaps[idigit] !== null) {
+                    if (this.qualifiersMaps[idigit] !== undefined && this.qualifiersMaps[idigit] !== null) {
                         // TODO: suboptimal
                         var div = URITemplate.getArg(this.qualifiersMaps[idigit], "div", null);
-                        if (div !== null) {
+                        if (div !== undefined && div !== null) {
                             digit = Math.trunc(digit / Math.trunc( parseFloat(div) ));
                         }
                         var pad = URITemplate.getArg(this.qualifiersMaps[idigit], "pad", null);
-                        if (pad === null || pad=="zero") {
+                        if (pad === undefined || pad === null || pad=="zero") {
                             result = result.substring(0,offs)+sprintf(nf[length],digit)+result.substring(offs);  // J2J expr -> assignment;
                             offs += length;
                         } else {
@@ -2010,81 +2021,93 @@ class URITemplate {
                         offs += length;
                     }
                 }
-            } else {
-                if (this.handlers[idigit] === 13) {
-                    // month names
-                    var cas = URITemplate.getArg(this.qualifiersMaps[idigit], "case", null);
-                    var fmt = URITemplate.getArg(this.qualifiersMaps[idigit], "fmt", null);
-                    var ins;
-                    if ("full"==fmt) {
-                        ins = TimeUtil.monthNameFull(timel[1]);
-                    } else {
-                        ins = TimeUtil.monthNameAbbrev(timel[1]);
-                    }
-                    if (cas === null || cas=="lc") {
-                        ins = ins.toLowerCase();
-                    } else {
-                        if (cas=="cap") {
-                        } else {
-                            if (cas=="uc") {
-                                ins = ins.toUpperCase();
-                            }
-                        }
+            } else if (this.handlers[idigit] === 13) {
+                // month names
+                var cas = URITemplate.getArg(this.qualifiersMaps[idigit], "case", null);
+                var fmt = URITemplate.getArg(this.qualifiersMaps[idigit], "fmt", null);
+                var ins;
+                if ("full"==fmt) {
+                    ins = TimeUtil.monthNameFull(timel[1]);
+                } else {
+                    ins = TimeUtil.monthNameAbbrev(timel[1]);
+                }
+                if (cas === undefined || cas === null || cas=="lc") {
+                    ins = ins.toLowerCase();
+                } else if (cas=="cap") {
+                } else if (cas=="uc") {
+                    ins = ins.toUpperCase();
+                }
+                
+                
+                result = result.substring(0,offs)+ins+result.substring(offs);  // J2J expr -> assignment;
+                offs += ins.length;
+            } else if (this.handlers[idigit] === 12 || this.handlers[idigit] === 14) {
+                throw "cannot format spec containing ignore";
+            } else if (this.handlers[idigit] === 100) {
+                if (this.fc[idigit]=="v") {
+                    // kludge for version.  TODO: This can probably use the code below now.
+                    var ins = URITemplate.getArg(extra, "v", "00");
+                    if (length > -1) {
+                        if (length > 20) throw "version lengths>20 not supported";
+                        ins = "00000000000000000000".substring(0, length);
                     }
                     result = result.substring(0,offs)+ins+result.substring(offs);  // J2J expr -> assignment;
                     offs += ins.length;
                 } else {
-                    if (this.handlers[idigit] === 12 || this.handlers[idigit] === 14) {
-                        throw "cannot format spec containing ignore";
-                    } else {
-                        if (this.handlers[idigit] === 100) {
-                            if (this.fc[idigit]=="v") {
-                                // kludge for version.  TODO: This can probably use the code below now.
-                                var ins = URITemplate.getArg(extra, "v", "00");
-                                if (length > -1) {
-                                    if (length > 20) throw "version lengths>20 not supported";
-                                    ins = "00000000000000000000".substring(0, length);
-                                }
-                                result = result.substring(0,offs)+ins+result.substring(offs);  // J2J expr -> assignment;
-                                offs += ins.length;
-                            } else {
-                                var fh1 = this.fieldHandlers.get(this.fc[idigit]);
-                                var timeEnd = stopTime;
-                                var ins = fh1.format(timel, TimeUtil.subtract(timeEnd, timel), length, extra);
-                                var startTimeTest = [0,0,0,0,0,0,0];
-                                arraycopy( timel, 0, startTimeTest, 0, URITemplate.NUM_TIME_DIGITS );
-                                var timeWidthTest = [0,0,0,0,0,0,0];
-                                arraycopy( timeWidthl, 0, timeWidthTest, 0, URITemplate.NUM_TIME_DIGITS );
-                                try {
-                                    fh1.parse(ins, startTimeTest, timeWidthTest, extra);
-                                    arraycopy( startTimeTest, 0, timel, 0, URITemplate.NUM_TIME_DIGITS );
-                                    arraycopy( timeWidthTest, 0, timeWidthl, 0, URITemplate.NUM_TIME_DIGITS );
-                                    arraycopy( TimeUtil.add(timel, timeWidthl), 0, stopTime, 0, URITemplate.NUM_TIME_DIGITS );
-                                } catch (ex) {
-                                    // J2J (logger) logger.log(Level.SEVERE, null, ex);
-                                }
-                                if (length > -1 && ins.length !== length) {
-                                    throw "length of fh is incorrect, should be " + length + ", got \"" + ins + "\"";
-                                }
-                                result = result.substring(0,offs)+ins+result.substring(offs);  // J2J expr -> assignment;
-                                offs += ins.length;
-                            }
+                    var fh1 = this.fieldHandlers.get(this.fc[idigit]);
+                    var timeEnd = stopTime;
+                    var ins = fh1.format(timel, TimeUtil.subtract(timeEnd, timel), length, extra);
+                    var startTimeTest = [0,0,0,0,0,0,0];
+                    arraycopy( timel, 0, startTimeTest, 0, URITemplate.NUM_TIME_DIGITS );
+                    var timeWidthTest = [0,0,0,0,0,0,0];
+                    arraycopy( timeWidthl, 0, timeWidthTest, 0, URITemplate.NUM_TIME_DIGITS );
+                    try {
+                        fh1.parse(ins, startTimeTest, timeWidthTest, extra);
+                        arraycopy( startTimeTest, 0, timel, 0, URITemplate.NUM_TIME_DIGITS );
+                        arraycopy( timeWidthTest, 0, timeWidthl, 0, URITemplate.NUM_TIME_DIGITS );
+                        arraycopy( TimeUtil.add(timel, timeWidthl), 0, stopTime, 0, URITemplate.NUM_TIME_DIGITS );
+                    } catch (ex) {
+                        // J2J (logger) logger.log(Level.SEVERE, null, ex);
+                    }
+                    if (length > -1 && ins.length !== length) {
+                        var p = URITemplate.getArg(this.qualifiersMaps[idigit], "pad", null);
+                        if (p === undefined || p === null) {
+                            throw "length of fh is incorrect, should be " + length + ", got \"" + ins + "\", and pad is not defined.";
+                        }
+                        if (length < ins.length) {
+                            throw "length of fh is incorrect, should be " + length + ", got \"" + ins + "\", which has too many characters.";
                         } else {
-                            if (this.handlers[idigit] === 10) {
-                                throw "AM/PM not supported";
-                            } else {
-                                if (this.handlers[idigit] === 11) {
-                                    throw "Time Zones not supported";
-                                }
+                            var l = length - ins.length;
+                            var padx;
+                            switch (p) {
+                                case "underscore":
+                                case "_":
+                                case "none":
+                                    padx = "____________________".substring(0, l);
+                                    break
+                                case "space":
+                                    padx = "                    ".substring(0, l);
+                                    break
+                                default:
+                                    throw "unsupported pad.  Must be underscore, _, or space";
                             }
+                            ins = padx + ins;
                         }
                     }
+                    result = result.substring(0,offs)+ins+result.substring(offs);  // J2J expr -> assignment;
+                    offs += ins.length;
                 }
-            }
+            } else if (this.handlers[idigit] === 10) {
+                throw "AM/PM not supported";
+            } else if (this.handlers[idigit] === 11) {
+                throw "Time Zones not supported";
+            } 
         }
         result = result.substring(0,offs)+this.delims[this.ndigits - 1]+result.substring(offs);  // J2J expr -> assignment;
         return result.trim();
     }
 
+    toString() {
+        return "URITemplate " + this.spec;
+    }
 }
-

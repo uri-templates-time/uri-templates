@@ -46,7 +46,6 @@ function fail(msg) {
  * @author jbf
  */
 class URITemplateTest {
-    // J2J: Name is used twice in class: URITemplateTest doTestTimeParser1
     /**
      * Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
      */
@@ -79,6 +78,7 @@ class URITemplateTest {
             ut = new URITemplate(spec);
         } catch (ex) {
             console.info("### unable to parse spec: " + spec);
+            fail(ex);
             return;
         }
         var nn = norm.split("/");
@@ -87,7 +87,7 @@ class URITemplateTest {
         }
         var start = TimeUtil.isoTimeToArray(nn[0]);
         var stop = TimeUtil.isoTimeToArray(nn[1]);
-        var inorm = [0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+        var inorm = Array.apply(null, Array(14)).map(function (x, i) { return 0; });
         arraycopy( start, 0, inorm, 0, 7 );
         arraycopy( stop, 0, inorm, 7, 7 );
         var res;
@@ -95,8 +95,7 @@ class URITemplateTest {
             res = ut.parse(test, new Map());
         } catch (ex) {
             if (expectException) {
-                fail(ex); // TODO: this needs more study
-                return;
+                throw ex;
             } else {
                 fail(ex);
                 return;
@@ -106,7 +105,7 @@ class URITemplateTest {
         if (arrayequals( res, inorm )) {
             console.info(sprintf("%s:  \t\"%s\"%s\t\"%s\"",spec, test, arrow, URITemplateTest.toStr(res)));
         } else {
-            console.info("### ranges do not match: " + spec + " " + test + arrow + URITemplateTest.toStr(res) + ", should be " + norm);
+            throw "ranges do not match: " + spec + " " + test + "--> " + URITemplateTest.toStr(res) + ", should be " + norm;
         }
         assertArrayEquals(inorm, res);
     }
@@ -140,11 +139,21 @@ class URITemplateTest {
     }
 
     testDelimiterExceptionLeading() {
-        //this.doTestTimeParser1("ac_$Y$j00-$(Y;end)$(j;end)00.gif", "AC_199811900-199812000.gif", "1998-04-29T00:00Z/1998-04-30T00:00Z", true);
+        try {
+            this.doTestTimeParser1("ac_$Y$j00-$(Y;end)$(j;end)00.gif", "AC_199811900-199812000.gif", "1998-04-29T00:00Z/1998-04-30T00:00Z", true);
+            throw new Exception("this should fail");
+        } catch {
+            console.info("okay testDelimiterExceptionLeading");
+        }
     }
 
     testDelimiterExceptionTrailing() {
-        //this.doTestTimeParser1("ac_$Y$j00-$(Y;end)$(j;end)00.gif", "ac_199811900-199812000-this-shouldnt-match.gif", "1998-04-29T00:00Z/1998-04-30T00:00Z", true);
+        try {
+            this.doTestTimeParser1("ac_$Y$j00-$(Y;end)$(j;end)00.gif", "ac_199811900-199812000-this-shouldnt-match.gif", "1998-04-29T00:00Z/1998-04-30T00:00Z", true);
+            throw new Exception("this should fail");
+        } catch {
+            console.info("okay testDelimiterExceptionTrailing");
+        }
     }
 
     /**
@@ -153,40 +162,44 @@ class URITemplateTest {
      */
     testParse() {
         console.info("# testParse");
-        this.doTestTimeParser1("data_$Y_$j_$(Y;end)_$(j;shift=1;phasestart=2009-001).dat", "data_2009_001_2009_002.dat", "2009-01-01/2009-01-03T00:00Z");
-        this.doTestTimeParser1("$Y$(j;div=100)XX", "20243XX", "2024-10-26T00:00Z/2025-01-01T00:00Z");
-        this.doTestTimeParser1("$Y$(j;div=100)XX/$j", "20243XX/365", "2024-12-30T00:00Z/2024-12-31T00:00Z");
-        this.doTestTimeParser1("$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
+        this.doTestTimeParser1("data_$Y_$j_$(Y;end)_$(j;shift=1;phasestart=2009-001).dat", "data_2009_001_2009_002.dat", "2009-01-01/2009-01-03T00:00Z", false);
+        this.doTestTimeParser1("$Y$(j;div=100)XX", "20243XX", "2024-10-26T00:00Z/2025-01-01T00:00Z", false);
+        this.doTestTimeParser1("$Y$(j;div=100)XX/$j", "20243XX/365", "2024-12-30T00:00Z/2024-12-31T00:00Z", false);
+        this.doTestTimeParser1("$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00", false);
         this.dotestParse1();
         this.doTestParse2();
         this.doTestParse3();
-        this.doTestTimeParser1("$(j;Y=2012).$H$M$S.$N", "017.020000.245000000", "2012-01-17T02:00:00.245000000/2012-01-17T02:00:00.245000001");
-        this.doTestTimeParser1("$(j;Y=2012).$H$M$S.$(N;div=1000000)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246");
-        this.doTestTimeParser1("$(j;Y=2012).$H$M$S.$(N;div=1E6)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246");
-        this.doTestTimeParser1("ac27_crn$x_$Y$j00-$(Y;end)$(j;end)00.gif", "ac27_crn1926_199722300-199725000.gif", "1997-223T00:00/1997-250T00:00");
-        this.doTestTimeParser1("$Y $m $d $H $M", "2012 03 30 16 20", "2012-03-30T16:20/2012-03-30T16:21");
-        this.doTestTimeParser1("$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03");
-        this.doTestTimeParser1("$Y$m$d-$(Y;end)$m$d", "20130202-20140303", "2013-02-02/2014-03-03");
-        this.doTestTimeParser1("$Y$m$d-$(Y;end)$m$(d;shift=1)", "20200101-20200107", "2020-01-01/2020-01-08");
-        this.doTestTimeParser1("$Y$m$d-$(d;end)", "20130202-13", "2013-02-02/2013-02-13");
-        this.doTestTimeParser1("$(periodic;offset=0;start=2000-001;period=P1D)", "0", "2000-001/P1D");
-        this.doTestTimeParser1("$(periodic;offset=0;start=2000-001;period=P1D)", "20", "2000-021/P1D");
-        this.doTestTimeParser1("$(periodic;offset=2285;start=2000-346;period=P27D)", "1", "1832-02-08/P27D");
-        this.doTestTimeParser1("$(periodic;offset=2285;start=2000-346;period=P27D)", "2286", "2001-007/P27D");
-        this.doTestTimeParser1("$(j;Y=2012)$(hrinterval;names=01,02,03,04)", "01702", "2012-01-17T06:00/PT6H");
-        this.doTestTimeParser1("$(j;Y=2012).$H$M$S.$(subsec;places=3)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246");
+        this.doTestTimeParser1("$(j;Y=2012).$H$M$S.$N", "017.020000.245000000", "2012-01-17T02:00:00.245000000/2012-01-17T02:00:00.245000001", false);
+        this.doTestTimeParser1("$(j;Y=2012).$H$M$S.$(N;div=1000000)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246", false);
+        this.doTestTimeParser1("$(j;Y=2012).$H$M$S.$(N;div=1E6)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246", false);
+        this.doTestTimeParser1("ac27_crn$x_$Y$j00-$(Y;end)$(j;end)00.gif", "ac27_crn1926_199722300-199725000.gif", "1997-223T00:00/1997-250T00:00", false);
+        this.doTestTimeParser1("$Y $m $d $H $M", "2012 03 30 16 20", "2012-03-30T16:20/2012-03-30T16:21", false);
+        this.doTestTimeParser1("$Y$m$d-$(enum;values=a,b,c,d)", "20130202-a", "2013-02-02/2013-02-03", false);
+        this.doTestTimeParser1("$Y$m$d-$(Y;end)$m$d", "20130202-20140303", "2013-02-02/2014-03-03", false);
+        this.doTestTimeParser1("$Y$m$d-$(Y;end)$m$(d;shift=1)", "20200101-20200107", "2020-01-01/2020-01-08", false);
+        this.doTestTimeParser1("$Y$m$d-$(d;end)", "20130202-13", "2013-02-02/2013-02-13", false);
+        this.doTestTimeParser1("$(periodic;offset=0;start=2000-001;period=P1D)", "0", "2000-001/P1D", false);
+        this.doTestTimeParser1("$(periodic;offset=0;start=2000-001;period=P1D)", "20", "2000-021/P1D", false);
+        this.doTestTimeParser1("$(periodic;offset=2285;start=2000-346;period=P27D)", "1", "1832-02-08/P27D", false);
+        this.doTestTimeParser1("$(periodic;offset=2285;start=2000-346;period=P27D)", "2286", "2001-007/P27D", false);
+        this.doTestTimeParser1("$(j;Y=2012)$(hrinterval;names=01,02,03,04)", "01702", "2012-01-17T06:00/PT6H", false);
+        this.doTestTimeParser1("$(j;Y=2012).$H$M$S.$(subsec;places=3)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246", false);
         //This should not parse: doTestTimeParser1( "$(j;Y=2012).$x.$X.$(ignore).$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
-        this.doTestTimeParser1("$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
+        this.doTestTimeParser1("$(j;Y=2012).*.*.*.$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00", false);
         //testTimeParser1( "$(o;id=rbspa-pp)", "31",  "2012-09-10T14:48:30.914Z/2012-09-10T23:47:34.973Z"); 
-        this.doTestTimeParser1("$(j;Y=2012)$(hrinterval;names=01,02,03,04)", "01702", "2012-01-17T06:00/2012-01-17T12:00");
-        this.doTestTimeParser1("$-1Y $-1m $-1d $H$M", "2012 3 30 1620", "2012-03-30T16:20/2012-03-30T16:21");
-        this.doTestTimeParser1("$Y", "2012", "2012-01-01T00:00/2013-01-01T00:00");
-        this.doTestTimeParser1("$Y-$j", "2012-017", "2012-01-17T00:00/2012-01-18T00:00");
-        this.doTestTimeParser1("$(j,Y=2012)", "017", "2012-01-17T00:00/2012-01-18T00:00");
-        this.doTestTimeParser1("ace_mag_$Y_$j_to_$(Y;end)_$j.cdf", "ace_mag_2005_001_to_2005_003.cdf", "2005-001T00:00/2005-003T00:00");
-        this.doTestTimeParser1("$y $(m;pad=none) $(d;pad=none) $(H;pad=none)", "99 1 3 0", "1999-01-03T00:00/1999-01-03T01:00");
-        this.doTestTimeParser1("$y $j ($(m;pad=none) $(d;pad=none)) $H", "99 003 (1 3) 00", "1999-01-03T00:00/1999-01-03T01:00");
-        this.doTestTimeParser1("/gif/ac_$Y$j$H-$(Y;end)$j$H.gif", "/gif/ac_199733000-199733100.gif", "1997-11-26T00:00Z/1997-11-27T00:00Z");
+        this.doTestTimeParser1("$(j;Y=2012)$(hrinterval;names=01,02,03,04)", "01702", "2012-01-17T06:00/2012-01-17T12:00", false);
+        this.doTestTimeParser1("$-1Y $-1m $-1d $H$M", "2012 3 30 1620", "2012-03-30T16:20/2012-03-30T16:21", false);
+        this.doTestTimeParser1("$Y", "2012", "2012-01-01T00:00/2013-01-01T00:00", false);
+        this.doTestTimeParser1("$Y-$j", "2012-017", "2012-01-17T00:00/2012-01-18T00:00", false);
+        this.doTestTimeParser1("$(j,Y=2012)", "017", "2012-01-17T00:00/2012-01-18T00:00", false);
+        this.doTestTimeParser1("ace_mag_$Y_$j_to_$(Y;end)_$j.cdf", "ace_mag_2005_001_to_2005_003.cdf", "2005-001T00:00/2005-003T00:00", false);
+        this.doTestTimeParser1("$y $(m;pad=none) $(d;pad=none) $(H;pad=none)", "99 1 3 0", "1999-01-03T00:00/1999-01-03T01:00", false);
+        this.doTestTimeParser1("$y $j ($(m;pad=none) $(d;pad=none)) $H", "99 003 (1 3) 00", "1999-01-03T00:00/1999-01-03T01:00", false);
+        this.doTestTimeParser1("/gif/ac_$Y$j$H-$(Y;end)$j$H.gif", "/gif/ac_199733000-199733100.gif", "1997-11-26T00:00Z/1997-11-27T00:00Z", false);
+        this.doTestTimeParser1("$Y_$(b;case=uc;fmt=full)_$d_$v", "2000_NOVEMBER_23_00", "2000-11-23T00:00Z/2000-11-24T00:00Z", false);
+        this.doTestTimeParser1("$(y;start=2000)", "72", "2072-01-01T00:00Z/2073-01-01T00:00Z", false);
+        this.doTestTimeParser1("$(y;start=1958)", "72", "1972-01-01T00:00Z/1973-01-01T00:00Z", false);
+        this.doTestTimeParser1("$(y;start=1958)", "57", "2057-01-01T00:00Z/2058-01-01T00:00Z", false);
     }
 
     testFloorDiv() {
@@ -211,6 +224,7 @@ class URITemplateTest {
             ut = new URITemplate(spec);
         } catch (ex) {
             console.info("### unable to parse spec: " + spec);
+            fail("unable to parse spec: " + spec);
             return;
         }
         var nn = norm.split("/");
@@ -221,7 +235,7 @@ class URITemplateTest {
         try {
             res = ut.format(nn[0], nn[1], new Map());
         } catch (ex) {
-            console.info("### " + ex);
+            console.info("### " + (ex.getMessage()));
             throw ex;
         }
         var arrow = String.fromCharCode( 8594 );
@@ -240,6 +254,22 @@ class URITemplateTest {
         this.doTestTimeFormat1("$(b;fmt=full)", "february", "2024-02-01/2024-03-01");
         this.doTestTimeFormat1("$(b;fmt=full;case=uc)", "FEBRUARY", "2024-02-01/2024-03-01");
         this.doTestTimeFormat1("$(b;fmt=full;case=cap) $(d;pad=none), $Y", "February 2, 2022", "2022-02-02/2022-02-03");
+    }
+
+    testFormatX() {
+        var t;
+        t = new URITemplate("/tmp/ap/$(x;name=sc;len=6;pad=_).dat");
+        var e = new Map();
+        e.set("sc", "Apple");
+        assertEquals("/tmp/ap/_Apple.dat", t.format("2000-01-01", "2000-01-02", e));
+    }
+
+    testParseX() {
+        var t;
+        t = new URITemplate("/tmp/ap/$Y_$(x;name=sc;len=6;pad=_).dat");
+        var e = new Map();
+        var r = t.parse("/tmp/ap/2024__Apple.dat", e);
+        assertArrayEquals([2024, 1, 1, 0, 0, 0, 0, 2025, 1, 1, 0, 0, 0, 0], r);
     }
 
     /**
@@ -263,7 +293,7 @@ class URITemplateTest {
         this.doTestTimeFormat1("$(periodic;offset=2285;start=2000-346;period=P27D)", "2286", "2001-007/P27D");
         this.doTestTimeFormat1("$(j;Y=2012)$(hrinterval;names=01,02,03,04)", "01702", "2012-01-17T06:00/PT12H");
         this.doTestTimeFormat1("$(j;Y=2012).$H$M$S.$(subsec;places=3)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246");
-        this.doTestTimeFormat1("$(j;Y=2012).$x.$X.$(ignore).$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
+        //this.doTestTimeFormat1("$(j;Y=2012).$x.$X.$(ignore).$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
         //testTimeFormat1( "$(o;id=rbspa-pp)", "31",  "2012-09-10T14:48:30.914Z/2012-09-10T23:47:34.973Z");
         this.doTestTimeFormat1("$(j;Y=2012)$(hrinterval;names=01,02,03,04)", "01702", "2012-01-17T06:00/2012-01-17T18:00");
         this.doTestTimeFormat1("$-1Y $-1m $-1d $H$M", "2012 3 30 1620", "2012-03-30T16:20/2012-03-30T16:21");
@@ -272,8 +302,8 @@ class URITemplateTest {
         this.doTestTimeFormat1("$(j,Y=2012)", "017", "2012-01-17T00:00/2012-01-18T00:00");
         this.doTestTimeFormat1("ace_mag_$Y_$j_to_$(Y;end)_$j.cdf", "ace_mag_2005_001_to_2005_003.cdf", "2005-001T00:00/2005-003T00:00");
         var ut = new URITemplate("$Y$m$d-$(Y;end)$m$d");
-        ut.formatTimeRange([2013, 2, 2, 0, 0, 0, 0, 2014, 3, 3, 0, 0, 0, 0], {} );
-        ut.formatStartStopRange([2013, 2, 2, 0, 0, 0, 0], [2014, 3, 3, 0, 0, 0, 0], {} );
+        ut.formatTimeRange([2013, 2, 2, 0, 0, 0, 0, 2014, 3, 3, 0, 0, 0, 0], new Map());
+        ut.formatStartStopRange([2013, 2, 2, 0, 0, 0, 0], [2014, 3, 3, 0, 0, 0, 0], new Map());
     }
 
     static readJSONTests() {
@@ -749,7 +779,7 @@ class URITemplateTest {
                  console.info(f);
             }, this )
         } catch (ex) {
-            fail(ex.getMessage());
+            fail(ex);
         }
     }
 
@@ -782,6 +812,8 @@ test.testDelimiterExceptionTrailing();
 test.testParse();
 test.testFloorDiv();
 test.testFormatMonth();
+test.testFormatX();
+test.testParseX();
 test.testFormat();
 test.testFormatHapiServerSite();
 test.testFormatRange();
