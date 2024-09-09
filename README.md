@@ -19,6 +19,9 @@ Here is a list of implementations of the specification:
 | Autoplot Aggregation<br>nearly complete for spec | Java  | https://autoplot.org/ |
 | URI_Templates JavaScript | JavaScript | https://github.com/hapi-server/uri-templates/tree/master/UriTemplatesJavaScript |
 | URI_Templates Python | Python | https://github.com/hapi-server/uri-templates/tree/master/UriTemplatesPython |
+| URI_Templates IDL | IDL | Coming soon, Java bridge could be used as well. |
+| URI_Templates Matlab | Matlab | This could be done as well, Java bridge could be used as well. |
+
 
 
 
