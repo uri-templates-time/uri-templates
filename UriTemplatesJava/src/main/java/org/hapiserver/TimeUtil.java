@@ -1316,7 +1316,7 @@ public class TimeUtil {
                 return true;
             } else if ( t1[i]<t2[i] ) {
                 return false;
-}
+            }
         }
         return false; // they are equal
     }
