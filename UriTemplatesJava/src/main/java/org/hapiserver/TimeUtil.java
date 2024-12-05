@@ -232,7 +232,8 @@ public class TimeUtil {
     
     /**
      * format the time as (non-leap) milliseconds since 1970-01-01T00:00.000Z into a string.  The
-     * number of milliseconds should not include leap seconds.  The milliseconds are always present.
+     * number of milliseconds should not include leap seconds.  The output will always include 
+     * milliseconds.
      * 
      * @param time the number of milliseconds since 1970-01-01T00:00.000Z
      * @return the formatted time.
@@ -242,6 +243,21 @@ public class TimeUtil {
         return FORMATTER_MS_1970.format( Instant.ofEpochMilli(time) );
     }
 
+    /**
+     * format the time as (non-leap) real seconds since 1970-01-01T00:00.000Z into a string.  The
+     * number of milliseconds should not include leap seconds.  The output will always include 
+     * milliseconds.
+     * 
+     * @param time the number of milliseconds since 1970-01-01T00:00.000Z
+     * @return the formatted time.
+     * @see #toMillisecondsSince1970(java.lang.String) 
+     */
+    public static String fromSecondsSince1970(double time) {
+        return FORMATTER_MS_1970.format( Instant.ofEpochMilli( (long)Math.round(time*1000.) ) );
+    }
+    
+    //TODO: fromNanosecondsSinceJ2000( long time ) / fromCDFTT2000( long time )
+    
     /**
      * given the two times, return a 14 element time range.
      * @param t1 a seven digit time
