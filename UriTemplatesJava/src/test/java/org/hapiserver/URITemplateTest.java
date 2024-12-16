@@ -277,7 +277,7 @@ public class URITemplateTest {
     public void testParseX2() throws ParseException {
         URITemplate t;
         t= new URITemplate("http://example.com/data/$Y/$Y_$m_$d/$(x;name=d5)/fa_k0_dcf_$x_$(x;name=mm).gif");
-        Map<String,String> e= new HashMap<String,String>();
+        Map<String,String> e= new HashMap<>();
         int[] r= t.parse( "http://example.com/data/2008/2008_03_04/46565/fa_k0_dcf_46565_in.gif", e );
         assertArrayEquals( new int[] { 2008,3,4,0,0,0,0, 2008,3,5,0,0,0,0 }, r );
         assertEquals( "46565", e.get("d5") );
