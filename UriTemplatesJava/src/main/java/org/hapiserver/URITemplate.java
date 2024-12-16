@@ -92,8 +92,6 @@ public class URITemplate {
      */
     int ndigits;
     
-    String[] digits;
-    
     /**
      * non-template stuff between fields (_ in $Y_$m) are the "delims"
      */
@@ -102,13 +100,14 @@ public class URITemplate {
     String[] qualifiers;
     Map<String,String>[] qualifiersMaps;
     
-    Map<String,FieldHandler> fieldHandlers;
     Map<String,FieldHandler> fieldHandlersById;
 
     /**
      * one element for each field, it is the handler (or type) of each field.
      */
     int[] handlers;
+    
+    FieldHandler[] handlerObjects;
 
     /**
      * one element for each field, containing the offset to each field, or -1 if the offset is not determined.
@@ -964,15 +963,6 @@ public class URITemplate {
      */
     public URITemplate( String formatString ) {
                 
-        this.fieldHandlers= new HashMap<>();
-        
-        this.fieldHandlers.put("subsec",new SubsecFieldHandler());
-        this.fieldHandlers.put("hrinterval",new HrintervalFieldHandler());
-        this.fieldHandlers.put("periodic",new PeriodicFieldHandler());
-        this.fieldHandlers.put("enum",new EnumFieldHandler());
-        this.fieldHandlers.put("x",new IgnoreFieldHandler());
-        this.fieldHandlers.put("v",new VersionFieldHandler());
-
         logger.log(Level.FINE, "new TimeParser({0},...)", formatString);
         
         int[] startTime = new int[NUM_TIME_DIGITS];
@@ -998,7 +988,8 @@ public class URITemplate {
         String[] ss = formatString.split("\\$");
         fc = new String[ss.length];
         qualifiers= new String[ss.length];
-        
+        handlerObjects= new FieldHandler[ss.length];
+                        
         String[] delim = new String[ss.length + 1];
 
         ndigits = ss.length;
@@ -1015,7 +1006,7 @@ public class URITemplate {
         this.qualifiersMaps= new HashMap[ndigits];
         
         this.phasestart= null;
-        
+                
         delim[0] = ss[0];
         for (int i = 1; i < ndigits; i++) {
             int pp = 0;
@@ -1049,6 +1040,16 @@ public class URITemplate {
                 }
                 delim[i] = ssi.substring(endIndex + 1);
             }
+            
+            switch ( fc[i] ) {
+                case "x": handlerObjects[i] = new IgnoreFieldHandler(); break;
+                case "subsec": handlerObjects[i] = new SubsecFieldHandler(); break;
+                case "hrinterval": handlerObjects[i] = new HrintervalFieldHandler(); break;
+                case "periodic": handlerObjects[i] =  new PeriodicFieldHandler(); break;
+                case "enum":  handlerObjects[i] = new EnumFieldHandler(); break;
+                case "v": handlerObjects[i]= new VersionFieldHandler(); break;
+            }
+            
         }
 
         handlers = new int[ndigits];
@@ -1090,9 +1091,6 @@ public class URITemplate {
             }
             
             if (handler == 9999) {
-                if ( !fieldHandlers.containsKey(fc[i]) ) {
-                    throw new IllegalArgumentException("bad format code: \"" + fc[i] + "\" in \""+ formatString + "\"");
-                } else {
                     handler = 100;
                     handlers[i] = 100;
                     offsets[i] = pos;
@@ -1102,7 +1100,7 @@ public class URITemplate {
                     } else {
                         pos += lengths[i];
                     }
-                    FieldHandler fh= fieldHandlers.get(fc[i]);
+                    FieldHandler fh= handlerObjects[i];
                     String args= qualifiers[i];
                     Map<String,String> argv= new HashMap();
                     if ( args!=null ) {
@@ -1126,7 +1124,6 @@ public class URITemplate {
                         fieldHandlersById.put( id,fh );
                     }
 
-                }
             } else {
                 handlers[i] = handler;
                 if (lengths[i] == 0) {
@@ -1315,9 +1312,6 @@ public class URITemplate {
                                 lengths[i]= Integer.parseInt(val);
                                 break;
                             default:
-                                if ( !fieldHandlers.containsKey(fc[i]) ) {
-                                    throw new IllegalArgumentException("unrecognized/unsupported field: "+name + " in "+qual );
-                                }   
                                 break;
                         }
                         okay= true;
@@ -1336,11 +1330,9 @@ public class URITemplate {
                         throw new IllegalArgumentException( String.format( "%s must be assigned an integer value (e.g. %s=1) in %s", qual, qual, ss[i] ) );
                     }
                     if ( !okay ) {
-                        if ( !fieldHandlers.containsKey(fc[i]) ) {
-                            logger.log(Level.WARNING, "unrecognized/unsupported field:{0} in {1}", new Object[]{qual, ss[i]});
-                            //TODO: check plug-in handlers like orbit...
-                            //throw new IllegalArgumentException("unrecognized/unsupported field:"+qual+ " in " +ss[i] );
-                        }
+                        logger.log(Level.WARNING, "unrecognized/unsupported field:{0} in {1}", new Object[]{qual, ss[i]});
+                        //TODO: check plug-in handlers like orbit...
+                        //throw new IllegalArgumentException("unrecognized/unsupported field:"+qual+ " in " +ss[i] );
                     }
                 }
 
@@ -1637,7 +1629,8 @@ public class URITemplate {
                             throw new IllegalArgumentException("handlers[idigit] was not expected value (which shouldn't happen)");
                     }
                 } else if (handlers[idigit] == 100) {
-                    FieldHandler handler = (FieldHandler) fieldHandlers.get(fc[idigit]);
+                    FieldHandler handler = handlerObjects[idigit];
+                    //FieldHandler handler = (FieldHandler) fieldHandlers.get(fc[idigit]);
                     handler.parse(timeString.substring(offs, offs + length), time, timeWidth, extra );
                     
                 } else if (handlers[idigit] == 10) { // AM/PM -- code assumes hour has been read already
@@ -2151,7 +2144,7 @@ public class URITemplate {
                     result.insert( offs, ins );
                     offs+= ins.length();
                 } else {
-                    FieldHandler fh1= fieldHandlers.get(fc[idigit]);
+                    FieldHandler fh1= handlerObjects[idigit];
                     int[] timeEnd = stopTime;
                     String ins= fh1.format( timel, TimeUtil.subtract(timeEnd, timel), length, extra );
                     int[] startTimeTest= new int[NUM_TIME_DIGITS];
