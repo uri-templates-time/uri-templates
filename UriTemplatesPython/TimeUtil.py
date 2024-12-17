@@ -11,7 +11,7 @@ import re
 #
 # @author jbf
 class TimeUtil:
-    VERSION = '20240730.1'
+    VERSION = '20241217.1'
 
     # Number of time components: year, month, day, hour, minute, second, nanosecond
     TIME_DIGITS = 7

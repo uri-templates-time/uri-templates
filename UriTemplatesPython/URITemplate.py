@@ -21,6 +21,8 @@ from TimeUtil import TimeUtil
 # @author jbf
 class URITemplate:
 
+    VERSION = '20241217.1'
+    
     @staticmethod
     def getVersion():
         return URITemplate.VERSION
