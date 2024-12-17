@@ -131,11 +131,13 @@ public class URITemplateTest {
     
     @Test(expected = ParseException.class)
     public void testDelimiterExceptionLeading() throws Exception {
+        // Note this test expects an exception and I need to figure out how to make Python unit tests do this.
         doTestTimeParser1( "ac_$Y$j00-$(Y;end)$(j;end)00.gif", "AC_199811900-199812000.gif",  "1998-04-29T00:00Z/1998-04-30T00:00Z", true );    
     }
     
     @Test(expected = ParseException.class)
     public void testDelimiterExceptionTrailing() throws Exception {
+        // Note this test expects an exception and I need to figure out how to make Python unit tests do this.
         doTestTimeParser1( "ac_$Y$j00-$(Y;end)$(j;end)00.gif", "ac_199811900-199812000-this-shouldnt-match.gif",  "1998-04-29T00:00Z/1998-04-30T00:00Z", true );    
     }
 
