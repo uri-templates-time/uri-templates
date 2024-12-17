@@ -416,6 +416,7 @@ class IgnoreFieldHandler extends FieldHandler {
             } else if (d1 > d2) {
                 return 1;
             }
+            
         }
         return ss1.length - ss2.length;
     });
@@ -555,7 +556,7 @@ class URITemplate {
     // J2J: Name is used twice in class: URITemplate formatTimeRange
     // J2J: Name is used twice in class: URITemplate formatStartStopRange
     // J2J: private static final Logger logger = Logger.getLogger("hapiserver.uritemplates");
-    static VERSION = "20240731.1";
+    static VERSION = "20241217.1";
 
     static getVersion() {
         return URITemplate.VERSION;
@@ -614,8 +615,6 @@ class URITemplate {
      */
     ndigits;
 
-    digits;
-
     /**
      * non-template stuff between fields (_ in $Y_$m) are the "delims"
      */
@@ -625,14 +624,14 @@ class URITemplate {
 
     qualifiersMaps;
 
-    fieldHandlers;
-
     fieldHandlersById;
 
     /**
      * one element for each field, it is the handler (or type) of each field.
      */
     handlers;
+
+    handlerObjects;
 
     /**
      * one element for each field, containing the offset to each field, or -1 if the offset is not determined.
@@ -945,13 +944,6 @@ class URITemplate {
      * @param formatString URI template spec as in /tmp/data.$Y$m$d.txt
      */
     constructor(formatString) {
-        this.fieldHandlers = new Map();
-        this.fieldHandlers.set("subsec", new SubsecFieldHandler());
-        this.fieldHandlers.set("hrinterval", new HrintervalFieldHandler());
-        this.fieldHandlers.set("periodic", new PeriodicFieldHandler());
-        this.fieldHandlers.set("enum", new EnumFieldHandler());
-        this.fieldHandlers.set("x", new IgnoreFieldHandler());
-        this.fieldHandlers.set("v", new VersionFieldHandler());
         // J2J (logger) logger.log(Level.FINE, "new TimeParser({0},...)", formatString);
         var startTime = [0,0,0,0,0,0,0];
         startTime[0] = URITemplate.MIN_VALID_YEAR;
@@ -970,6 +962,7 @@ class URITemplate {
         var ss = formatString.split("$");
         this.fc = Array(ss.length);
         this.qualifiers = Array(ss.length);
+        this.handlerObjects = Array(ss.length);
         var delim = [];
         this.ndigits = ss.length;
         var regex1 = "";
@@ -979,6 +972,7 @@ class URITemplate {
         for ( var i = 0; i < this.lengths.length; i++) {
             this.lengths[i] = -1;
         }
+        // -1 indicates not known, but we'll figure out as many as we can.
         this.startShift = null;
         this.stopShift = null;
         this.qualifiersMaps = [];
@@ -1016,6 +1010,26 @@ class URITemplate {
                 delim[i] = ssi.substring(endIndex + 1);
             }
             
+            switch (this.fc[i]) {
+                case "x":
+                    this.handlerObjects[i] = new IgnoreFieldHandler();
+                    break
+                case "subsec":
+                    this.handlerObjects[i] = new SubsecFieldHandler();
+                    break
+                case "hrinterval":
+                    this.handlerObjects[i] = new HrintervalFieldHandler();
+                    break
+                case "periodic":
+                    this.handlerObjects[i] = new PeriodicFieldHandler();
+                    break
+                case "enum":
+                    this.handlerObjects[i] = new EnumFieldHandler();
+                    break
+                case "v":
+                    this.handlerObjects[i] = new VersionFieldHandler();
+                    break
+            }
         }
         this.handlers = [];
         this.offsets = [];
@@ -1050,41 +1064,37 @@ class URITemplate {
             }
             
             if (handler === 9999) {
-                if (!(this.fieldHandlers.has(this.fc[i]))) {
-                    throw "bad format code: \"" + this.fc[i] + "\" in \"" + formatString + "\"";
+                handler = 100;
+                this.handlers[i] = 100;
+                this.offsets[i] = pos;
+                if (this.lengths[i] < 1 || pos === -1) {
+                    // 0->indetermined as well, allows user to force indeterminate
+                    pos = -1;
+                    this.lengths[i] = -1;
                 } else {
-                    handler = 100;
-                    this.handlers[i] = 100;
-                    this.offsets[i] = pos;
-                    if (this.lengths[i] < 1 || pos === -1) {
-                        // 0->indetermined as well, allows user to force indeterminate
-                        pos = -1;
-                        this.lengths[i] = -1;
-                    } else {
-                        pos += this.lengths[i];
-                    }
-                    var fh = this.fieldHandlers.get(this.fc[i]);
-                    var args = this.qualifiers[i];
-                    var argv = new Map();
-                    if (args !== undefined && args !== null) {
-                        var ss2 = args.split(";");
-                        ss2.forEach( function ( ss21 ) {
-                             var i3 = ss21.indexOf("=");
-                            if (i3 === -1) {
-                                argv.set(ss21.trim(), "");
-                            } else {
-                                argv.set(ss21.substring(0, i3).trim(), ss21.substring(i3 + 1).trim());
-                            }
-                        }, this )
-                    }
-                    var errm = fh.configure(argv);
-                    if (errm !== undefined && errm !== null) {
-                        throw errm;
-                    }
-                    var id = URITemplate.getArg(argv, "id", null);
-                    if (id !== undefined && id !== null) {
-                        this.fieldHandlersById.set(id, fh);
-                    }
+                    pos += this.lengths[i];
+                }
+                var fh = this.handlerObjects[i];
+                var args = this.qualifiers[i];
+                var argv = new Map();
+                if (args !== undefined && args !== null) {
+                    var ss2 = args.split(";");
+                    ss2.forEach( function ( ss21 ) {
+                         var i3 = ss21.indexOf("=");
+                        if (i3 === -1) {
+                            argv.set(ss21.trim(), "");
+                        } else {
+                            argv.set(ss21.substring(0, i3).trim(), ss21.substring(i3 + 1).trim());
+                        }
+                    }, this )
+                }
+                var errm = fh.configure(argv);
+                if (errm !== undefined && errm !== null) {
+                    throw errm;
+                }
+                var id = URITemplate.getArg(argv, "id", null);
+                if (id !== undefined && id !== null) {
+                    this.fieldHandlersById.set(id, fh);
                 }
             } else {
                 this.handlers[i] = handler;
@@ -1283,10 +1293,6 @@ class URITemplate {
                                 this.lengths[i] = parseInt(val);
                                 break
                             default:
-                                if (!(this.fieldHandlers.has(this.fc[i]))) {
-                                    throw "unrecognized/unsupported field: " + name + " in " + qual;
-                                }
-
                                 break
                         }
                         okay = true;
@@ -1305,9 +1311,7 @@ class URITemplate {
                         throw sprintf("%s must be assigned an integer value (e.g. %s=1) in %s",qual, qual, ss[i]);
                     }
                     if (!(okay)) {
-                        if (!(this.fieldHandlers.has(this.fc[i]))) {
-                            // J2J (logger) logger.log(Level.WARNING, "unrecognized/unsupported field:{0} in {1}", new Object[] { qual, ss[i] });
-                        }
+                        // J2J (logger) logger.log(Level.WARNING, "unrecognized/unsupported field:{0} in {1}", new Object[] { qual, ss[i] });
                     }
                 }, this )
                 if (handler === 13) {
@@ -1570,7 +1574,8 @@ class URITemplate {
                             throw "handlers[idigit] was not expected value (which shouldn't happen)";
                     }
                 } else if (this.handlers[idigit] === 100) {
-                    var handler = (this.fieldHandlers.get(this.fc[idigit]));
+                    var handler = this.handlerObjects[idigit];
+                    //FieldHandler handler = (FieldHandler) fieldHandlers.get(fc[idigit]);
                     handler.parse(timeString.substring(offs, offs + length), time, this.timeWidth, extra);
                 } else if (this.handlers[idigit] === 10) {
                     // AM/PM -- code assumes hour has been read already
@@ -1617,7 +1622,7 @@ class URITemplate {
                         extra.set(name, timeString.substring(offs, offs + length));
                     }
                 }
-   
+                
             } catch (ex) {
                 throw sprintf("fail to parse digit number %d: %s",idigit, field);
             }
@@ -1641,7 +1646,7 @@ class URITemplate {
                     startTime = TimeUtil.fromJulianDay(phaseStartJulian + ncycles * this.timeWidth[2]);
                 } else {
                     // J2J (logger) logger.log(Level.WARNING, "phasestart can only be used when step size is integer number of days greater than 1: {0}", TimeUtil.formatIso8601Duration(timeWidth));
-                }         
+                }
                 stopTime = TimeUtil.add(startTime, this.timeWidth);
             }
         } else {
@@ -2054,7 +2059,7 @@ class URITemplate {
                     result = result.substring(0,offs)+ins+result.substring(offs);  // J2J expr -> assignment;
                     offs += ins.length;
                 } else {
-                    var fh1 = this.fieldHandlers.get(this.fc[idigit]);
+                    var fh1 = this.handlerObjects[idigit];
                     var timeEnd = stopTime;
                     var ins = fh1.format(timel, TimeUtil.subtract(timeEnd, timel), length, extra);
                     var startTimeTest = [0,0,0,0,0,0,0];
@@ -2101,7 +2106,7 @@ class URITemplate {
                 throw "AM/PM not supported";
             } else if (this.handlers[idigit] === 11) {
                 throw "Time Zones not supported";
-            } 
+            }
         }
         result = result.substring(0,offs)+this.delims[this.ndigits - 1]+result.substring(offs);  // J2J expr -> assignment;
         return result.trim();

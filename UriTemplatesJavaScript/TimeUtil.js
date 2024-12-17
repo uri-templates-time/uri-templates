@@ -24,7 +24,7 @@ function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
  * @author jbf
  */
 class TimeUtil {
-    static VERSION = "20240730.1";
+    static VERSION = "20241217.1";
 
     /**
      * Number of time components: year, month, day, hour, minute, second, nanosecond
@@ -118,7 +118,7 @@ class TimeUtil {
         if (s === undefined || s === null) {
             return deft;
         }
-        return parseInt(s, 10);
+        return parseInt(s);
     }
 
     static parseDouble(val, deft) {
@@ -188,7 +188,8 @@ class TimeUtil {
 
     /**
      * format the time as (non-leap) milliseconds since 1970-01-01T00:00.000Z into a string.  The
-     * number of milliseconds should not include leap seconds.  The milliseconds are always present.
+     * number of milliseconds should not include leap seconds.  The output will always include 
+     * milliseconds.
      * 
      * @param time the number of milliseconds since 1970-01-01T00:00.000Z
      * @return the formatted time.

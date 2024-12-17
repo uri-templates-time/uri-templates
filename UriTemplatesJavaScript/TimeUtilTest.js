@@ -238,15 +238,15 @@ class TimeUtilTest {
         expResult = [2012, 1, 17, 2, 0, 0, 245000000];
         result = TimeUtil.isoTimeToArray("2012-01-17T02:00:00.245");
         assertArrayEquals(expResult, result);
-        TimeUtil.isoTimeToArray("2020-033T06:07:08.000010001");
-        TimeUtil.isoTimeToArray("2020-03-03Z");
-        TimeUtil.isoTimeToArray("2020-033Z");
-        TimeUtil.isoTimeToArray("2020-033");
-        TimeUtil.isoTimeToArray("2020-033T00:00Z");
-        TimeUtil.isoTimeToArray("now");
-        TimeUtil.isoTimeToArray("lastday");
-        TimeUtil.isoTimeToArray("lastday+PT1H");
-        TimeUtil.isoTimeToArray("lastminute+PT1M");
+        result = TimeUtil.isoTimeToArray("2020-033T06:07:08.000010001");
+        result = TimeUtil.isoTimeToArray("2020-03-03Z");
+        result = TimeUtil.isoTimeToArray("2020-033Z");
+        result = TimeUtil.isoTimeToArray("2020-033");
+        result = TimeUtil.isoTimeToArray("2020-033T00:00Z");
+        result = TimeUtil.isoTimeToArray("now");
+        result = TimeUtil.isoTimeToArray("lastday");
+        result = TimeUtil.isoTimeToArray("lastday+PT1H");
+        result = TimeUtil.isoTimeToArray("lastminute+PT1M");
     }
 
     /**
@@ -409,7 +409,7 @@ class TimeUtilTest {
      */
     testNow() {
         console.info("now");
-        TimeUtil.now();
+        var result = TimeUtil.now();
     }
 
     /**

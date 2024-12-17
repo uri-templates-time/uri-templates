@@ -68,10 +68,6 @@ class URITemplateTest {
         return t1 + "/" + t2;
     }
 
-    doTestTimeParser1(spec, test, norm) {
-        this.doTestTimeParser1(spec, test, norm, false);
-    }
-
     doTestTimeParser1(spec, test, norm, expectException) {
         var ut;
         try {
@@ -139,6 +135,7 @@ class URITemplateTest {
     }
 
     testDelimiterExceptionLeading() {
+        // Note this test expects an exception and I need to figure out how to make Python unit tests do this.
         try {
             this.doTestTimeParser1("ac_$Y$j00-$(Y;end)$(j;end)00.gif", "AC_199811900-199812000.gif", "1998-04-29T00:00Z/1998-04-30T00:00Z", true);
             throw new Exception("this should fail");
@@ -148,6 +145,7 @@ class URITemplateTest {
     }
 
     testDelimiterExceptionTrailing() {
+        // Note this test expects an exception and I need to figure out how to make Python unit tests do this.
         try {
             this.doTestTimeParser1("ac_$Y$j00-$(Y;end)$(j;end)00.gif", "ac_199811900-199812000-this-shouldnt-match.gif", "1998-04-29T00:00Z/1998-04-30T00:00Z", true);
             throw new Exception("this should fail");
@@ -272,6 +270,18 @@ class URITemplateTest {
         assertArrayEquals([2024, 1, 1, 0, 0, 0, 0, 2025, 1, 1, 0, 0, 0, 0], r);
     }
 
+    testParseX2() {
+        var t;
+        t = new URITemplate("http://example.com/data/$Y/$Y_$m_$d/$(x;name=d5)/fa_k0_dcf_$x_$(x;name=mm).gif");
+        //example.com/data/$Y/$Y_$m_$d/$(x;name=d5)/fa_k0_dcf_$x_$(x;name=mm).gif");
+        var e = new Map();
+        var r = t.parse("http://example.com/data/2008/2008_03_04/46565/fa_k0_dcf_46565_in.gif", e);
+        //example.com/data/2008/2008_03_04/46565/fa_k0_dcf_46565_in.gif", e );
+        assertArrayEquals([2008, 3, 4, 0, 0, 0, 0, 2008, 3, 5, 0, 0, 0, 0], r);
+        assertEquals("46565", e.get("d5"));
+        assertEquals("in", e.get("mm"));
+    }
+
     /**
      * Test of format method, of class URITemplate.
      * @throws java.lang.Exception
@@ -293,7 +303,6 @@ class URITemplateTest {
         this.doTestTimeFormat1("$(periodic;offset=2285;start=2000-346;period=P27D)", "2286", "2001-007/P27D");
         this.doTestTimeFormat1("$(j;Y=2012)$(hrinterval;names=01,02,03,04)", "01702", "2012-01-17T06:00/PT12H");
         this.doTestTimeFormat1("$(j;Y=2012).$H$M$S.$(subsec;places=3)", "017.020000.245", "2012-01-17T02:00:00.245/2012-01-17T02:00:00.246");
-        //this.doTestTimeFormat1("$(j;Y=2012).$x.$X.$(ignore).$H", "017.x.y.z.02", "2012-01-17T02:00:00/2012-01-17T03:00:00");
         //testTimeFormat1( "$(o;id=rbspa-pp)", "31",  "2012-09-10T14:48:30.914Z/2012-09-10T23:47:34.973Z");
         this.doTestTimeFormat1("$(j;Y=2012)$(hrinterval;names=01,02,03,04)", "01702", "2012-01-17T06:00/2012-01-17T18:00");
         this.doTestTimeFormat1("$-1Y $-1m $-1d $H$M", "2012 3 30 1620", "2012-03-30T16:20/2012-03-30T16:21");
@@ -302,8 +311,8 @@ class URITemplateTest {
         this.doTestTimeFormat1("$(j,Y=2012)", "017", "2012-01-17T00:00/2012-01-18T00:00");
         this.doTestTimeFormat1("ace_mag_$Y_$j_to_$(Y;end)_$j.cdf", "ace_mag_2005_001_to_2005_003.cdf", "2005-001T00:00/2005-003T00:00");
         var ut = new URITemplate("$Y$m$d-$(Y;end)$m$d");
-        ut.formatTimeRange([2013, 2, 2, 0, 0, 0, 0, 2014, 3, 3, 0, 0, 0, 0], new Map());
-        ut.formatStartStopRange([2013, 2, 2, 0, 0, 0, 0], [2014, 3, 3, 0, 0, 0, 0], new Map());
+        ut.formatTimeRange([2013, 2, 2, 0, 0, 0, 0, 2014, 3, 3, 0, 0, 0, 0], new Map() );
+        ut.formatStartStopRange([2013, 2, 2, 0, 0, 0, 0], [2014, 3, 3, 0, 0, 0, 0], new Map() );
     }
 
     static readJSONTests() {
@@ -814,6 +823,7 @@ test.testFloorDiv();
 test.testFormatMonth();
 test.testFormatX();
 test.testParseX();
+test.testParseX2();
 test.testFormat();
 test.testFormatHapiServerSite();
 test.testFormatRange();
