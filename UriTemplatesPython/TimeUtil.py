@@ -151,7 +151,8 @@ class TimeUtil:
         timerange[TimeUtil.TIME_DIGITS:2*TimeUtil.TIME_DIGITS]=time[0:TimeUtil.TIME_DIGITS]
 
     # format the time as (non-leap) milliseconds since 1970-01-01T00:00.000Z into a string.  The
-    # number of milliseconds should not include leap seconds.  The milliseconds are always present.
+    # number of milliseconds should not include leap seconds.  The output will always include 
+    # milliseconds.
     # 
     # @param time the number of milliseconds since 1970-01-01T00:00.000Z
     # @return the formatted time.
@@ -283,7 +284,7 @@ class TimeUtil:
         try:
             t1 = TimeUtil.parseISO8601Time(startTime)
             t2 = TimeUtil.parseISO8601Time(stopTime)
-        except Exception as ex: # J2J: exceptions
+        except Exception as ex:  # J2J: exceptions
             raise Exception(ex)
         j1 = TimeUtil.julianDay(t1[0], t1[1], t1[2])
         j2 = TimeUtil.julianDay(t2[0], t2[1], t2[2])
@@ -603,12 +604,12 @@ class TimeUtil:
             elif remainder[0] == '-':
                 try:
                     return TimeUtil.subtract(n, TimeUtil.parseISO8601Duration(remainder[1:]))
-                except Exception as ex: # J2J: exceptions
+                except Exception as ex:  # J2J: exceptions
                     raise Exception(ex)
             elif remainder[0] == '+':
                 try:
                     return TimeUtil.add(n, TimeUtil.parseISO8601Duration(remainder[1:]))
-                except Exception as ex: # J2J: exceptions
+                except Exception as ex:  # J2J: exceptions
                     raise Exception(ex)
             return TimeUtil.now()
         else:
