@@ -15,7 +15,7 @@ from collections import OrderedDict
 
 
 class TimeUtil:    
-    VERSION = '20241217.1'
+    VERSION = '20250205.1'
 
     # Number of time components: year, month, day, hour, minute, second, nanosecond
     TIME_DIGITS = 7
