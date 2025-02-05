@@ -2,12 +2,8 @@
 package org.hapiserver;
 
 import java.text.ParseException;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
 
 /**
  * Tests of the useful TimeUtil.java code.
