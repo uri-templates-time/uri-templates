@@ -337,6 +337,33 @@ class TimeUtilTest {
     }
 
     /**
+     * Test of fromJulianDay method, of class TimeUtil.
+     */
+    testFromTT2000() {
+        console.info("fromTT2000");
+        var s = TimeUtil.fromTT2000(0);
+        assertEquals(s, "2000-01-01T11:58:55.816000000Z");
+        s = TimeUtil.fromTT2000(631108869184000000);
+        assertEquals(s, "2020-01-01T00:00:00.000000000Z");
+        s = TimeUtil.fromTT2000(-583934347816000000);
+        assertEquals(s, "1981-07-01T00:00:00.000000000Z");
+        s = TimeUtil.fromTT2000(-31579135816000000);
+        assertEquals(s, "1999-01-01T00:00:00.000000000Z");
+        s = TimeUtil.fromTT2000(-63115136816000000);
+        assertEquals(s, "1998-01-01T00:00:00.000000000Z");
+        s = TimeUtil.fromTT2000(-94651137816000000);
+        assertEquals(s, "1997-01-01T00:00:00.000000000Z");
+        s = TimeUtil.fromTT2000(-631195148816000000);
+        assertEquals(s, "1980-01-01T00:00:00.000000000Z");
+        s = TimeUtil.fromTT2000(394372867184000000);
+        assertEquals(s, "2012-07-01T00:00:00.000000000Z");
+        s = TimeUtil.fromTT2000(394372866184000000);
+        assertEquals(s, "2012-06-30T23:59:60.000000000Z");
+        s = TimeUtil.fromTT2000(394372865684000000);
+        assertEquals(s, "2012-06-30T23:59:59.500000000Z");
+    }
+
+    /**
      * Test of subtract method, of class TimeUtil.
      */
     testSubtract() {
@@ -571,6 +598,90 @@ class TimeUtilTest {
         }
     }
 
+    /**
+     * Test of getStartTime method, of class TimeUtil.
+     */
+    testGetStartTime() {
+        console.info("getStartTime");
+        var timerange = [2025, 2, 4, 5, 6, 7, 8, 2025, 2, 4, 7, 8, 9, 10];
+        var expResult = [2025, 2, 4, 5, 6, 7, 8];
+        var result = TimeUtil.getStartTime(timerange);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of getStopTime method, of class TimeUtil.
+     */
+    testGetStopTime() {
+        console.info("getStopTime");
+        var timerange = [2025, 2, 4, 5, 6, 7, 8, 2025, 2, 4, 7, 8, 9, 10];
+        var expResult = [2025, 2, 4, 7, 8, 9, 10];
+        var result = TimeUtil.getStopTime(timerange);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of leapSecondsAt method, of class TimeUtil.
+     */
+    testLeapSecondsAt() {
+        console.info("leapSecondsAt");
+        var tt2000 = 0;
+        var expResult = 32;
+        var result = TimeUtil.leapSecondsAt(tt2000);
+        assertEquals(expResult, result);
+        result = TimeUtil.leapSecondsAt(536500869184000000);
+        assertEquals(37, result);
+    }
+
+    /**
+     * Test of lastLeapSecond method, of class TimeUtil.
+     */
+    testLastLeapSecond() {
+        console.info("lastLeapSecond");
+        var tt2000 = 0;
+        var expResult = -31579135816000000;
+        var result = TimeUtil.lastLeapSecond(tt2000);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of formatHMSN method, of class TimeUtil.
+     */
+    testFormatHMSN() {
+        console.info("formatHMSN");
+        var nanosecondsSinceMidnight = 56;
+        var expResult = "00:00:00.000000056";
+        var result = TimeUtil.formatHMSN(nanosecondsSinceMidnight);
+        assertEquals(expResult, result);
+        nanosecondsSinceMidnight = 3600 * 24 * 1000000000;
+        expResult = "23:59:60.000000000";
+        result = TimeUtil.formatHMSN(nanosecondsSinceMidnight);
+        assertEquals(expResult, result);
+        nanosecondsSinceMidnight = 3600 * 24 * 1000000000 + 1 * 1000000000 + 500 * 1000000;
+        expResult = "23:59:61.500000000";
+        result = TimeUtil.formatHMSN(nanosecondsSinceMidnight);
+        assertEquals(expResult, result);
+    }
+
+    testDaysInMonth() {
+        console.info("daysInMonth");
+        var year = 2000;
+        var month = 2;
+        var expResult = 29;
+        var result = TimeUtil.daysInMonth(year, month);
+        assertEquals(expResult, result);
+        year = 2004;
+        month = 1;
+        expResult = 31;
+        result = TimeUtil.daysInMonth(year, month);
+        assertEquals(expResult, result);
+        year = 2008;
+        month = 12;
+        expResult = 31;
+        result = TimeUtil.daysInMonth(year, month);
+        assertEquals(expResult, result);
+    }
+
 }
 test = new TimeUtilTest();
 test.testReformatIsoTime();
@@ -595,6 +706,7 @@ test.testJulianDay();
 test.testMonthForDayOfYear();
 test.testFromJulianDay();
 test.testFromMillisecondsSince1970();
+test.testFromTT2000();
 test.testSubtract();
 test.testAdd();
 test.testFormatIso8601Duration();
@@ -606,4 +718,10 @@ test.testFormatIso8601TimeInTime();
 test.testDayOfWeek();
 test.testFromWeekOfYear();
 test.testParseISO8601Time();
+test.testGetStartTime();
+test.testGetStopTime();
+test.testLeapSecondsAt();
+test.testLastLeapSecond();
+test.testFormatHMSN();
+test.testDaysInMonth();
 

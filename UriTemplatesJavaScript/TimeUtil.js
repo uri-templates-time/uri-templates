@@ -24,7 +24,7 @@ function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
  * @author jbf
  */
 class TimeUtil {
-    static VERSION = "20241217.1";
+    static VERSION = "20250205.1";
 
     /**
      * Number of time components: year, month, day, hour, minute, second, nanosecond
@@ -200,6 +200,175 @@ class TimeUtil {
     }
 
     /**
+     * format the time as (non-leap) real seconds since 1970-01-01T00:00.000Z into a string.  The
+     * number of milliseconds should not include leap seconds.  The output will always include 
+     * milliseconds.
+     * 
+     * @param time the number of milliseconds since 1970-01-01T00:00.000Z
+     * @return the formatted time.
+     * @see #toMillisecondsSince1970(java.lang.String) 
+     */
+    static fromSecondsSince1970(time) {
+        return new Date(time*1000).toISOString();
+    }
+
+    /**
+ J2000 epoch in UTC (January 1, 2000, 12:00:00 TT)
+     */
+    static J2000_EPOCH_MILLIS = 946728000000;
+
+    /**
+ See <https://cdf.gsfc.nasa.gov/html/CDFLeapSeconds.txt>
+     */    
+    static {
+        TimeUtil.LEAP_SECONDS_TT2000 = [];
+        TimeUtil.LEAP_SECONDS_COUNT = [];
+        TimeUtil.LEAP_SECONDS_TT2000[0]=-883655957816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[0]=10;
+        TimeUtil.LEAP_SECONDS_TT2000[1]=-867931156816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[1]=11;
+        TimeUtil.LEAP_SECONDS_TT2000[2]=-852033555816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[2]=12;
+        TimeUtil.LEAP_SECONDS_TT2000[3]=-820497554816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[3]=13;
+        TimeUtil.LEAP_SECONDS_TT2000[4]=-788961553816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[4]=14;
+        TimeUtil.LEAP_SECONDS_TT2000[5]=-757425552816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[5]=15;
+        TimeUtil.LEAP_SECONDS_TT2000[6]=-725803151816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[6]=16;
+        TimeUtil.LEAP_SECONDS_TT2000[7]=-694267150816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[7]=17;
+        TimeUtil.LEAP_SECONDS_TT2000[8]=-662731149816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[8]=18;
+        TimeUtil.LEAP_SECONDS_TT2000[9]=-631195148816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[9]=19;
+        TimeUtil.LEAP_SECONDS_TT2000[10]=-583934347816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[10]=20;
+        TimeUtil.LEAP_SECONDS_TT2000[11]=-552398346816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[11]=21;
+        TimeUtil.LEAP_SECONDS_TT2000[12]=-520862345816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[12]=22;
+        TimeUtil.LEAP_SECONDS_TT2000[13]=-457703944816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[13]=23;
+        TimeUtil.LEAP_SECONDS_TT2000[14]=-378734343816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[14]=24;
+        TimeUtil.LEAP_SECONDS_TT2000[15]=-315575942816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[15]=25;
+        TimeUtil.LEAP_SECONDS_TT2000[16]=-284039941816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[16]=26;
+        TimeUtil.LEAP_SECONDS_TT2000[17]=-236779140816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[17]=27;
+        TimeUtil.LEAP_SECONDS_TT2000[18]=-205243139816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[18]=28;
+        TimeUtil.LEAP_SECONDS_TT2000[19]=-173707138816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[19]=29;
+        TimeUtil.LEAP_SECONDS_TT2000[20]=-126273537816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[20]=30;
+        TimeUtil.LEAP_SECONDS_TT2000[21]=-79012736816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[21]=31;
+        TimeUtil.LEAP_SECONDS_TT2000[22]=-31579135816000000;
+        TimeUtil.LEAP_SECONDS_COUNT[22]=32;
+        TimeUtil.LEAP_SECONDS_TT2000[23]=189345665184000000;
+        TimeUtil.LEAP_SECONDS_COUNT[23]=33;
+        TimeUtil.LEAP_SECONDS_TT2000[24]=284040066184000000;
+        TimeUtil.LEAP_SECONDS_COUNT[24]=34;
+        TimeUtil.LEAP_SECONDS_TT2000[25]=394372867184000000;
+        TimeUtil.LEAP_SECONDS_COUNT[25]=35;
+        TimeUtil.LEAP_SECONDS_TT2000[26]=488980868184000000;
+        TimeUtil.LEAP_SECONDS_COUNT[26]=36;
+        TimeUtil.LEAP_SECONDS_TT2000[27]=536500869184000000;
+        TimeUtil.LEAP_SECONDS_COUNT[27]=37;
+    }
+    
+    /**
+     * return the number of complete leap seconds added for the tt2000 time, starting
+     * 10 at 1972-01-01T00:00:01Z.
+     * @param tt2000
+     * @return the number of leap seconds on the date.
+     */
+    static leapSecondsAt(tt2000) {
+        var i = 0;
+        var n = TimeUtil.LEAP_SECONDS_TT2000.length;
+        var last=i;
+        for ( ; i<n; i++ ) {
+            var key= TimeUtil.LEAP_SECONDS_TT2000[i];
+            if ( key>tt2000 ) break;
+            last=i;
+        }
+        return TimeUtil.LEAP_SECONDS_COUNT[last];
+    }
+
+    /**
+     * return the tt2000 for nanosecond following the last leap second.
+     * @param tt2000
+     * @return tt2000 of the nanosecond following the last leap second.
+     */
+    static lastLeapSecond(tt2000) {
+        var i = 0;
+        var n = TimeUtil.LEAP_SECONDS_TT2000.length;
+        var last;
+        for ( ; i<n; i++ ) {
+            var key= TimeUtil.LEAP_SECONDS_TT2000[i];
+            if ( key>tt2000 ) break;
+            last=i;
+        }
+        return TimeUtil.LEAP_SECONDS_TT2000[last];
+    }
+
+    /**
+     * return the time as $H:$M:$S.$N, where the seconds
+     * component can be 60 or 61.
+     * @param nanosecondsSinceMidnight
+     * @return String in form $H:$M:$S.$N
+     */
+    static formatHMSN(nanosecondsSinceMidnight) {
+        if (nanosecondsSinceMidnight < 0) throw "nanosecondsSinceMidnight must be positive";
+        if (nanosecondsSinceMidnight >= 86_402_000_000_000) throw "nanosecondsSinceMidnight must less than 86402*1000000000";
+        var ns = nanosecondsSinceMidnight;
+        var hours = (Math.trunc(nanosecondsSinceMidnight / 3_600_000_000_000));
+        if (hours === 24) hours = 23;
+        ns -= hours * 3_600_000_000_000;
+        var minutes = (Math.trunc(ns / 60_000_000_000));
+        if (minutes > 59) minutes = 59;
+        ns -= minutes * 60_000_000_000;
+        var seconds = (Math.trunc(ns / 1_000_000_000));
+        ns -= seconds * 1_000_000_000;
+        return sprintf("%02d:%02d:%02d.%09d",hours, minutes, seconds, ns);
+    }
+
+    /**
+     * format the time as nanoseconds since J2000 (Julian date 2451545.0 TT or 2000 January 1, 12h TT
+     * or 2000-01-01T12:00 -  32.184s UTC).  This is used often in space physics, and is known as TT2000 
+     * in NASA/CDF files.  This does include leap seconds, and this code must be updated as new leap 
+     * seconds are planned.
+     * 
+     * @param tt2000 time in nanoseconds since 2000-01-01T11:59:27.816Z (datum('2000-01-01T12:00')-'32.184s')
+     * @return the time formatted to nanosecond resolution
+     */
+    static fromTT2000(tt2000) {
+        var leapSeconds = TimeUtil.leapSecondsAt(tt2000);
+        var leapSecondCheck = TimeUtil.leapSecondsAt(tt2000 + 1000000000);
+        var nanosecondsSinceMidnight = (tt2000 - leapSeconds * 1_000_000_000 - 32_184_000_000 + 43_200_000_000_000) % 86_400_000_000_000;
+        if (leapSecondCheck > leapSeconds) {
+            // the instant is during a leap second
+            nanosecondsSinceMidnight += 86_400_000_000_000;
+        }
+        var tt2000Midnight = tt2000 - nanosecondsSinceMidnight;
+        var s;
+        if (true) {
+            // leapSecondCheck-leapSeconds==1 ) {
+            var nanosecondsSince2000;
+            var julianDay;
+            nanosecondsSince2000 = (tt2000Midnight - leapSeconds * 1_000_000_000);
+            julianDay = 2451545 + Math.floor(nanosecondsSince2000 / 86400000000000) + 1;
+            var ymd = TimeUtil.fromJulianDay(julianDay);
+            s = sprintf("%04d-%02d-%02dT",ymd[0], ymd[1], ymd[2]) + TimeUtil.formatHMSN(nanosecondsSinceMidnight) + "Z";
+        }
+        return s;
+    }
+
+    /**
      * given the two times, return a 14 element time range.
      * @param t1 a seven digit time
      * @param t2 a seven digit time after the first time.
@@ -335,7 +504,7 @@ class TimeUtil {
      * @return array of times, complete days, in the form $Y-$m-$dZ
      */
     static countOffDays(startTime, stopTime) {
-        var t1;
+        var t1
         var t2;
         try {
             t1 = TimeUtil.parseISO8601Time(startTime);
@@ -345,7 +514,7 @@ class TimeUtil {
         }
         var j1 = TimeUtil.julianDay(t1[0], t1[1], t1[2]);
         var j2 = TimeUtil.julianDay(t2[0], t2[1], t2[2]);
-        var result = new Array(j2-j1);
+        var result = [];
         var time = TimeUtil.normalizeTimeString(startTime).substring(0, 10) + 'Z';
         stopTime = TimeUtil.floor(stopTime).substring(0, 10) + 'Z';
         var i = 0;
