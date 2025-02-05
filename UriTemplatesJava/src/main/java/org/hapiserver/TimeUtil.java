@@ -7,7 +7,9 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.TemporalAccessor;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.NavigableMap;
 import java.util.TimeZone;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -230,6 +232,8 @@ public class TimeUtil {
     
     private static final DateTimeFormatter FORMATTER_MS_1970 = new DateTimeFormatterBuilder().appendInstant(3).toFormatter();
     
+    private static final DateTimeFormatter FORMATTER_MS_1970_NS = new DateTimeFormatterBuilder().appendInstant(9).toFormatter();
+    
     /**
      * format the time as (non-leap) milliseconds since 1970-01-01T00:00.000Z into a string.  The
      * number of milliseconds should not include leap seconds.  The output will always include 
@@ -256,7 +260,128 @@ public class TimeUtil {
         return FORMATTER_MS_1970.format( Instant.ofEpochMilli( (long)Math.round(time*1000.) ) );
     }
     
-    //TODO: fromNanosecondsSinceJ2000( long time ) / fromCDFTT2000( long time )
+    // J2000 epoch in UTC (January 1, 2000, 12:00:00 TT)
+    private static final long J2000_EPOCH_MILLIS = 946728000000L;
+    
+    // See <https://cdf.gsfc.nasa.gov/html/CDFLeapSeconds.txt>
+    private static final NavigableMap<Long, Integer> LEAP_SECONDS = new TreeMap<>();
+    static {
+        LEAP_SECONDS.put(-883655957816000000L,10); // Jan 1, 1972
+        LEAP_SECONDS.put(-867931156816000000L,11); // Jul 1, 1972
+        LEAP_SECONDS.put(-852033555816000000L,12); //  1973   1    1   12.0            0.0  0.0
+        LEAP_SECONDS.put(-820497554816000000L,13); //  1974   1    1   13.0            0.0  0.0
+        LEAP_SECONDS.put(-788961553816000000L,14); //  1975   1    1   14.0            0.0  0.0
+        LEAP_SECONDS.put(-757425552816000000L,15); //  1976   1    1   15.0            0.0  0.0
+        LEAP_SECONDS.put(-725803151816000000L,16); //  1977   1    1   16.0            0.0  0.0
+        LEAP_SECONDS.put(-694267150816000000L,17); //  1978   1    1   17.0            0.0  0.0
+        LEAP_SECONDS.put(-662731149816000000L,18); //  1979   1    1   18.0            0.0  0.0
+        LEAP_SECONDS.put(-631195148816000000L,19); //  1980   1    1   19.0            0.0  0.0
+        LEAP_SECONDS.put(-583934347816000000L,20); //  1981   7    1   20.0            0.0  0.0
+        LEAP_SECONDS.put(-552398346816000000L,21); //  1982   7    1   21.0            0.0  0.0
+        LEAP_SECONDS.put(-520862345816000000L,22); //  1983   7    1   22.0            0.0  0.0
+        LEAP_SECONDS.put(-457703944816000000L,23); //  1985   7    1   23.0            0.0  0.0
+        LEAP_SECONDS.put(-378734343816000000L,24); //  1988   1    1   24.0            0.0  0.0
+        LEAP_SECONDS.put(-315575942816000000L,25); //  1990   1    1   25.0            0.0  0.0
+        LEAP_SECONDS.put(-284039941816000000L,26); //  1991   1    1   26.0            0.0  0.0
+        LEAP_SECONDS.put(-236779140816000000L,27); //  1992   7    1   27.0            0.0  0.0
+        LEAP_SECONDS.put(-205243139816000000L,28); //  1993   7    1   28.0            0.0  0.0
+        LEAP_SECONDS.put(-173707138816000000L,29); //  1994   7    1   29.0            0.0  0.0
+        LEAP_SECONDS.put(-126273537816000000L,30); //  1996   1    1   30.0            0.0  0.0
+        LEAP_SECONDS.put(-79012736816000000L, 31); //  1997   7    1   31.0            0.0  0.0        
+        LEAP_SECONDS.put(-31579135816000000L, 32); // Jan 1, 1999
+        LEAP_SECONDS.put(189345665184000000L, 33); // Jan 1, 2006
+        LEAP_SECONDS.put(284040066184000000L, 34); // Jan 1, 2009
+        LEAP_SECONDS.put(394372867184000000L, 35); // Jul 1, 2012
+        LEAP_SECONDS.put(488980868184000000L, 36); // Jul 1, 2015
+        LEAP_SECONDS.put(536500869184000000L, 37); // Jan 1, 2017
+    }
+    
+    /**
+     * return the number of complete leap seconds added for the tt2000 time, starting
+     * 10 at 1972-01-01T00:00:01Z.
+     * @param tt2000
+     * @return the number of leap seconds on the date.
+     */
+    public static int leapSecondsAt( long tt2000 ) {
+        return LEAP_SECONDS.floorEntry(tt2000).getValue();
+    }
+    
+    /**
+     * return the tt2000 for nanosecond following the last leap second.
+     * @param tt2000
+     * @return tt2000 of the nanosecond following the last leap second.
+     */
+    public static long lastLeapSecond( long tt2000 ) {
+        return LEAP_SECONDS.floorEntry(tt2000).getKey();
+    }
+    
+    /**
+     * return the time as $H:$M:$S.$N, where the seconds
+     * component can be 60 or 61.
+     * @param nanosecondsSinceMidnight
+     * @return String in form $H:$M:$S.$N
+     */
+    public static String formatHMSN( long nanosecondsSinceMidnight ) {
+        if ( nanosecondsSinceMidnight<0 ) throw new IllegalArgumentException("nanosecondsSinceMidnight must be positive");
+        if ( nanosecondsSinceMidnight>=86_402_000_000_000L ) throw new IllegalArgumentException("nanosecondsSinceMidnight must less than 86402*1000000000");
+        
+        long ns= nanosecondsSinceMidnight;
+        
+        int hours= (int)( nanosecondsSinceMidnight / 3_600_000_000_000L );
+        if ( hours==24 ) hours= 23;
+        
+        ns-= hours * 3_600_000_000_000L;
+        
+        int minutes= (int)( ns / 60_000_000_000L );
+        if ( minutes>59 ) minutes= 59;
+        ns-= minutes * 60_000_000_000L;
+        
+        int seconds= (int)( ns / 1_000_000_000L );
+        ns-= seconds * 1_000_000_000L;
+        
+        return String.format("%02d:%02d:%02d.%09d", hours, minutes, seconds, ns );
+        
+    }
+    
+    /**
+     * format the time as nanoseconds since J2000 (Julian date 2451545.0 TT or 2000 January 1, 12h TT
+     * or 2000-01-01T12:00 -  32.184s UTC).  This is used often in space physics, and is known as TT2000 
+     * in NASA/CDF files.  This does include leap seconds, and this code must be updated as new leap 
+     * seconds are planned.
+     * 
+     * @param tt2000 time in nanoseconds since 2000-01-01T11:59:27.816Z (datum('2000-01-01T12:00')-'32.184s')
+     * @return the time formatted to nanosecond resolution
+     */    
+    public static String fromTT2000(long tt2000) {
+        
+        int leapSeconds= leapSecondsAt(tt2000);
+        int leapSecondCheck= leapSecondsAt(tt2000+1000000000);
+        
+        long nanosecondsSinceMidnight= ( tt2000 - leapSeconds * 1_000_000_000L - 32_184_000_000L + 43_200_000_000_000L  ) % 86_400_000_000_000L;
+         if ( leapSecondCheck>leapSeconds ) { // the instant is during a leap second
+             nanosecondsSinceMidnight+= 86_400_000_000_000L;
+         }
+        
+        long tt2000Midnight = tt2000 - nanosecondsSinceMidnight ;
+        
+        String s;
+        
+        if ( true ) { // leapSecondCheck-leapSeconds==1 ) {
+            
+            long nanosecondsSince2000;
+            int julianDay;
+            
+            nanosecondsSince2000= ( tt2000Midnight - leapSeconds*1_000_000_000 );
+            julianDay= 2451545 + (int)Math.floor( (double)nanosecondsSince2000 / 86400000000000L ) + 1;
+            
+            int[] ymd= fromJulianDay(julianDay);
+            
+            s= String.format( "%04d-%02d-%02dT", ymd[0], ymd[1], ymd[2] ) + formatHMSN(nanosecondsSinceMidnight) + "Z";
+                        
+        }
+        
+        return s;
+    }
     
     /**
      * given the two times, return a 14 element time range.

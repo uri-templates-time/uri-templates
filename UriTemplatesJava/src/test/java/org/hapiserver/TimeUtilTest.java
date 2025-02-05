@@ -2,8 +2,12 @@
 package org.hapiserver;
 
 import java.text.ParseException;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.BeforeClass;
 
 /**
  * Tests of the useful TimeUtil.java code.
@@ -360,6 +364,33 @@ public class TimeUtilTest {
     }
     
     /**
+     * Test of fromJulianDay method, of class TimeUtil.
+     */
+    @Test
+    public void testFromTT2000() {
+        System.out.println("fromTT2000");
+        String s= TimeUtil.fromTT2000(0);
+        assertEquals( s, "2000-01-01T11:58:55.816000000Z");
+        s= TimeUtil.fromTT2000(631108869184000000L);
+        assertEquals( s, "2020-01-01T00:00:00.000000000Z");
+        s= TimeUtil.fromTT2000(-583934347816000000L);
+        assertEquals( s, "1981-07-01T00:00:00.000000000Z");
+        s= TimeUtil.fromTT2000(-31579135816000000L);
+        assertEquals( s, "1999-01-01T00:00:00.000000000Z");
+        s= TimeUtil.fromTT2000(-63115136816000000L);
+        assertEquals( s, "1998-01-01T00:00:00.000000000Z");
+        s= TimeUtil.fromTT2000(-94651137816000000L);
+        assertEquals( s, "1997-01-01T00:00:00.000000000Z");
+        s= TimeUtil.fromTT2000(-631195148816000000L);
+        assertEquals( s, "1980-01-01T00:00:00.000000000Z");
+        s= TimeUtil.fromTT2000(394372867184000000L);
+        assertEquals( s, "2012-07-01T00:00:00.000000000Z");
+        s= TimeUtil.fromTT2000(394372866184000000L);
+        assertEquals( s, "2012-06-30T23:59:60.000000000Z");  
+        s= TimeUtil.fromTT2000(394372865684000000L);
+        assertEquals( s, "2012-06-30T23:59:59.500000000Z");  
+    }    
+    /**
      * Test of subtract method, of class TimeUtil.
      */
     @Test
@@ -628,5 +659,100 @@ public class TimeUtilTest {
             throw new AssertionError(ex);
         }
     }
-    
+
+    /**
+     * Test of getStartTime method, of class TimeUtil.
+     */
+    @Test
+    public void testGetStartTime() {
+        System.out.println("getStartTime");
+        int[] timerange = new int[] { 2025, 2, 4, 5, 6, 7, 8,  2025, 2, 4, 7, 8, 9, 10 } ;
+        int[] expResult = new int[] { 2025, 2, 4, 5, 6, 7, 8 };
+        int[] result = TimeUtil.getStartTime(timerange);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of getStopTime method, of class TimeUtil.
+     */
+    @Test
+    public void testGetStopTime() {
+        System.out.println("getStopTime");
+        int[] timerange = new int[] { 2025, 2, 4, 5, 6, 7, 8,  2025, 2, 4, 7, 8, 9, 10 } ;
+        int[] expResult = new int[] { 2025, 2, 4, 7, 8, 9, 10 };
+        int[] result = TimeUtil.getStopTime(timerange);
+        assertArrayEquals(expResult, result);    
+    }
+
+    /**
+     * Test of leapSecondsAt method, of class TimeUtil.
+     */
+    @Test
+    public void testLeapSecondsAt() {
+        System.out.println("leapSecondsAt");
+        long tt2000 = 0L;
+        int expResult = 32;
+        int result = TimeUtil.leapSecondsAt(tt2000);
+        assertEquals(expResult, result);
+        result= TimeUtil.leapSecondsAt(536500869184000000L);
+        assertEquals(37,result);
+    }
+
+    /**
+     * Test of lastLeapSecond method, of class TimeUtil.
+     */
+    @Test
+    public void testLastLeapSecond() {
+        System.out.println("lastLeapSecond");
+        long tt2000 = 0L;
+        long expResult = -31579135816000000L;
+        long result = TimeUtil.lastLeapSecond(tt2000);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of formatHMSN method, of class TimeUtil.
+     */
+    @Test
+    public void testFormatHMSN() {
+        System.out.println("formatHMSN");
+        long nanosecondsSinceMidnight = 56L;
+        String expResult = "00:00:00.000000056";
+        String result = TimeUtil.formatHMSN(nanosecondsSinceMidnight);
+        assertEquals(expResult, result);
+        
+        nanosecondsSinceMidnight = 3600*24L * 1000000000;
+        expResult = "23:59:60.000000000";
+        result = TimeUtil.formatHMSN(nanosecondsSinceMidnight);
+        assertEquals(expResult, result);
+        
+        nanosecondsSinceMidnight = 3600*24L * 1000000000 + 1 * 1000000000L + 500 * 1000000L;
+        expResult = "23:59:61.500000000";
+        result = TimeUtil.formatHMSN(nanosecondsSinceMidnight);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testDaysInMonth() {
+        System.out.println("daysInMonth");
+        int year = 2000;
+        int month = 2;
+        int expResult = 29;
+        int result = TimeUtil.daysInMonth(year, month);
+        assertEquals(expResult, result);
+        
+        year = 2004;
+        month = 1;
+        expResult = 31;
+        result = TimeUtil.daysInMonth(year, month);
+        assertEquals(expResult, result);
+
+        year = 2008;
+        month = 12;
+        expResult = 31;
+        result = TimeUtil.daysInMonth(year, month);
+        assertEquals(expResult, result);
+        
+    }
+
 }
