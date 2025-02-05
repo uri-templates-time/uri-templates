@@ -85,7 +85,7 @@ class TimeUtilTest(unittest.TestCase):
             result = TimeUtil.formatIso8601TimeRange(TimeUtil.nextRange(tr))
             expResult = '2022-12-15/2022-12-25'
             self.assertEqual(expResult,result)
-        except Exception as ex: # J2J: exceptions
+        except Exception as ex:  # J2J: exceptions
             raise Exception(ex)
 
     # Test of nextDay method, of class TimeUtil.
@@ -96,7 +96,7 @@ class TimeUtilTest(unittest.TestCase):
             result = TimeUtil.formatIso8601TimeRange(TimeUtil.previousRange(tr))
             expResult = '2022-11-25/2022-12-05'
             self.assertEqual(expResult,result)
-        except Exception as ex: # J2J: exceptions
+        except Exception as ex:  # J2J: exceptions
             raise Exception(ex)
 
     # Test of ceil method, of class TimeUtil.
@@ -172,15 +172,15 @@ class TimeUtilTest(unittest.TestCase):
         expResult = [2012, 1, 17, 2, 0, 0, 245000000]
         result = TimeUtil.isoTimeToArray('2012-01-17T02:00:00.245')
         self.assertEqual(expResult,result)
-        TimeUtil.isoTimeToArray('2020-033T06:07:08.000010001')
-        TimeUtil.isoTimeToArray('2020-03-03Z')
-        TimeUtil.isoTimeToArray('2020-033Z')
-        TimeUtil.isoTimeToArray('2020-033')
-        TimeUtil.isoTimeToArray('2020-033T00:00Z')
-        TimeUtil.isoTimeToArray('now')
-        TimeUtil.isoTimeToArray('lastday')
-        TimeUtil.isoTimeToArray('lastday+PT1H')
-        TimeUtil.isoTimeToArray('lastminute+PT1M')
+        result = TimeUtil.isoTimeToArray('2020-033T06:07:08.000010001')
+        result = TimeUtil.isoTimeToArray('2020-03-03Z')
+        result = TimeUtil.isoTimeToArray('2020-033Z')
+        result = TimeUtil.isoTimeToArray('2020-033')
+        result = TimeUtil.isoTimeToArray('2020-033T00:00Z')
+        result = TimeUtil.isoTimeToArray('now')
+        result = TimeUtil.isoTimeToArray('lastday')
+        result = TimeUtil.isoTimeToArray('lastday+PT1H')
+        result = TimeUtil.isoTimeToArray('lastminute+PT1M')
 
     # Test of dayOfYear method, of class TimeUtil.
     def testDayOfYear(self):
@@ -250,6 +250,30 @@ class TimeUtilTest(unittest.TestCase):
         s = TimeUtil.fromMillisecondsSince1970(1)
         self.assertEqual(s,'1970-01-01T00:00:00.001Z')
 
+    # Test of fromJulianDay method, of class TimeUtil.
+    def testFromTT2000(self):
+        print('fromTT2000')
+        s = TimeUtil.fromTT2000(0)
+        self.assertEqual(s,'2000-01-01T11:58:55.816000000Z')
+        s = TimeUtil.fromTT2000(631108869184000000)
+        self.assertEqual(s,'2020-01-01T00:00:00.000000000Z')
+        s = TimeUtil.fromTT2000(-583934347816000000)
+        self.assertEqual(s,'1981-07-01T00:00:00.000000000Z')
+        s = TimeUtil.fromTT2000(-31579135816000000)
+        self.assertEqual(s,'1999-01-01T00:00:00.000000000Z')
+        s = TimeUtil.fromTT2000(-63115136816000000)
+        self.assertEqual(s,'1998-01-01T00:00:00.000000000Z')
+        s = TimeUtil.fromTT2000(-94651137816000000)
+        self.assertEqual(s,'1997-01-01T00:00:00.000000000Z')
+        s = TimeUtil.fromTT2000(-631195148816000000)
+        self.assertEqual(s,'1980-01-01T00:00:00.000000000Z')
+        s = TimeUtil.fromTT2000(394372867184000000)
+        self.assertEqual(s,'2012-07-01T00:00:00.000000000Z')
+        s = TimeUtil.fromTT2000(394372866184000000)
+        self.assertEqual(s,'2012-06-30T23:59:60.000000000Z')
+        s = TimeUtil.fromTT2000(394372865684000000)
+        self.assertEqual(s,'2012-06-30T23:59:59.500000000Z')
+
     # Test of subtract method, of class TimeUtil.
     def testSubtract(self):
         print('subtract')
@@ -312,7 +336,7 @@ class TimeUtilTest(unittest.TestCase):
     # Test of now method, of class TimeUtil.
     def testNow(self):
         print('now')
-        TimeUtil.now()
+        result = TimeUtil.now()
 
     # Test of parseISO8601TimeRange method, of class TimeUtil.
     def testParseISO8601TimeRange(self):
@@ -322,49 +346,49 @@ class TimeUtilTest(unittest.TestCase):
         try:
             result = TimeUtil.parseISO8601TimeRange(stringIn)
             self.assertEqual(expResult,result)
-        except Exception as ex: # J2J: exceptions
+        except Exception as ex:  # J2J: exceptions
             raise AssertionError(ex)
         stringIn = '2022-W13/P7D'
         expResult = [2022, 3, 28, 0, 0, 0, 0, 2022, 4, 4, 0, 0, 0, 0]
         try:
             result = TimeUtil.parseISO8601TimeRange(stringIn)
             self.assertEqual(expResult,result)
-        except Exception as ex: # J2J: exceptions
+        except Exception as ex:  # J2J: exceptions
             raise AssertionError(ex)
         stringIn = 'P7D/2022-01-02'
         expResult = [2021, 12, 26, 0, 0, 0, 0, 2022, 1, 2, 0, 0, 0, 0]
         try:
             result = TimeUtil.parseISO8601TimeRange(stringIn)
             self.assertEqual(expResult,result)
-        except Exception as ex: # J2J: exceptions
+        except Exception as ex:  # J2J: exceptions
             raise AssertionError(ex)
         stringIn = '2023-01-18T17:00/18:00'
         expResult = [2023, 1, 18, 17, 0, 0, 0, 2023, 1, 18, 18, 0, 0, 0]
         try:
             result = TimeUtil.parseISO8601TimeRange(stringIn)
             self.assertEqual(expResult,result)
-        except Exception as ex: # J2J: exceptions
+        except Exception as ex:  # J2J: exceptions
             raise AssertionError(ex)
         stringIn = '2013-01-01/07-01'
         expResult = [2013, 1, 1, 0, 0, 0, 0, 2013, 7, 1, 0, 0, 0, 0]
         try:
             result = TimeUtil.parseISO8601TimeRange(stringIn)
             self.assertEqual(expResult,result)
-        except Exception as ex: # J2J: exceptions
+        except Exception as ex:  # J2J: exceptions
             raise AssertionError(ex)
         stringIn = '2017-09-13T13:06Z/2023-09-30T23:57:41Z'
         expResult = [2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 57, 41, 0]
         try:
             result = TimeUtil.parseISO8601TimeRange(stringIn)
             self.assertEqual(expResult,result)
-        except Exception as ex: # J2J: exceptions
+        except Exception as ex:  # J2J: exceptions
             raise AssertionError(ex)
         stringIn = '2017-09-13T13:06:00Z/2023-09-30T23:00Z'
         expResult = [2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 0, 0, 0]
         try:
             result = TimeUtil.parseISO8601TimeRange(stringIn)
             self.assertEqual(expResult,result)
-        except Exception as ex: # J2J: exceptions
+        except Exception as ex:  # J2J: exceptions
             raise AssertionError(ex)
 
     # Test of formatIso8601TimeRange method, of class TimeUtil.
@@ -438,8 +462,76 @@ class TimeUtilTest(unittest.TestCase):
         try:
             result = TimeUtil.parseISO8601Time(string)
             self.assertEqual(expResult,result)
-        except Exception as ex: # J2J: exceptions
+        except Exception as ex:  # J2J: exceptions
             raise AssertionError(ex)
+
+    # Test of getStartTime method, of class TimeUtil.
+    def testGetStartTime(self):
+        print('getStartTime')
+        timerange = [2025, 2, 4, 5, 6, 7, 8, 2025, 2, 4, 7, 8, 9, 10]
+        expResult = [2025, 2, 4, 5, 6, 7, 8]
+        result = TimeUtil.getStartTime(timerange)
+        self.assertEqual(expResult,result)
+
+    # Test of getStopTime method, of class TimeUtil.
+    def testGetStopTime(self):
+        print('getStopTime')
+        timerange = [2025, 2, 4, 5, 6, 7, 8, 2025, 2, 4, 7, 8, 9, 10]
+        expResult = [2025, 2, 4, 7, 8, 9, 10]
+        result = TimeUtil.getStopTime(timerange)
+        self.assertEqual(expResult,result)
+
+    # Test of leapSecondsAt method, of class TimeUtil.
+    def testLeapSecondsAt(self):
+        print('leapSecondsAt')
+        tt2000 = 0
+        expResult = 32
+        result = TimeUtil.leapSecondsAt(tt2000)
+        self.assertEqual(expResult,result)
+        result = TimeUtil.leapSecondsAt(536500869184000000)
+        self.assertEqual(37,result)
+
+    # Test of lastLeapSecond method, of class TimeUtil.
+    def testLastLeapSecond(self):
+        print('lastLeapSecond')
+        tt2000 = 0
+        expResult = -31579135816000000
+        result = TimeUtil.lastLeapSecond(tt2000)
+        self.assertEqual(expResult,result)
+
+    # Test of formatHMSN method, of class TimeUtil.
+    def testFormatHMSN(self):
+        print('formatHMSN')
+        nanosecondsSinceMidnight = 56
+        expResult = '00:00:00.000000056'
+        result = TimeUtil.formatHMSN(nanosecondsSinceMidnight)
+        self.assertEqual(expResult,result)
+        nanosecondsSinceMidnight = 3600 * 24 * 1000000000
+        expResult = '23:59:60.000000000'
+        result = TimeUtil.formatHMSN(nanosecondsSinceMidnight)
+        self.assertEqual(expResult,result)
+        nanosecondsSinceMidnight = 3600 * 24 * 1000000000 + 1 * 1000000000 + 500 * 1000000
+        expResult = '23:59:61.500000000'
+        result = TimeUtil.formatHMSN(nanosecondsSinceMidnight)
+        self.assertEqual(expResult,result)
+
+    def testDaysInMonth(self):
+        print('daysInMonth')
+        year = 2000
+        month = 2
+        expResult = 29
+        result = TimeUtil.daysInMonth(year, month)
+        self.assertEqual(expResult,result)
+        year = 2004
+        month = 1
+        expResult = 31
+        result = TimeUtil.daysInMonth(year, month)
+        self.assertEqual(expResult,result)
+        year = 2008
+        month = 12
+        expResult = 31
+        result = TimeUtil.daysInMonth(year, month)
+        self.assertEqual(expResult,result)
 
 
 if __name__ == '__main__':

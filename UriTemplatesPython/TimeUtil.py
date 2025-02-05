@@ -1,4 +1,6 @@
+import math
 import re
+from collections import OrderedDict
 
 # Utilities for times in IsoTime strings (limited set of ISO8601 times)
 # Examples of isoTime strings include:<ul>
@@ -10,7 +12,9 @@ import re
 # </ul>
 #
 # @author jbf
-class TimeUtil:
+
+
+class TimeUtil:    
     VERSION = '20241217.1'
 
     # Number of time components: year, month, day, hour, minute, second, nanosecond
@@ -164,6 +168,123 @@ class TimeUtil:
         s = dt.strftime('%Y-%m-%dT%H:%M:%SZ')
         millis = dt.microsecond / 1000
         return s[0:-1] + '.%03dZ' % millis 
+
+    # format the time as (non-leap) real seconds since 1970-01-01T00:00.000Z into a string.  The
+    # number of milliseconds should not include leap seconds.  The output will always include 
+    # milliseconds.
+    # 
+    # @param time the number of milliseconds since 1970-01-01T00:00.000Z
+    # @return the formatted time.
+    # @see #toMillisecondsSince1970(java.lang.String) 
+    @staticmethod
+    def fromSecondsSince1970(time):
+        from datetime import datetime,timezone
+        dt = datetime.fromtimestamp(time,timezone.utc)
+        s = dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+        millis = dt.microsecond / 1000
+        return s[0:-1] + '.%03dZ' % millis 
+
+    # J2000 epoch in UTC (January 1, 2000, 12:00:00 TT)
+    J2000_EPOCH_MILLIS = 946728000000
+
+    # See <https://cdf.gsfc.nasa.gov/html/CDFLeapSeconds.txt>
+    LEAP_SECONDS = OrderedDict()
+    LEAP_SECONDS[-883655957816000000] = 10        # Jan 1, 1972
+    LEAP_SECONDS[-867931156816000000] = 11        # Jul 1, 1972
+    LEAP_SECONDS[-852033555816000000] = 12        #  1973   1    1   12.0            0.0  0.0
+    LEAP_SECONDS[-820497554816000000] = 13        #  1974   1    1   13.0            0.0  0.0
+    LEAP_SECONDS[-788961553816000000] = 14        #  1975   1    1   14.0            0.0  0.0
+    LEAP_SECONDS[-757425552816000000] = 15        #  1976   1    1   15.0            0.0  0.0
+    LEAP_SECONDS[-725803151816000000] = 16        #  1977   1    1   16.0            0.0  0.0
+    LEAP_SECONDS[-694267150816000000] = 17        #  1978   1    1   17.0            0.0  0.0
+    LEAP_SECONDS[-662731149816000000] = 18        #  1979   1    1   18.0            0.0  0.0
+    LEAP_SECONDS[-631195148816000000] = 19        #  1980   1    1   19.0            0.0  0.0
+    LEAP_SECONDS[-583934347816000000] = 20        #  1981   7    1   20.0            0.0  0.0
+    LEAP_SECONDS[-552398346816000000] = 21        #  1982   7    1   21.0            0.0  0.0
+    LEAP_SECONDS[-520862345816000000] = 22        #  1983   7    1   22.0            0.0  0.0
+    LEAP_SECONDS[-457703944816000000] = 23        #  1985   7    1   23.0            0.0  0.0
+    LEAP_SECONDS[-378734343816000000] = 24        #  1988   1    1   24.0            0.0  0.0
+    LEAP_SECONDS[-315575942816000000] = 25        #  1990   1    1   25.0            0.0  0.0
+    LEAP_SECONDS[-284039941816000000] = 26        #  1991   1    1   26.0            0.0  0.0
+    LEAP_SECONDS[-236779140816000000] = 27        #  1992   7    1   27.0            0.0  0.0
+    LEAP_SECONDS[-205243139816000000] = 28        #  1993   7    1   28.0            0.0  0.0
+    LEAP_SECONDS[-173707138816000000] = 29        #  1994   7    1   29.0            0.0  0.0
+    LEAP_SECONDS[-126273537816000000] = 30        #  1996   1    1   30.0            0.0  0.0
+    LEAP_SECONDS[-79012736816000000] = 31        #  1997   7    1   31.0            0.0  0.0        
+    LEAP_SECONDS[-31579135816000000] = 32        # Jan 1, 1999
+    LEAP_SECONDS[189345665184000000] = 33        # Jan 1, 2006
+    LEAP_SECONDS[284040066184000000] = 34        # Jan 1, 2009
+    LEAP_SECONDS[394372867184000000] = 35        # Jul 1, 2012
+    LEAP_SECONDS[488980868184000000] = 36        # Jul 1, 2015
+    LEAP_SECONDS[536500869184000000] = 37
+
+    # return the number of complete leap seconds added for the tt2000 time, starting
+    # 10 at 1972-01-01T00:00:01Z.
+    # @param tt2000
+    # @return the number of leap seconds on the date.
+    @staticmethod
+    def leapSecondsAt(tt2000):
+        last = TimeUtil.lastLeapSecond(tt2000)
+        return TimeUtil.LEAP_SECONDS[last]
+
+    # return the tt2000 for nanosecond following the last leap second.
+    # @param tt2000
+    # @return tt2000 of the nanosecond following the last leap second.
+    @staticmethod
+    def lastLeapSecond(tt2000):
+        last = -883655957816000000
+        for k in TimeUtil.LEAP_SECONDS:
+            if k > tt2000:
+                break
+            last = k
+        return last
+
+    # return the time as $H:$M:$S.$N, where the seconds
+    # component can be 60 or 61.
+    # @param nanosecondsSinceMidnight
+    # @return String in form $H:$M:$S.$N
+    @staticmethod
+    def formatHMSN(nanosecondsSinceMidnight):
+        if nanosecondsSinceMidnight < 0:
+            raise Exception('nanosecondsSinceMidnight must be positive')
+        if nanosecondsSinceMidnight >= 86_402_000_000_000:
+            raise Exception('nanosecondsSinceMidnight must less than 86402*1000000000')
+        ns = nanosecondsSinceMidnight
+        hours = int((nanosecondsSinceMidnight // 3_600_000_000_000))
+        if hours == 24:
+            hours = 23
+        ns -= hours * 3_600_000_000_000
+        minutes = int((ns // 60_000_000_000))
+        if minutes > 59:
+            minutes = 59
+        ns -= minutes * 60_000_000_000
+        seconds = int((ns // 1_000_000_000))
+        ns -= seconds * 1_000_000_000
+        return '%02d:%02d:%02d.%09d' % (hours, minutes, seconds, ns)
+
+    # format the time as nanoseconds since J2000 (Julian date 2451545.0 TT or 2000 January 1, 12h TT
+    # or 2000-01-01T12:00 -  32.184s UTC).  This is used often in space physics, and is known as TT2000 
+    # in NASA/CDF files.  This does include leap seconds, and this code must be updated as new leap 
+    # seconds are planned.
+    # 
+    # @param tt2000 time in nanoseconds since 2000-01-01T11:59:27.816Z (datum('2000-01-01T12:00')-'32.184s')
+    # @return the time formatted to nanosecond resolution
+    @staticmethod
+    def fromTT2000(tt2000):
+        leapSeconds = TimeUtil.leapSecondsAt(tt2000)
+        leapSecondCheck = TimeUtil.leapSecondsAt(tt2000 + 1000000000)
+        nanosecondsSinceMidnight = (tt2000 - leapSeconds * 1_000_000_000 - 32_184_000_000 + 43_200_000_000_000) % 86_400_000_000_000
+        if leapSecondCheck > leapSeconds:
+            # the instant is during a leap second
+            nanosecondsSinceMidnight += 86_400_000_000_000
+        tt2000Midnight = tt2000 - nanosecondsSinceMidnight
+        if True:
+            # leapSecondCheck-leapSeconds==1 ) {
+            nanosecondsSince2000 = (tt2000Midnight - leapSeconds * 1_000_000_000)
+            julianDay = 2451545 + int(math.floor((nanosecondsSince2000) / 86400000000000)) + 1
+            ymd = TimeUtil.fromJulianDay(julianDay)
+            s = '%04d-%02d-%02dT' % (ymd[0], ymd[1], ymd[2]) + TimeUtil.formatHMSN(nanosecondsSinceMidnight) + 'Z'
+        return s
 
     # given the two times, return a 14 element time range.
     # @param t1 a seven digit time
@@ -383,7 +504,7 @@ class TimeUtil:
     # @see #fromMillisecondsSince1970(long) 
     @staticmethod
     def toMillisecondsSince1970(time):
-        time = TimeUtil.isoTimeToArray(time);
+        time = TimeUtil.isoTimeToArray(time)
         import datetime
         datetim= datetime.datetime(time[0],time[1],time[2],0,0,0,0)
         dayspast= datetim.toordinal() - datetime.datetime(1970,1,1).toordinal()
