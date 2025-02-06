@@ -404,6 +404,7 @@ end
 ;   array of times, complete days, in the form $Y-$m-$dZ
 ;-
 function TimeUtil::countOffDays, startTime, stopTime
+    print 'countOffDays', startTime, stopTime
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     catch, err
@@ -416,7 +417,7 @@ function TimeUtil::countOffDays, startTime, stopTime
     catch, /cancel
     j1 = TimeUtil.julianDay(t1[0], t1[1], t1[2])
     j2 = TimeUtil.julianDay(t2[0], t2[1], t2[2])
-    result = replicate(None,j2 - j1)
+    result = replicate('',j2 - j1)
     time = strmid(TimeUtil.normalizeTimeString(startTime),0,10) + 'Z'
     stopTime = strmid(TimeUtil.floor(stopTime),0,10) + 'Z'
     i = 0
@@ -494,8 +495,9 @@ end
 ; Returns:
 ;   the next midnight or the value if already at midnight.
 ;-
-function TimeUtil::ceil, time
+function TimeUtil::ceil, time_in
     compile_opt idl2, static
+    time = time_in
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     time = TimeUtil.normalizeTimeString(time)
     if strmid(time,11) eq '00:00:00.000000000Z' then begin
@@ -516,8 +518,9 @@ end
 ; Returns:
 ;   the previous midnight or the value if already at midnight.
 ;-
-function TimeUtil::floor, time
+function TimeUtil::floor, time_in
     compile_opt idl2, static
+    time = time_in
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     time = TimeUtil.normalizeTimeString(time)
     if strmid(time,11) eq '00:00:00.000000000Z' then begin
@@ -569,9 +572,10 @@ end
 ;    #fromMillisecondsSince1970(long)
 
 ;-
-function TimeUtil::toMillisecondsSince1970, time
+function TimeUtil::toMillisecondsSince1970, time_in
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
+    time = time_in
     time = TimeUtil.normalizeTimeString(time)
     ta = DateTimeFormatter.ISO_INSTANT.parse(time)
     i = Instant.from(ta)
@@ -850,9 +854,10 @@ end
 ;    #parseISO8601Time(java.lang.String)
 
 ;-
-function TimeUtil::isoTimeToArray, time
+function TimeUtil::isoTimeToArray, time_in
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
+    time = time_in    
     if strlen(time) eq 4 then begin
         result = [int(time), 1, 1, 0, 0, 0, 0]
     endif else if (time).startswith('now') or (time).startswith('last') then begin

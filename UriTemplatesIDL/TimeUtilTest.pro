@@ -5,7 +5,7 @@ pro TimeUtilTest::assertEquals, a, b
 end
 
 pro TimeUtilTest::assertArrayEquals, a, b
-    if len(a) eq len(b) then begin
+    if n_elements(a) eq n_elements(b) then begin
         for i=0,n_elements(a)-1 do begin
             if a[i] ne b[i] then stop, string(format='a[%d] ne [%d]',i,i)
         endfor
@@ -132,6 +132,7 @@ pro TimeUtilTest::testNextRange
     endif else begin
         stop, ex
     endelse
+    catch, /cancel
 end
 
 ;+
@@ -148,6 +149,7 @@ pro TimeUtilTest::testPreviousRange
     endif else begin
         stop, ex
     endelse
+    catch, /cancel
 end
 
 ;+
@@ -457,6 +459,7 @@ pro TimeUtilTest::testParseISO8601TimeRange
     endif else begin
         stop, ex
     endelse
+    catch, /cancel
     stringIn = '2022-W13/P7D'
     expResult = [2022, 3, 28, 0, 0, 0, 0, 2022, 4, 4, 0, 0, 0, 0]
     catch, err
@@ -466,6 +469,7 @@ pro TimeUtilTest::testParseISO8601TimeRange
     endif else begin
         stop, ex
     endelse
+    catch, /cancel
     stringIn = 'P7D/2022-01-02'
     expResult = [2021, 12, 26, 0, 0, 0, 0, 2022, 1, 2, 0, 0, 0, 0]
     catch, err
@@ -475,6 +479,7 @@ pro TimeUtilTest::testParseISO8601TimeRange
     endif else begin
         stop, ex
     endelse
+    catch, /cancel
     stringIn = '2023-01-18T17:00/18:00'
     expResult = [2023, 1, 18, 17, 0, 0, 0, 2023, 1, 18, 18, 0, 0, 0]
     catch, err
@@ -484,6 +489,7 @@ pro TimeUtilTest::testParseISO8601TimeRange
     endif else begin
         stop, ex
     endelse
+    catch, /cancel
     stringIn = '2013-01-01/07-01'
     expResult = [2013, 1, 1, 0, 0, 0, 0, 2013, 7, 1, 0, 0, 0, 0]
     catch, err
@@ -493,6 +499,7 @@ pro TimeUtilTest::testParseISO8601TimeRange
     endif else begin
         stop, ex
     endelse
+    catch, /cancel
     stringIn = '2017-09-13T13:06Z/2023-09-30T23:57:41Z'
     expResult = [2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 57, 41, 0]
     catch, err
@@ -502,6 +509,7 @@ pro TimeUtilTest::testParseISO8601TimeRange
     endif else begin
         stop, ex
     endelse
+    catch, /cancel
     stringIn = '2017-09-13T13:06:00Z/2023-09-30T23:00Z'
     expResult = [2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 0, 0, 0]
     catch, err
@@ -511,6 +519,7 @@ pro TimeUtilTest::testParseISO8601TimeRange
     endif else begin
         stop, ex
     endelse
+    catch, /cancel
 end
 
 ;+
@@ -605,6 +614,7 @@ pro TimeUtilTest::testParseISO8601Time
     endif else begin
         stop, ex
     endelse
+    catch, /cancel
 end
 
 ;+
@@ -697,7 +707,8 @@ pro TimeUtilTest__define
     return
 end
 ; Run the following code on the command line:
-pro TimeUtilTest::RunTests
+; o=obj_new('TimeUtilTest')    
+; o.runtests                   pro TimeUtilTest::RunTests
     Test = obj_new('TimeUtilTest')
     test.testReformatIsoTime
     test.testMonthNameAbbrev
