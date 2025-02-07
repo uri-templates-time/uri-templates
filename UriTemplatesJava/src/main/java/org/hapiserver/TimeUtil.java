@@ -745,6 +745,8 @@ public class TimeUtil {
         
         int[] nn;
         
+        boolean addedDigits= nn_in.length<6;
+        
         if ( nn_in.length>7 ) throw new IllegalArgumentException("decomposed time can have at most 7 digits");
         if ( nn_in.length<7 ) {
             nn= new int[7];
@@ -785,7 +787,11 @@ public class TimeUtil {
         } 
         
         if ( sb.length()==1 ) {
-            sb.append("0D");
+            if ( addedDigits ) {
+                sb.append("0D");
+            } else {
+                sb.append("T0S");
+            }
         }
         
         return sb.toString();
