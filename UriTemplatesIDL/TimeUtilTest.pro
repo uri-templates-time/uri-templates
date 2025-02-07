@@ -130,7 +130,7 @@ pro TimeUtilTest::testNextRange
         expResult = '2022-12-15/2022-12-25'
         self.assertEquals, expResult, result
     endif else begin
-        stop, ex
+        stop, !error_state.msg
     endelse
     catch, /cancel
 end
@@ -147,7 +147,7 @@ pro TimeUtilTest::testPreviousRange
         expResult = '2022-11-25/2022-12-05'
         self.assertEquals, expResult, result
     endif else begin
-        stop, ex
+        stop, !error_state.msg
     endelse
     catch, /cancel
 end
@@ -457,7 +457,7 @@ pro TimeUtilTest::testParseISO8601TimeRange
         result = TimeUtil.parseISO8601TimeRange(stringIn)
         self.assertArrayEquals, expResult, result
     endif else begin
-        stop, ex
+        stop, !error_state.msg
     endelse
     catch, /cancel
     stringIn = '2022-W13/P7D'
@@ -467,7 +467,7 @@ pro TimeUtilTest::testParseISO8601TimeRange
         result = TimeUtil.parseISO8601TimeRange(stringIn)
         self.assertArrayEquals, expResult, result
     endif else begin
-        stop, ex
+        stop, !error_state.msg
     endelse
     catch, /cancel
     stringIn = 'P7D/2022-01-02'
@@ -477,7 +477,7 @@ pro TimeUtilTest::testParseISO8601TimeRange
         result = TimeUtil.parseISO8601TimeRange(stringIn)
         self.assertArrayEquals, expResult, result
     endif else begin
-        stop, ex
+        stop, !error_state.msg
     endelse
     catch, /cancel
     stringIn = '2023-01-18T17:00/18:00'
@@ -487,7 +487,7 @@ pro TimeUtilTest::testParseISO8601TimeRange
         result = TimeUtil.parseISO8601TimeRange(stringIn)
         self.assertArrayEquals, expResult, result
     endif else begin
-        stop, ex
+        stop, !error_state.msg
     endelse
     catch, /cancel
     stringIn = '2013-01-01/07-01'
@@ -497,7 +497,7 @@ pro TimeUtilTest::testParseISO8601TimeRange
         result = TimeUtil.parseISO8601TimeRange(stringIn)
         self.assertArrayEquals, expResult, result
     endif else begin
-        stop, ex
+        stop, !error_state.msg
     endelse
     catch, /cancel
     stringIn = '2017-09-13T13:06Z/2023-09-30T23:57:41Z'
@@ -507,7 +507,7 @@ pro TimeUtilTest::testParseISO8601TimeRange
         result = TimeUtil.parseISO8601TimeRange(stringIn)
         self.assertArrayEquals, expResult, result
     endif else begin
-        stop, ex
+        stop, !error_state.msg
     endelse
     catch, /cancel
     stringIn = '2017-09-13T13:06:00Z/2023-09-30T23:00Z'
@@ -517,7 +517,7 @@ pro TimeUtilTest::testParseISO8601TimeRange
         result = TimeUtil.parseISO8601TimeRange(stringIn)
         self.assertArrayEquals, expResult, result
     endif else begin
-        stop, ex
+        stop, !error_state.msg
     endelse
     catch, /cancel
 end
@@ -612,7 +612,7 @@ pro TimeUtilTest::testParseISO8601Time
         result = TimeUtil.parseISO8601Time(string)
         self.assertArrayEquals, expResult, result
     endif else begin
-        stop, ex
+        stop, !error_state.msg
     endelse
     catch, /cancel
 end
@@ -708,7 +708,8 @@ pro TimeUtilTest__define
 end
 ; Run the following code on the command line:
 ; o=obj_new('TimeUtilTest')    
-; o.runtests                   pro TimeUtilTest::RunTests
+; o.runtests                   
+pro TimeUtilTest::RunTests
     Test = obj_new('TimeUtilTest')
     test.testReformatIsoTime
     test.testMonthNameAbbrev
