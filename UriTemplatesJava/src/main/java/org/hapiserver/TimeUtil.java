@@ -877,7 +877,7 @@ public class TimeUtil {
             result = new int[]{Integer.parseInt(time), 1, 1, 0, 0, 0, 0};
         } else if ( time.startsWith("now") || time.startsWith("last") ) {
             int[] n;
-            String remainder=null;
+            String remainder;
             if ( time.startsWith("now") ) {
                 n= now();
                 remainder= time.substring(3);
