@@ -997,19 +997,19 @@ public class TimeUtil {
             }
             // second, parse HMS part.
             if (timehms.endsWith("Z")) {
-                timehms = timehms.substring(0, time.length() - 1);
+                timehms = timehms.substring(0, timehms.length() - 1);
             }
             if (timehms.length() >= 2) {
-                result[3] = parseInteger(time.substring(0, 2));
+                result[3] = parseInteger(timehms.substring(0, 2));
             }
             if (timehms.length() >= 5) {
-                result[4] = parseInteger(time.substring(3, 5));
+                result[4] = parseInteger(timehms.substring(3, 5));
             }
             if (timehms.length() >= 8) {
-                result[5] = parseInteger(time.substring(6, 8));
+                result[5] = parseInteger(timehms.substring(6, 8));
             }
             if (timehms.length() > 9) {
-                result[6] = (int) (Math.pow(10, 18 - time.length())) * parseInteger(time.substring(9));
+                result[6] = (int) (Math.pow(10, 18 - timehms.length())) * parseInteger(timehms.substring(9));
             }
             normalizeTime(result);
         }
