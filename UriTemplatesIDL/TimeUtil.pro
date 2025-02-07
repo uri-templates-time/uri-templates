@@ -62,7 +62,7 @@ function TimeUtil::parseInteger, s
     for i=0,length-1 do begin
         c = strmid(s,i,1)
         if long(byte(c)) lt 48 or long(byte(c)) ge 58 then begin
-            stop, 'only digits are allowed in string'
+            stop, !error_state.msg
         endif 
     endfor
     SWITCH length OF
@@ -112,7 +112,7 @@ function TimeUtil::parseDouble, val, deft
         if deft ne -99 then begin
             return, deft
         endif else begin
-            stop, 'bad digit'
+            stop, !error_state.msg
         endelse
     endif 
     n = strlen(val) - 1
@@ -175,7 +175,7 @@ pro TimeUtil::setStartTime, time, timerange
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     if n_elements(timerange) ne 14 then begin
-        stop, 'timerange should be 14-element array.'
+        stop, !error_state.msg
     endif 
     timerange[0:(TimeUtil_TIME_DIGITS-1)]=time[0:(TimeUtil_TIME_DIGITS-1)]
 end
@@ -191,7 +191,7 @@ pro TimeUtil::setStopTime, time, timerange
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     if n_elements(timerange) ne 14 then begin
-        stop, 'timerange should be 14-element array.'
+        stop, !error_state.msg
     endif 
     timerange[TimeUtil_TIME_DIGITS:2*TimeUtil_TIME_DIGITS-1]=time[0:(TimeUtil_TIME_DIGITS-1)]
 end
@@ -235,7 +235,7 @@ function TimeUtil::createTimeRange, t1, t2
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     if not(TimeUtil.gt_(t2, t1)) then begin
-        stop, 't1 is not smaller than t2'
+        stop, !error_state.msg
     endif 
     result = replicate(0,TimeUtil_TIME_DIGITS * 2)
     TimeUtil.setStartTime,t1, result
@@ -256,7 +256,7 @@ function TimeUtil::isLeapYear, year
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     if year lt 1582 or year gt 2400 then begin
-        stop, 'year must be between 1582 and 2400'
+        stop, !error_state.msg
     endif 
     return, (year mod 4) eq 0 and (year mod 400 eq 0 or year mod 100 ne 0)
 end
@@ -312,7 +312,7 @@ function TimeUtil::monthNumber, s
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     if strlen(s) lt 3 then begin
-        stop, Exception('need at least three letters')
+        stop, !error_state.msg
     endif 
     s = strmid(s,0,3)
     for i=1,12 do begin
@@ -320,7 +320,7 @@ function TimeUtil::monthNumber, s
             return, i
         endif 
     endfor
-    stop, Exception('Unable to parse month')
+    stop, !error_state.msg
 end
 
 ;+
@@ -349,13 +349,13 @@ function TimeUtil::dayOfYear, year, month, day
         return, day
     endif 
     if month lt 1 then begin
-        stop, 'month must be greater than 0.'
+        stop, !error_state.msg
     endif 
     if month gt 12 then begin
-        stop, 'month must be less than 12.'
+        stop, !error_state.msg
     endif 
     if day gt 366 then begin
-        stop, 'day (' + strtrim(day,2) + ') must be less than 366.'
+        stop, !error_state.msg
     endif 
     leap = (TimeUtil.isLeapYear(year)) ? 1 : 0
     return, TimeUtil_DAY_OFFSET[month,leap] + day
@@ -377,10 +377,10 @@ function TimeUtil::monthForDayOfYear, year, doy
     leap = (TimeUtil.isLeapYear(year)) ? 1 : 0
     dayOffset = TimeUtil_DAY_OFFSET[leap]
     if doy lt 1 then begin
-        stop, 'doy must be 1 or more'
+        stop, !error_state.msg
     endif 
     if doy gt dayOffset[13] then begin
-        stop, 'doy must be less than or equal to ' + strtrim(dayOffset[13],2)
+        stop, !error_state.msg
     endif 
     for i=12,2,-1 do begin
         if dayOffset[i] lt doy then begin
@@ -404,7 +404,6 @@ end
 ;   array of times, complete days, in the form $Y-$m-$dZ
 ;-
 function TimeUtil::countOffDays, startTime, stopTime
-    print 'countOffDays', startTime, stopTime
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     catch, err
@@ -412,7 +411,7 @@ function TimeUtil::countOffDays, startTime, stopTime
         t1 = TimeUtil.parseISO8601Time(startTime)
         t2 = TimeUtil.parseISO8601Time(stopTime)
     endif else begin
-        stop, ex
+        stop, !error_state.msg
     endelse
     catch, /cancel
     j1 = TimeUtil.julianDay(t1[0], t1[1], t1[2])
@@ -495,9 +494,8 @@ end
 ; Returns:
 ;   the next midnight or the value if already at midnight.
 ;-
-function TimeUtil::ceil, time_in
+function TimeUtil::ceil, time
     compile_opt idl2, static
-    time = time_in
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     time = TimeUtil.normalizeTimeString(time)
     if strmid(time,11) eq '00:00:00.000000000Z' then begin
@@ -518,9 +516,8 @@ end
 ; Returns:
 ;   the previous midnight or the value if already at midnight.
 ;-
-function TimeUtil::floor, time_in
+function TimeUtil::floor, time
     compile_opt idl2, static
-    time = time_in
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     time = TimeUtil.normalizeTimeString(time)
     if strmid(time,11) eq '00:00:00.000000000Z' then begin
@@ -572,10 +569,9 @@ end
 ;    #fromMillisecondsSince1970(long)
 
 ;-
-function TimeUtil::toMillisecondsSince1970, time_in
+function TimeUtil::toMillisecondsSince1970, time
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
-    time = time_in
     time = TimeUtil.normalizeTimeString(time)
     ta = DateTimeFormatter.ISO_INSTANT.parse(time)
     i = Instant.from(ta)
@@ -678,7 +674,7 @@ function TimeUtil::formatIso8601TimeInTimeRange, nn, offset
             return, TimeUtil.isoTimeFromArray(copy)
         END
         ELSE: BEGIN
-            stop, 'offset must be 0 or 7'
+            stop, !error_state.msg
         END
     ENDSWITCH
 end
@@ -717,7 +713,7 @@ function TimeUtil::formatIso8601Duration, nn
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     units = ['Y', 'M', 'D', 'H', 'M', 'S']
     if n_elements(nn) gt 7 then begin
-        stop, 'decomposed time can have at most 7 digits'
+        stop, !error_state.msg
     endif 
     sb = 'P'
     n = ((n_elements(nn) lt 5)) ? n_elements(nn) : 5
@@ -798,9 +794,9 @@ function TimeUtil::parseISO8601Duration, stringIn
         return, [TimeUtil.parseIntegerDeft(m.group(2), 0), TimeUtil.parseIntegerDeft(m.group(4), 0), TimeUtil.parseIntegerDeft(m.group(6), 0), TimeUtil.parseIntegerDeft(m.group(9), 0), TimeUtil.parseIntegerDeft(m.group(11), 0), sec, nanosec]
     endif else begin
         if (strpos(stringIn,'P') ne -1) and (strpos(stringIn,'S') ne -1) and not((strpos(stringIn,'T') ne -1)) then begin
-            stop, Exception('ISO8601 duration expected but not found.  Was the T missing before S?')
+            stop, !error_state.msg
         endif else begin
-            stop, Exception('ISO8601 duration expected but not found.')
+            stop, !error_state.msg
         endelse
     endelse
 end
@@ -854,10 +850,9 @@ end
 ;    #parseISO8601Time(java.lang.String)
 
 ;-
-function TimeUtil::isoTimeToArray, time_in
+function TimeUtil::isoTimeToArray, time
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
-    time = time_in    
     if strlen(time) eq 4 then begin
         result = [int(time), 1, 1, 0, 0, 0, 0]
     endif else if (time).startswith('now') or (time).startswith('last') then begin
@@ -898,7 +893,7 @@ function TimeUtil::isoTimeToArray, time_in
                         break
                     END
                     ELSE: BEGIN
-                        stop, 'unsupported unit: ' + unit
+                        stop, !error_state.msg
                     END
                 ENDSWITCH
                 for id=(1>idigit),TimeUtil_DATE_DIGITS-1 do begin
@@ -908,7 +903,7 @@ function TimeUtil::isoTimeToArray, time_in
                     n[id] = 0
                 endfor
             endif else begin
-                stop, 'expected lastday+P1D, etc'
+                stop, !error_state.msg
             endelse
         endelse
         if n_elements(remainder) eq 0 or strlen(remainder) eq 0 then begin
@@ -918,7 +913,7 @@ function TimeUtil::isoTimeToArray, time_in
             if err eq 0 then begin
                 return, TimeUtil.subtract(n, TimeUtil.parseISO8601Duration(strmid(remainder,1)))
             endif else begin
-                stop, ex
+                stop, !error_state.msg
             endelse
             catch, /cancel
         endif else if strmid(remainder,0,1) eq '+' then begin
@@ -926,17 +921,17 @@ function TimeUtil::isoTimeToArray, time_in
             if err eq 0 then begin
                 return, TimeUtil.add(n, TimeUtil.parseISO8601Duration(strmid(remainder,1)))
             endif else begin
-                stop, ex
+                stop, !error_state.msg
             endelse
             catch, /cancel
         endif
         return, TimeUtil.now()
     endif else begin
         if strlen(time) lt 7 then begin
-            stop, 'time must have 4 or greater than 7 characters'
+            stop, !error_state.msg
         endif 
         if isDigit(strmid(time,4,1)) and isDigit(strmid(time,5,1)) then begin
-            stop, 'date and time must contain delimiters between fields'
+            stop, !error_state.msg
         endif 
         if strlen(time) eq 7 then begin
             if strmid(time,4,1) eq 'W' then begin
@@ -947,10 +942,10 @@ function TimeUtil::isoTimeToArray, time_in
                 week = TimeUtil.parseInteger(strmid(time,5))
                 result = [year, 0, 0, 0, 0, 0, 0]
                 TimeUtil.fromWeekOfYear,year, week, result
-                time = ''
+                timehms = ''
             endif else begin
                 result = [TimeUtil.parseInteger(strmid(time,0,4)), TimeUtil.parseInteger(strmid(time,5,2)), 1, 0, 0, 0, 0]
-                time = ''
+                timehms = ''
             endelse
         endif else if strlen(time) eq 8 then begin
             if strmid(time,5,1) eq 'W' then begin
@@ -961,44 +956,44 @@ function TimeUtil::isoTimeToArray, time_in
                 week = TimeUtil.parseInteger(strmid(time,6))
                 result = [year, 0, 0, 0, 0, 0, 0]
                 TimeUtil.fromWeekOfYear,year, week, result
-                time = ''
+                timehms = ''
             endif else begin
                 result = [TimeUtil.parseInteger(strmid(time,0,4)), 1, TimeUtil.parseInteger(strmid(time,5,3)), 0, 0, 0, 0]
-                time = ''
+                timehms = ''
             endelse
         endif else if strmid(time,8,1) eq 'T' then begin
             if isDigit(strmid(time,4,1)) then begin
                 result = [TimeUtil.parseInteger(strmid(time,0,4)), TimeUtil.parseInteger(strmid(time,4,2)), TimeUtil.parseInteger(strmid(time,6,2)), 0, 0, 0, 0]
-                time = strmid(time,9)
+                timehms = strmid(time,9)
             endif else begin
                 result = [TimeUtil.parseInteger(strmid(time,0,4)), 1, TimeUtil.parseInteger(strmid(time,5,3)), 0, 0, 0, 0]
-                time = strmid(time,9)
+                timehms = strmid(time,9)
             endelse
         endif else if strmid(time,8,1) eq 'Z' then begin
             result = [TimeUtil.parseInteger(strmid(time,0,4)), 1, TimeUtil.parseInteger(strmid(time,5,3)), 0, 0, 0, 0]
-            time = strmid(time,9)
+            timehms = strmid(time,9)
         endif else begin
             result = [TimeUtil.parseInteger(strmid(time,0,4)), TimeUtil.parseInteger(strmid(time,5,2)), TimeUtil.parseInteger(strmid(time,8,2)), 0, 0, 0, 0]
             if strlen(time) eq 10 then begin
-                time = ''
+                timehms = ''
             endif else begin
-                time = strmid(time,11)
+                timehms = strmid(time,11)
             endelse
         endelse
-        if time.endswith('Z') then begin
-            time = strmid(time,0,strlen(time) - 1)
+        if timehms.endswith('Z') then begin
+            timehms = strmid(timehms,0,strlen(timehms) - 1)
         endif 
-        if strlen(time) ge 2 then begin
-            result[3] = TimeUtil.parseInteger(strmid(time,0,2))
+        if strlen(timehms) ge 2 then begin
+            result[3] = TimeUtil.parseInteger(strmid(timehms,0,2))
         endif 
-        if strlen(time) ge 5 then begin
-            result[4] = TimeUtil.parseInteger(strmid(time,3,2))
+        if strlen(timehms) ge 5 then begin
+            result[4] = TimeUtil.parseInteger(strmid(timehms,3,2))
         endif 
-        if strlen(time) ge 8 then begin
-            result[5] = TimeUtil.parseInteger(strmid(time,6,2))
+        if strlen(timehms) ge 8 then begin
+            result[5] = TimeUtil.parseInteger(strmid(timehms,6,2))
         endif 
-        if strlen(time) gt 9 then begin
-            result[6] = long((10^(18 - strlen(time)))) * TimeUtil.parseInteger(strmid(time,9))
+        if strlen(timehms) gt 9 then begin
+            result[6] = long((10^(18 - strlen(timehms)))) * TimeUtil.parseInteger(strmid(timehms,9))
         endif 
         TimeUtil.normalizeTime,result
     endelse
@@ -1093,31 +1088,31 @@ function TimeUtil::isValidTime, time
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     year = time[0]
     if year lt TimeUtil_VALID_FIRST_YEAR then begin
-        stop, 'invalid year at position 0'
+        stop, !error_state.msg
     endif 
     if year gt TimeUtil_VALID_LAST_YEAR then begin
-        stop, 'invalid year at position 0'
+        stop, !error_state.msg
     endif 
     month = time[1]
     if month lt 1 then begin
-        stop, 'invalid month at position 1'
+        stop, !error_state.msg
     endif 
     if month gt 12 then begin
-        stop, 'invalid month at position 1'
+        stop, !error_state.msg
     endif 
     leap = (TimeUtil.isLeapYear(year)) ? 1 : 0
     dayOfMonth = time[2]
     if month gt 1 then begin
         if dayOfMonth gt TimeUtil_DAYS_IN_MONTH[month,leap] then begin
-            stop, 'day of month is too large at position 2'
+            stop, !error_state.msg
         endif 
     endif else begin
         if dayOfMonth gt TimeUtil_DAY_OFFSET[13,leap] then begin
-            stop, 'day of year is too large at position 2'
+            stop, !error_state.msg
         endif 
     endelse
     if dayOfMonth lt 1 then begin
-        stop, 'day is less than 1 at position 2'
+        stop, !error_state.msg
     endif 
     return, 1
 end
@@ -1231,7 +1226,7 @@ pro TimeUtil::normalizeTime, time
         time[1] += 12
     endif 
     if time[3] gt 24 then begin
-        stop, 'time[3] is greater than 24 (hours)'
+        stop, !error_state.msg
     endif 
     if time[1] gt 12 then begin
         time[0] += 1
@@ -1290,7 +1285,7 @@ function TimeUtil::julianDay, year, month, day
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     if year le 1582 then begin
-        stop, 'year must be more than 1582'
+        stop, !error_state.msg
     endif 
     jd = 367 * year - 7 * (year + (month + 9) / 12) / 4 - 3 * ((year + (month - 9) / 7) / 100 + 1) / 4 + 275 * month / 9 + day + 1721029
     return, jd
@@ -1465,13 +1460,13 @@ function TimeUtil::parseISO8601TimeRange, stringIn
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     ss = strsplit(stringIn,'/',/extract)
     if n_elements(ss) ne 2 then begin
-        stop, 'expected one slash (/) splitting start and stop times.'
+        stop, !error_state.msg
     endif 
     if not(TimeUtil.isValidFormattedTime(ss[0])) then begin
-        stop, 'first time/duration is misformatted.  Should be ISO8601 time or duration like P1D.'
+        stop, !error_state.msg
     endif 
     if not(TimeUtil.isValidFormattedTime(ss[1])) then begin
-        stop, 'second time/duration is misformatted.  Should be ISO8601 time or duration like P1D.'
+        stop, !error_state.msg
     endif 
     result = replicate(0,14)
     if (ss[0]).startswith('P') then begin
