@@ -737,22 +737,28 @@ public class TimeUtil {
     /**
      * format the duration into human-readable time, for example
      * [ 0, 0, 7, 0, 0, 6 ] is formatted into "P7DT6S"
-     * @param nn seven-element array of [ Y m d H M S nanos ]
+     * @param nn_in seven-element array of [ Y m d H M S N ]
      * @return ISO8601 duration
      */
-    public static String formatIso8601Duration(int[] nn) {
+    public static String formatIso8601Duration(int[] nn_in) {
         char[] units= new char[] { 'Y','M','D','H','M','S' };
         
-        if ( nn.length>7 ) throw new IllegalArgumentException("decomposed time can have at most 7 digits");
+        int[] nn;
         
+        if ( nn_in.length>7 ) throw new IllegalArgumentException("decomposed time can have at most 7 digits");
+        if ( nn_in.length<7 ) {
+            nn= new int[7];
+            System.arraycopy( nn_in, 0, nn, 0, nn_in.length );
+        } else {
+            nn= nn_in;
+        }
         StringBuilder sb= new StringBuilder("P");
-        int n= ( nn.length < 5 ) ? nn.length : 5;
+        int n= 7;
 
-        boolean needT= false;
-        for ( int i=0; i<n; i++ ) {
-            if ( i==3 ) needT= true;
+        boolean needT= true;
+        for ( int i=0; i<5; i++ ) {
             if ( nn[i]>0 ) {
-                if ( needT ) {
+                if ( i>=3 ) {
                     sb.append("T");
                     needT= false;
                 }
@@ -760,12 +766,12 @@ public class TimeUtil {
             }
         }
         
-        if ( nn.length>5 && nn[5]>0 || nn.length>6 && nn[6]>0 || sb.length()==2 ) {
+        if ( nn[5]>0 || nn[6]>0 || sb.length()==2 ) {
             if ( needT ) {
                 sb.append("T");
             }
             int seconds= nn[5];
-            int nanoseconds= nn.length==7 ? nn[6] : 0;
+            int nanoseconds= nn[6];
             if ( nanoseconds==0 ) {
                 sb.append(seconds);
             } else if ( nanoseconds%1000000==0 ) {
@@ -776,14 +782,10 @@ public class TimeUtil {
                 sb.append(String.format("%.9f",seconds + nanoseconds/1e9) ); 
             }
             sb.append("S");
-        }
+        } 
         
         if ( sb.length()==1 ) {
-            if ( nn.length>3 ) {
-                sb.append( "T0S" );
-            } else {
-                sb.append("0D");
-            }
+            sb.append("0D");
         }
         
         return sb.toString();
