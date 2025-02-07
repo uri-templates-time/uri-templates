@@ -715,60 +715,63 @@ end
 ;[ 0, 0, 7, 0, 0, 6 ] is formatted into "P7DT6S"
 ;
 ; Parameters:
-;   nn - seven-element array of [ Y m d H M S nanos ]
+;   nn_in - seven-element array of [ Y m d H M S N ]
 ;
 ; Returns:
 ;   ISO8601 duration
 ;-
-function TimeUtil::formatIso8601Duration, nn
+function TimeUtil::formatIso8601Duration, nn_in
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     units = ['Y', 'M', 'D', 'H', 'M', 'S']
-    if n_elements(nn) gt 7 then begin
+    addedDigits = n_elements(nn_in) lt 6
+    if n_elements(nn_in) gt 7 then begin
         stop, !error_state.msg
     endif 
+    if n_elements(nn_in) lt 7 then begin
+        nn = replicate(0,7)
+        nn[0:(n_elements(nn_in)-1)]=nn_in[0:(n_elements(nn_in)-1)]
+    endif else begin
+        nn = nn_in
+    endelse
     sb = 'P'
-    n = ((n_elements(nn) lt 5)) ? n_elements(nn) : 5
-    needT = 0
-    for i=0,n-1 do begin
-        if i eq 3 then begin
-            needT = 1
-        endif 
+    n = 7
+    needT = 1
+    for i=0,4 do begin
         if nn[i] gt 0 then begin
-            if needT then begin
+            if i ge 3 then begin
                 sb = sb + 'T'
                 needT = 0
             endif 
             sb = sb + strtrim(nn[i],2) + strtrim(units[i],2)
         endif 
     endfor
-    if n_elements(nn) gt 5 and nn[5] gt 0 or n_elements(nn) gt 6 and nn[6] gt 0 or strlen(sb) eq 2 then begin
+    if nn[5] gt 0 or nn[6] gt 0 or strlen(sb) eq 2 then begin
         if needT then begin
             sb = sb + 'T'
         endif 
         seconds = nn[5]
-        nanoseconds = (n_elements(nn) eq 7) ? nn[6] : 0
+        nanoseconds = nn[6]
         if nanoseconds eq 0 then begin
             sb = sb + strtrim(seconds,2)
         endif else if nanoseconds mod 1000000 eq 0 then begin
-            sb = sb + strtrim(string(format='%.3f',seconds + nanoseconds / 1e9),2)
+            sb = sb + strtrim(string(format='%0.3f',seconds + nanoseconds / 1e9),2)
         endif else if nanoseconds mod 1000 eq 0 then begin
-            sb = sb + strtrim(string(format='%.6f',seconds + nanoseconds / 1e9),2)
+            sb = sb + strtrim(string(format='%0.6f',seconds + nanoseconds / 1e9),2)
         endif else begin
-            sb = sb + strtrim(string(format='%.9f',seconds + nanoseconds / 1e9),2)
+            sb = sb + strtrim(string(format='%0.9f',seconds + nanoseconds / 1e9),2)
         endelse
         sb = sb + 'S'
     endif 
-    if length(sb) eq 1 then begin
-        if n_elements(nn) gt 3 then begin
-            sb = sb + 'T0S'
-        endif else begin
+    if strlen(sb) eq 1 then begin
+        if addedDigits then begin
             sb = sb + '0D'
+        endif else begin
+            sb = sb + 'T0S'
         endelse
     endif 
     return, sb
 end
-
 
 
 ;+
