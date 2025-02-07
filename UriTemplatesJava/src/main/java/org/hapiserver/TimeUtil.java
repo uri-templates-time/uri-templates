@@ -945,6 +945,7 @@ public class TimeUtil {
             if ( Character.isDigit(time.charAt(4)) && Character.isDigit(time.charAt(5)) ) {
                 throw new IllegalArgumentException("date and time must contain delimiters between fields");
             }
+            String timehms;
             // first, parse YMD part, and leave remaining components in time.
             if ( time.length()==7 ) {
                 if ( time.charAt(4)=='W' ) { // 2022W08
@@ -952,11 +953,11 @@ public class TimeUtil {
                     int week= parseInteger(time.substring(5));
                     result= new int[] { year, 0, 0, 0, 0, 0, 0 };
                     fromWeekOfYear( year, week, result );
-                    time= "";
+                    timehms= "";
                 } else {
                     result = new int[]{ parseInteger(time.substring(0, 4)), parseInteger(time.substring(5, 7)), 1, // days
                         0, 0, 0, 0 };
-                    time = "";
+                    timehms = "";
                 }
             } else if (time.length() == 8) {
                 if ( time.charAt(5)=='W' ) { // 2022-W08
@@ -964,50 +965,50 @@ public class TimeUtil {
                     int week= parseInteger(time.substring(6));
                     result= new int[] { year, 0, 0, 0, 0, 0, 0 };
                     fromWeekOfYear( year, week, result );
-                    time= "";
+                    timehms= "";
                 } else {
                     result = new int[]{parseInteger(time.substring(0, 4)), 1, parseInteger(time.substring(5, 8)), // days
                         0, 0, 0, 0};
-                    time = "";
+                    timehms = "";
                 }
             } else if (time.charAt(8) == 'T') {
                 if ( Character.isDigit(time.charAt(4)) ) {
                     result = new int[]{
                         parseInteger(time.substring(0, 4)), parseInteger(time.substring(4,6)), parseInteger(time.substring(6,8)), 
                         0, 0, 0, 0};
-                    time = time.substring(9);
+                    timehms = time.substring(9);
                 } else {
                     result = new int[]{parseInteger(time.substring(0, 4)), 1, parseInteger(time.substring(5, 8)), // days
                         0, 0, 0, 0};
-                    time = time.substring(9);
+                    timehms = time.substring(9);
                 }
             } else if (time.charAt(8) == 'Z') {
                 result = new int[]{parseInteger(time.substring(0, 4)), 1, parseInteger(time.substring(5, 8)), // days
                     0, 0, 0, 0};
-                time = time.substring(9);
+                timehms = time.substring(9);
             } else {
                 result = new int[]{
                     parseInteger(time.substring(0, 4)), parseInteger(time.substring(5, 7)), parseInteger(time.substring(8, 10)), 0, 0, 0, 0};
                 if (time.length() == 10) {
-                    time = "";
+                    timehms = "";
                 } else {
-                    time = time.substring(11);
+                    timehms = time.substring(11);
                 }
             }
             // second, parse HMS part.
-            if (time.endsWith("Z")) {
-                time = time.substring(0, time.length() - 1);
+            if (timehms.endsWith("Z")) {
+                timehms = timehms.substring(0, time.length() - 1);
             }
-            if (time.length() >= 2) {
+            if (timehms.length() >= 2) {
                 result[3] = parseInteger(time.substring(0, 2));
             }
-            if (time.length() >= 5) {
+            if (timehms.length() >= 5) {
                 result[4] = parseInteger(time.substring(3, 5));
             }
-            if (time.length() >= 8) {
+            if (timehms.length() >= 8) {
                 result[5] = parseInteger(time.substring(6, 8));
             }
-            if (time.length() > 9) {
+            if (timehms.length() > 9) {
                 result[6] = (int) (Math.pow(10, 18 - time.length())) * parseInteger(time.substring(9));
             }
             normalizeTime(result);
