@@ -102,7 +102,7 @@ function TimeUtil::parseIntegerDeft, s, deft
     if n_elements(s) eq 0 then begin
         return, deft
     endif 
-    return, int(s)
+    return, long(s)
 end
 
 function TimeUtil::parseDouble, val, deft
@@ -216,8 +216,19 @@ end
 ;-
 function TimeUtil::fromMillisecondsSince1970, time
     compile_opt idl2, static
-    common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
-    return, TimeUtil_FORMATTER_MS_1970.format(Instant.ofEpochMilli(time))
+    jul= floor( time / 86400000 ) + 2440588L
+    caldat, jul, month, day, year
+    ms= time mod 86400000
+    if ms lt 0 then ms= ms + 86400000
+    ms= long(ms)
+    h= ms / 3600000
+    ms= ms - h * 3600000
+    m= ms / 60000
+    ms= ms - m * 60000
+    s= ms / 1000
+    ms= ms - s * 1000
+    result= STRING( format='%04d-%02d-%02dT%02d:%02d:%02d.%03dZ', year, month, day, h, m, s, ms ) 
+    return, result
 end
 
 ;+
@@ -375,7 +386,7 @@ function TimeUtil::monthForDayOfYear, year, doy
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     leap = (TimeUtil.isLeapYear(year)) ? 1 : 0
-    dayOffset = TimeUtil_DAY_OFFSET[leap]
+    dayOffset = TimeUtil_DAY_OFFSET[*,leap]
     if doy lt 1 then begin
         stop, !error_state.msg
     endif 
@@ -569,14 +580,15 @@ end
 ;    #fromMillisecondsSince1970(long)
 
 ;-
-function TimeUtil::toMillisecondsSince1970, time
+function TimeUtil::toMillisecondsSince1970, timeIn
     compile_opt idl2, static
-    common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
-    time = TimeUtil.normalizeTimeString(time)
-    ta = DateTimeFormatter.ISO_INSTANT.parse(time)
-    i = Instant.from(ta)
-    d = Date.from(i)
-    return, d.getTime()
+    time = TimeUtil.normalizeTimeString(timeIn)
+    j= julday(fix(strmid(time,5,2)),fix(strmid(time,8,2)),fix(strmid(time,0,4)))
+    h= fix(strmid(time,11,2))
+    m= fix(strmid(time,14,2))
+    s= fix(strmid(time,17,2))
+    n= long(strmid(time,20,9))
+    return, ( j - 2440588L ) * 86400000.D + h * 3600000.D + m * 60000.D + s * 1000.D + n / 1D6
 end
 
 ;+
@@ -730,7 +742,7 @@ function TimeUtil::formatIso8601Duration, nn
             sb = sb + strtrim(nn[i],2) + strtrim(units[i],2)
         endif 
     endfor
-    if n_elements(nn) gt 5 and nn[5] gt 0 or n_elements(nn) gt 6 and nn[6] gt 0 or length(sb) eq 2 then begin
+    if n_elements(nn) gt 5 and nn[5] gt 0 or n_elements(nn) gt 6 and nn[6] gt 0 or strlen(sb) eq 2 then begin
         if needT then begin
             sb = sb + 'T'
         endif 
@@ -785,7 +797,10 @@ end
 ;-
 function TimeUtil::parseISO8601Duration, stringIn
     compile_opt idl2, static
-    common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
+
+    TimeUtil_iso8601duration='P((\d+)Y)?((\d+)M)?((\d+)D)?(T((\d+)H)?((\d+)M)?((\d*?\.?\d*)S)?)?'
+    TimeUtil_iso8601DurationPattern=(obj_new('IDLJavaObject$Static$Pattern','java.util.regex.Pattern')).compile(TimeUtil_iso8601duration)
+
     m = TimeUtil_iso8601DurationPattern.matcher(stringIn)
     if m.matches() then begin
         dsec = TimeUtil.parseDouble(m.group(13), 0)
@@ -793,7 +808,7 @@ function TimeUtil::parseISO8601Duration, stringIn
         nanosec = long(((dsec - sec) * 1e9))
         return, [TimeUtil.parseIntegerDeft(m.group(2), 0), TimeUtil.parseIntegerDeft(m.group(4), 0), TimeUtil.parseIntegerDeft(m.group(6), 0), TimeUtil.parseIntegerDeft(m.group(9), 0), TimeUtil.parseIntegerDeft(m.group(11), 0), sec, nanosec]
     endif else begin
-        if (strpos(stringIn,'P') ne -1) and (strpos(stringIn,'S') ne -1) and not((strpos(stringIn,'T') ne -1)) then begin
+        if (strpos(stringIn,'P') ne -1) and (strpos(stringIn,'S') ne -1) and not (strpos(stringIn,'T') ne -1) then begin
             stop, !error_state.msg
         endif else begin
             stop, !error_state.msg
@@ -809,13 +824,10 @@ end
 ;-
 function TimeUtil::now
     compile_opt idl2, static
-    common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
-    ctm = ( systime(1)*1000. )
-    d = Date(ctm)
-    timeZone = TimeZone.getTimeZone('UTC')
-    c = Calendar.getInstance(timeZone)
-    c.setTime,d
-    return, [c.get(Calendar.YEAR), 1 + c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), c.get(Calendar.SECOND), 1000000 * c.get(Calendar.MILLISECOND)]
+    s= timestamp()
+    return, [ long(strmid(s,0,4)), long(strmid(s,5,2)), long(strmid(s,8,2)), $
+        long(strmid(s,11,2)), long(strmid(s,14,2)), long(strmid(s,17,2)), $
+        long(strmid(s,20,9)) ]
 end
 
 ;+
@@ -854,9 +866,8 @@ function TimeUtil::isoTimeToArray, time
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     if strlen(time) eq 4 then begin
-        result = [int(time), 1, 1, 0, 0, 0, 0]
+        result = [long(time), 1, 1, 0, 0, 0, 0]
     endif else if (time).startswith('now') or (time).startswith('last') then begin
-        remainder = None
         if (time).startswith('now') then begin
             n = TimeUtil.now()
             remainder = strmid(time,3)
@@ -1794,8 +1805,8 @@ pro TimeUtil__define
     TimeUtil_DAY_OFFSET=[[0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365], [0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]]
     TimeUtil_MONTH_NAMES=['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     TimeUtil_MONTH_NAMES_FULL=['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-    TimeUtil_iso8601duration='P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?(\\d*?\\.?\\d*)S)?)?'
-    TimeUtil_iso8601DurationPattern=(obj_new('IDLJavaObject$Static$Pattern','java.util.regex.Pattern')).compile('P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d*?\\.?\\d*)S)?)?')
+    TimeUtil_iso8601duration='P((\d+)Y)?((\d+)M)?((\d+)D)?(T((\d+)H)?((\d+)M)?((\d*?\.?\d*)S)?)?'
+    TimeUtil_iso8601DurationPattern=(obj_new('IDLJavaObject$Static$Pattern','java.util.regex.Pattern')).compile(TimeUtil_iso8601duration)
     TimeUtil_VALID_FIRST_YEAR=1900
     TimeUtil_VALID_LAST_YEAR=2100
 
