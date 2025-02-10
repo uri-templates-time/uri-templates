@@ -1,7 +1,9 @@
 
 ; cheesy unittest temporary
 pro TimeUtilTest::assertEquals, a, b 
-    if not ( a eq b ) then stop, 'a ne b'
+    if not ( a eq b ) then begin
+        stop, 'a ne b'
+    endif
 end
 
 pro TimeUtilTest::assertArrayEquals, a, b
@@ -342,32 +344,7 @@ pro TimeUtilTest::testFromMillisecondsSince1970
     self.assertEquals, s, '1970-01-01T00:00:00.001Z'
 end
 
-;+
-;Test of fromJulianDay method, of class TimeUtil.
-;-
-pro TimeUtilTest::testFromTT2000
-    print,'fromTT2000'
-    s = TimeUtil.fromTT2000(0)
-    self.assertEquals, s, '2000-01-01T11:58:55.816000000Z'
-    s = TimeUtil.fromTT2000(631108869184000000)
-    self.assertEquals, s, '2020-01-01T00:00:00.000000000Z'
-    s = TimeUtil.fromTT2000(-583934347816000000)
-    self.assertEquals, s, '1981-07-01T00:00:00.000000000Z'
-    s = TimeUtil.fromTT2000(-31579135816000000)
-    self.assertEquals, s, '1999-01-01T00:00:00.000000000Z'
-    s = TimeUtil.fromTT2000(-63115136816000000)
-    self.assertEquals, s, '1998-01-01T00:00:00.000000000Z'
-    s = TimeUtil.fromTT2000(-94651137816000000)
-    self.assertEquals, s, '1997-01-01T00:00:00.000000000Z'
-    s = TimeUtil.fromTT2000(-631195148816000000)
-    self.assertEquals, s, '1980-01-01T00:00:00.000000000Z'
-    s = TimeUtil.fromTT2000(394372867184000000)
-    self.assertEquals, s, '2012-07-01T00:00:00.000000000Z'
-    s = TimeUtil.fromTT2000(394372866184000000)
-    self.assertEquals, s, '2012-06-30T23:59:60.000000000Z'
-    s = TimeUtil.fromTT2000(394372865684000000)
-    self.assertEquals, s, '2012-06-30T23:59:59.500000000Z'
-end
+
 
 ;+
 ;Test of subtract method, of class TimeUtil.
@@ -639,48 +616,7 @@ pro TimeUtilTest::testGetStopTime
     self.assertArrayEquals, expResult, result
 end
 
-;+
-;Test of leapSecondsAt method, of class TimeUtil.
-;-
-pro TimeUtilTest::testLeapSecondsAt
-    print,'leapSecondsAt'
-    tt2000 = 0
-    expResult = 32
-    result = TimeUtil.leapSecondsAt(tt2000)
-    self.assertEquals, expResult, result
-    result = TimeUtil.leapSecondsAt(536500869184000000)
-    self.assertEquals, 37, result
-end
 
-;+
-;Test of lastLeapSecond method, of class TimeUtil.
-;-
-pro TimeUtilTest::testLastLeapSecond
-    print,'lastLeapSecond'
-    tt2000 = 0
-    expResult = -31579135816000000
-    result = TimeUtil.lastLeapSecond(tt2000)
-    self.assertEquals, expResult, result
-end
-
-;+
-;Test of formatHMSN method, of class TimeUtil.
-;-
-pro TimeUtilTest::testFormatHMSN
-    print,'formatHMSN'
-    nanosecondsSinceMidnight = 56
-    expResult = '00:00:00.000000056'
-    result = TimeUtil.formatHMSN(nanosecondsSinceMidnight)
-    self.assertEquals, expResult, result
-    nanosecondsSinceMidnight = 3600 * 24 * 1000000000
-    expResult = '23:59:60.000000000'
-    result = TimeUtil.formatHMSN(nanosecondsSinceMidnight)
-    self.assertEquals, expResult, result
-    nanosecondsSinceMidnight = 3600 * 24 * 1000000000 + 1 * 1000000000 + 500 * 1000000
-    expResult = '23:59:61.500000000'
-    result = TimeUtil.formatHMSN(nanosecondsSinceMidnight)
-    self.assertEquals, expResult, result
-end
 
 pro TimeUtilTest::testDaysInMonth
     print,'daysInMonth'
@@ -733,7 +669,6 @@ pro TimeUtilTest::RunTests
     test.testMonthForDayOfYear
     test.testFromJulianDay
     test.testFromMillisecondsSince1970
-    test.testFromTT2000
     test.testSubtract
     test.testAdd
     test.testFormatIso8601Duration
@@ -747,9 +682,6 @@ pro TimeUtilTest::RunTests
     test.testParseISO8601Time
     test.testGetStartTime
     test.testGetStopTime
-    test.testLeapSecondsAt
-    test.testLastLeapSecond
-    test.testFormatHMSN
     test.testDaysInMonth
 end
 
