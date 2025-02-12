@@ -232,6 +232,171 @@ function TimeUtil::fromMillisecondsSince1970, time
 end
 
 ;+
+;format the time as (non-leap) real seconds since 1970-01-01T00:00.000Z into a string.  The
+;number of milliseconds should not include leap seconds.  The output will always include
+;milliseconds.
+;
+;
+; Parameters:
+;   time - the number of milliseconds since 1970-01-01T00:00.000Z
+;
+; Returns:
+;   the formatted time.
+;
+; See:
+;    #toMillisecondsSince1970(java.lang.String)
+
+;-
+function TimeUtil::fromSecondsSince1970, time
+    return, TimeUtil.fromMillisecondsSince1970(time*1000.)
+end
+
+
+;+
+;return the number of complete leap seconds added for the tt2000 time, starting
+;10 at 1972-01-01T00:00:01Z.
+;
+; Parameters:
+;   tt2000;
+; Returns:
+;   the number of leap seconds on the date.
+;-
+function TimeUtil::leapSecondsAt, tt2000
+    compile_opt idl2, static
+    common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
+    last = TimeUtil.lastLeapSecond(tt2000)
+    return, TimeUtil_LEAP_SECONDS[last]
+end
+
+;+
+;return the tt2000 for nanosecond following the last leap second.
+;
+; Parameters:
+;   tt2000;
+; Returns:
+;   tt2000 of the nanosecond following the last leap second.
+;-
+function TimeUtil::lastLeapSecond, tt2000
+    compile_opt idl2, static
+    common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
+    last = -883655957816000000
+    foreach k, TimeUtil_LEAP_SECONDS.keys() do begin
+        if k gt tt2000 then begin
+            break
+        endif
+        last = k
+    endforeach
+    return, last
+end
+
+pro TimeUtil::initialize
+    ; See <https://cdf.gsfc.nasa.gov/html/CDFLeapSeconds.txt>
+    compile_opt idl2, static
+    common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
+    TimeUtil_LEAP_SECONDS = OrderedHash()
+    TimeUtil_LEAP_SECONDS[-883655957816000000] = 10        ; Jan 1, 1972
+    TimeUtil_LEAP_SECONDS[-867931156816000000] = 11        ; Jul 1, 1972
+    TimeUtil_LEAP_SECONDS[-852033555816000000] = 12        ;  1973   1    1   12.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-820497554816000000] = 13        ;  1974   1    1   13.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-788961553816000000] = 14        ;  1975   1    1   14.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-757425552816000000] = 15        ;  1976   1    1   15.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-725803151816000000] = 16        ;  1977   1    1   16.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-694267150816000000] = 17        ;  1978   1    1   17.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-662731149816000000] = 18        ;  1979   1    1   18.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-631195148816000000] = 19        ;  1980   1    1   19.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-583934347816000000] = 20        ;  1981   7    1   20.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-552398346816000000] = 21        ;  1982   7    1   21.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-520862345816000000] = 22        ;  1983   7    1   22.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-457703944816000000] = 23        ;  1985   7    1   23.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-378734343816000000] = 24        ;  1988   1    1   24.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-315575942816000000] = 25        ;  1990   1    1   25.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-284039941816000000] = 26        ;  1991   1    1   26.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-236779140816000000] = 27        ;  1992   7    1   27.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-205243139816000000] = 28        ;  1993   7    1   28.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-173707138816000000] = 29        ;  1994   7    1   29.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-126273537816000000] = 30        ;  1996   1    1   30.0            0.0  0.0
+    TimeUtil_LEAP_SECONDS[-79012736816000000] = 31        ;  1997   7    1   31.0            0.0  0.0        
+    TimeUtil_LEAP_SECONDS[-31579135816000000] = 32        ; Jan 1, 1999
+    TimeUtil_LEAP_SECONDS[189345665184000000] = 33        ; Jan 1, 2006
+    TimeUtil_LEAP_SECONDS[284040066184000000] = 34        ; Jan 1, 2009
+    TimeUtil_LEAP_SECONDS[394372867184000000] = 35        ; Jul 1, 2012
+    TimeUtil_LEAP_SECONDS[488980868184000000] = 36        ; Jul 1, 2015
+    TimeUtil_LEAP_SECONDS[536500869184000000] = 37        ; Jan 1, 2017
+end
+
+;+
+;return the time as $H:$M:$S.$N, where the seconds
+;component can be 60 or 61.
+;
+; Parameters:
+;   nanosecondsSinceMidnight;
+; Returns:
+;   String in form $H:$M:$S.$N
+;-
+function TimeUtil::formatHMSN, nanosecondsSinceMidnight
+    compile_opt idl2, static
+    common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
+    if nanosecondsSinceMidnight lt 0 then begin
+        stop, !error_state.msg
+    endif 
+    if nanosecondsSinceMidnight ge 86402000000000 then begin
+        stop, !error_state.msg
+    endif 
+    ns = nanosecondsSinceMidnight
+    hours = long64((nanosecondsSinceMidnight / 3600000000000))
+    if hours eq 24 then begin
+        hours = 23
+    endif 
+    ns -= hours * 3600000000000
+    minutes = long((ns / 60000000000))
+    if minutes gt 59 then begin
+        minutes = 59
+    endif 
+    ns -= minutes * 60000000000
+    seconds = long((ns / 1000000000))
+    ns -= seconds * long64(1000000000)
+    return, string(format='%02d:%02d:%02d.%09d',hours, minutes, seconds, ns)
+end
+
+;+
+;format the time as nanoseconds since J2000 (Julian date 2451545.0 TT or 2000 January 1, 12h TT
+;or 2000-01-01T12:00 -  32.184s UTC).  This is used often in space physics, and is known as TT2000
+;in NASA/CDF files.  This does include leap seconds, and this code must be updated as new leap
+;seconds are planned.
+;
+;
+; Parameters:
+;   tt2000 - time in nanoseconds since 2000-01-01T11:59:27.816Z (datum('2000-01-01T12:00')-'32.184s')
+;
+; Returns:
+;   the time formatted to nanosecond resolution
+;-
+function TimeUtil::fromTT2000, tt2000
+    compile_opt idl2, static
+    common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
+    leapSeconds = TimeUtil.leapSecondsAt(tt2000)
+    leapSecondCheck = TimeUtil.leapSecondsAt(tt2000 + 1000000000)
+    nanosecondsSinceMidnight = (tt2000 - leapSeconds * long64(1000000000) - long64(32184000000) + 43200000000000) mod 86400000000000
+    if leapSecondCheck gt leapSeconds then begin
+        ;+
+        ;the instant is during a leap second
+        ;-
+        nanosecondsSinceMidnight += 86400000000000
+    endif 
+    tt2000Midnight = tt2000 - nanosecondsSinceMidnight
+    if 1 then begin
+        ;+
+        ;leapSecondCheck-leapSeconds==1 ) {
+        ;-
+        nanosecondsSince2000 = (tt2000Midnight - leapSeconds * 1000000000)
+        julianDay = 2451545 + long(floor((nanosecondsSince2000) / 86400000000000.)) + 1
+        ymd = TimeUtil.fromJulianDay(julianDay)
+        s = string(format='%04d-%02d-%02dT',ymd[0], ymd[1], ymd[2]) + TimeUtil.formatHMSN(nanosecondsSinceMidnight) + 'Z'
+    endif 
+    return, s
+end
+
+;+
 ;given the two times, return a 14 element time range.
 ;@throws IllegalArgumentException when the first time is greater than or equal to the second time.
 ;
@@ -774,6 +939,7 @@ function TimeUtil::formatIso8601Duration, nn_in
 end
 
 
+
 ;+
 ;returns a 7 element array with [year,mon,day,hour,min,sec,nanos]. Note
 ;this does not allow fractional day, hours or minutes! Examples
@@ -800,10 +966,7 @@ end
 ;-
 function TimeUtil::parseISO8601Duration, stringIn
     compile_opt idl2, static
-
-    TimeUtil_iso8601duration='P((\d+)Y)?((\d+)M)?((\d+)D)?(T((\d+)H)?((\d+)M)?((\d*?\.?\d*)S)?)?'
-    TimeUtil_iso8601DurationPattern=(obj_new('IDLJavaObject$Static$Pattern','java.util.regex.Pattern')).compile(TimeUtil_iso8601duration)
-
+    common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
     m = TimeUtil_iso8601DurationPattern.matcher(stringIn)
     if m.matches() then begin
         dsec = TimeUtil.parseDouble(m.group(13), 0)
@@ -811,7 +974,7 @@ function TimeUtil::parseISO8601Duration, stringIn
         nanosec = long(((dsec - sec) * 1e9))
         return, [TimeUtil.parseIntegerDeft(m.group(2), 0), TimeUtil.parseIntegerDeft(m.group(4), 0), TimeUtil.parseIntegerDeft(m.group(6), 0), TimeUtil.parseIntegerDeft(m.group(9), 0), TimeUtil.parseIntegerDeft(m.group(11), 0), sec, nanosec]
     endif else begin
-        if (strpos(stringIn,'P') ne -1) and (strpos(stringIn,'S') ne -1) and not (strpos(stringIn,'T') ne -1) then begin
+        if (strpos(stringIn,'P') ne -1) and (strpos(stringIn,'S') ne -1) and not((strpos(stringIn,'T') ne -1)) then begin
             stop, !error_state.msg
         endif else begin
             stop, !error_state.msg
@@ -1812,6 +1975,7 @@ pro TimeUtil__define
     TimeUtil_iso8601DurationPattern=(obj_new('IDLJavaObject$Static$Pattern','java.util.regex.Pattern')).compile(TimeUtil_iso8601duration)
     TimeUtil_VALID_FIRST_YEAR=1900
     TimeUtil_VALID_LAST_YEAR=2100
+    TimeUtil.initialize
 
     return
 end
