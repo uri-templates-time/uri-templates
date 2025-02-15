@@ -208,7 +208,7 @@ public class TimeUtil {
     }
     
     /**
-     * copy the components of time into the start position (indeces 7-14) of the time range.
+     * copy the components of time into the start position (indices 0-7) of the time range.
      * This one-line method was introduced to clarify code and make conversion to 
      * other languages (in particular Python) easier.
      * @param time the seven-element start time
@@ -221,7 +221,7 @@ public class TimeUtil {
     
     
     /**
-     * copy the components of time into the stop position (indeces 7-14) of the time range.
+     * copy the components of time into the stop position (indices 7-14) of the time range.
      * @param time the seven-element stop time
      * @param timerange the fourteen-element time range.
      */
@@ -1030,7 +1030,9 @@ public class TimeUtil {
      * <pre>
      * {@code
      * from org.hapiserver.TimeUtil import *
-     * print rewriteIsoTime( '2020-01-01T00:00Z', '2020-112Z' ) # ->  '2020-04-21T00:00Z'
+     * print reformatIsoTime( '2020-01-01T00:00Z', '2020-112Z' ) # ->  '2020-04-21T00:00Z'
+     * print reformatIsoTime( '2020-010', '2020-020Z' ) # ->  '2020-020'
+     * print reformatIsoTime( '2020-01-01T00:00Z', '2021-01-01Z' ) # ->  '2021-01-01T00:00Z'
      * }
      * </pre> This allows direct comparisons of times for sorting. 
      * This works by looking at the character in the 8th position (starting with zero) of the 
@@ -1046,6 +1048,15 @@ public class TimeUtil {
      * @return same time but in the same form as exampleForm.
      */
     public static String reformatIsoTime(String exampleForm, String time) {
+        if ( exampleForm.length()==8 ) {
+            if ( time.charAt(4)=='-' ) {
+                return time.substring(0,8);
+            } else {
+                int[] nn = TimeUtil.isoTimeToArray(TimeUtil.normalizeTimeString(time));
+                nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2]);
+                return String.format("%d-%03d",nn[0],nn[2]);
+            }
+        }
         char c = exampleForm.charAt(8);
         int[] nn = TimeUtil.isoTimeToArray(TimeUtil.normalizeTimeString(time));
         switch (c) {
