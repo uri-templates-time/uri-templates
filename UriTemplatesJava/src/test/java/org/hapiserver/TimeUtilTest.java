@@ -2,6 +2,7 @@
 package org.hapiserver;
 
 import java.text.ParseException;
+import java.util.Arrays;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -26,6 +27,10 @@ public class TimeUtilTest {
         String result = TimeUtil.reformatIsoTime(exampleForm, time);
         assertEquals(expResult, result);
         
+        assertEquals( TimeUtil.reformatIsoTime( "2020-01-01T00:00Z", "2020-112Z" ), "2020-04-21T00:00Z" );
+        assertEquals( TimeUtil.reformatIsoTime( "2020-010", "2020-020Z" ), "2020-020" );
+        assertEquals( TimeUtil.reformatIsoTime( "2020-01-01T00:00Z", "2021-01-01Z" ), "2021-01-01T00:00Z" );
+         
     }
 
     /**
@@ -747,6 +752,282 @@ public class TimeUtilTest {
         month = 12;
         expResult = 31;
         result = TimeUtil.daysInMonth(year, month);
+        assertEquals(expResult, result);
+        
+    }
+
+    /**
+     * Test of setStartTime method, of class TimeUtil.
+     */
+    @Test
+    public void testSetStartTime() {
+        System.out.println("setStartTime");
+        int[] time = new int[] { 2000, 1, 1, 2, 3, 4, 900000 };
+        int[] timerange = new int[14];
+        TimeUtil.setStartTime(time, timerange);
+        assertArrayEquals( time, Arrays.copyOfRange( timerange, 0, 7 ) );
+    }
+
+    /**
+     * Test of setStopTime method, of class TimeUtil.
+     */
+    @Test
+    public void testSetStopTime() {
+        System.out.println("setStopTime");
+        System.out.println("setStopTime");
+        int[] time = new int[] { 2000, 1, 1, 2, 3, 4, 900000 };
+        int[] timerange = new int[14];
+        TimeUtil.setStopTime(time, timerange);
+        assertArrayEquals( time, Arrays.copyOfRange( timerange, 7, 14 ) );
+    }
+
+    /**
+     * Test of fromSecondsSince1970 method, of class TimeUtil.
+     */
+    @Test
+    public void testFromSecondsSince1970() {
+        System.out.println("fromSecondsSince1970");
+        double time = 0.0;
+        String expResult = "1970-01-01T00:00:00.000Z";
+        String result = TimeUtil.fromSecondsSince1970(time);
+        assertEquals(expResult, result);
+        time = 1707868800.5;
+        expResult = "2024-02-14T00:00:00.500Z";
+        result = TimeUtil.fromSecondsSince1970(time);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of createTimeRange method, of class TimeUtil.
+     */
+    @Test
+    public void testCreateTimeRange() {
+        System.out.println("createTimeRange");
+        int[] t1 = new int[] { 2024, 2, 14, 3, 4, 5, 0 };
+        int[] t2 = new int[] { 2024, 2, 14, 6, 4, 5, 0 };
+        int[] expResult = new int[] { 2024, 2, 14, 3, 4, 5, 0, 2024, 2, 14, 6, 4, 5, 0 };
+        int[] result = TimeUtil.createTimeRange(t1, t2);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of formatIso8601Time method, of class TimeUtil.
+     */
+    @Test
+    public void testFormatIso8601Time_intArr_int() {
+        System.out.println("formatIso8601Time");
+        int[] time = new int[] { 2024, 2, 14, 3, 4, 5, 0, 2024, 2, 14, 6, 4, 5, 0 };
+        int offset = TimeUtil.TIME_DIGITS;
+        String expResult = "2024-02-14T06:04:05.000000000Z";
+        String result = TimeUtil.formatIso8601Time(time, offset);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of formatIso8601Time method, of class TimeUtil.
+     */
+    @Test
+    public void testFormatIso8601Time_intArr() {
+        System.out.println("formatIso8601Time");
+        int[] nn = new int[] { 2024, 2, 14, 6, 4, 5, 0 };
+        String expResult = "2024-02-14T06:04:05.000000000Z";
+        String result = TimeUtil.formatIso8601Time(nn);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of isValidTime method, of class TimeUtil.
+     */
+    @Test
+    public void testIsValidTime() {
+        System.out.println("isValidTime");
+        
+        int[] time = new int[] { 2024, 2, 15, 3, 4, 5, 600000000 };
+        boolean expResult = true;
+        boolean result = TimeUtil.isValidTime(time);
+        assertEquals(expResult, result);
+        
+        time = new int[] { 9999, 2, 15, 3, 4, 5, 600000000 };
+        expResult = false;
+        try {
+            result = TimeUtil.isValidTime(time);
+            fail("should not be valid");
+        } catch ( IllegalArgumentException ex ) {
+            
+        }
+        
+        time = new int[] { 2024, 1, 245, 3, 4, 5, 600000000 };
+        expResult = true;
+        result = TimeUtil.isValidTime(time);
+        assertEquals(expResult, result);        
+    }
+
+    /**
+     * Test of isValidFormattedTime method, of class TimeUtil.
+     */
+    @Test
+    public void testIsValidFormattedTime() {
+        System.out.println("isValidFormattedTime");
+        String time = "2024-02-14T00:00Z";
+        boolean expResult = true;
+        boolean result = TimeUtil.isValidFormattedTime(time);
+        assertEquals(expResult, result);
+
+        time= "now-P1D";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals( true, result);
+        time= "2000";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals( true, result);
+        time= "2000-01";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals( true, result);
+        time= "now";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals( true, result);
+        time= "lastyear";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals( true, result);
+        time= "lastmonth";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals( true, result);
+        time= "lastday";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals( true, result);
+        time= "lasthour";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals( true, result);
+        time= "now-P1D";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals( true, result);
+        time= "lastday-P1D";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals( true, result);
+    }
+
+    /**
+     * Test of gt method, of class TimeUtil.
+     */
+    @Test
+    public void testGt() {
+        System.out.println("gt");
+        int[] t1 = new int[] { 2024, 1, 1, 0, 0, 0, 0 };
+        int[] t2 = new int[] { 2024, 1, 1, 0, 0, 0, 1 };
+        boolean expResult = false;
+        boolean result = TimeUtil.gt(t1, t2);
+        assertEquals(expResult, result);
+        
+        expResult = true;
+        result = TimeUtil.gt(t2, t1);
+        assertEquals(expResult, result);
+        
+        expResult = false;
+        result = TimeUtil.gt(t1, t1);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of eq method, of class TimeUtil.
+     */
+    @Test
+    public void testEq() {
+        System.out.println("eq");
+        int[] t1 = new int[] { 2024, 1, 1, 0, 0, 0, 0 };
+        int[] t2 = new int[] { 2024, 1, 1, 0, 0, 0, 1 };
+        boolean expResult = false;
+        boolean result = TimeUtil.eq(t1, t2);
+        assertEquals(expResult, result);
+        
+        expResult = false;
+        result = TimeUtil.eq(t2, t1);
+        assertEquals(expResult, result);
+        
+        expResult = true;
+        result = TimeUtil.eq(t1, t1);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of formatIso8601TimeBrief method, of class TimeUtil.
+     */
+    @Test
+    public void testFormatIso8601TimeBrief_intArr() {
+        System.out.println("formatIso8601TimeBrief");
+        int[] time = new int[] { 2000, 1, 1, 0, 0, 0, 0 };
+        String expResult = "2000-01-01T00:00Z";
+        String result = TimeUtil.formatIso8601TimeBrief(time);
+        assertEquals(expResult, result);
+        
+        time = new int[] { 2000, 1, 1, 0, 0, 1, 0 };
+        expResult = "2000-01-01T00:00:01Z";
+        result = TimeUtil.formatIso8601TimeBrief(time);
+        assertEquals(expResult, result);
+        
+        time = new int[] { 2000, 1, 1, 0, 0, 1, 500000000 };
+        expResult = "2000-01-01T00:00:01.500Z";
+        result = TimeUtil.formatIso8601TimeBrief(time);
+        assertEquals(expResult, result);        
+        
+        time = new int[] { 2000, 1, 1, 0, 0, 1, 500500000 };
+        expResult = "2000-01-01T00:00:01.500500Z";
+        result = TimeUtil.formatIso8601TimeBrief(time);
+        assertEquals(expResult, result);        
+    }
+
+    /**
+     * Test of formatIso8601TimeBrief method, of class TimeUtil.
+     */
+    @Test
+    public void testFormatIso8601TimeBrief_intArr_int() {
+        System.out.println("formatIso8601TimeBrief");
+        int[] time = new int[] { 1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 0, 0 };
+        String expResult = "1999-01-01T00:00Z";
+        String result = TimeUtil.formatIso8601TimeBrief(time,0);
+        assertEquals(expResult, result);
+        
+        time = new int[] { 1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 1, 0 };
+        expResult = "2000-01-01T00:00:01Z";
+        result = TimeUtil.formatIso8601TimeBrief(time,TimeUtil.TIME_DIGITS);
+        assertEquals(expResult, result);
+        
+    }
+
+    /**
+     * Test of formatIso8601TimeInTimeRangeBrief method, of class TimeUtil.
+     */
+    @Test
+    public void testFormatIso8601TimeInTimeRangeBrief() {
+        System.out.println("formatIso8601TimeInTimeRangeBrief");
+        int[] time = new int[] { 1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 0, 0 };
+        String expResult = "1999-01-01T00:00Z";
+        String result = TimeUtil.formatIso8601TimeInTimeRangeBrief(time,0);
+        assertEquals(expResult, result);
+        
+        time = new int[] { 1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 1, 0 };
+        expResult = "2000-01-01T00:00:01Z";
+        result = TimeUtil.formatIso8601TimeInTimeRangeBrief(time,TimeUtil.TIME_DIGITS);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of isValidTimeRange method, of class TimeUtil.
+     */
+    @Test
+    public void testIsValidTimeRange() {
+        System.out.println("isValidTimeRange");
+        int[] timerange = new int[] { 1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 0, 0 };
+        boolean expResult = true;
+        boolean result = TimeUtil.isValidTimeRange(timerange);
+        assertEquals(expResult, result);
+
+        timerange = new int[] { 2000, 1, 1, 0, 0, 0, 0, 1999, 1, 1, 0, 0, 0, 0 };
+        expResult = false;
+        result = TimeUtil.isValidTimeRange(timerange);
+        assertEquals(expResult, result);
+
+        timerange = new int[] { 2000, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 0, 0 };
+        expResult = false;
+        result = TimeUtil.isValidTimeRange(timerange);
         assertEquals(expResult, result);
         
     }
