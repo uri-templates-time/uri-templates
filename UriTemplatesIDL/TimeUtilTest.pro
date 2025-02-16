@@ -1,10 +1,10 @@
 
 ; cheesy unittest temporary
-pro TimeUtilTest::assertEquals, a, b
+pro assertEquals, a, b
   if not ( a eq b ) then stop, 'a ne b'
 end
 
-pro TimeUtilTest::assertArrayEquals, a, b
+pro assertArrayEquals, a, b
   if n_elements(a) eq n_elements(b) then begin
     for i=0,n_elements(a)-1 do begin
       if a[i] ne b[i] then stop, string(format='a[%d] ne [%d]',i,i)
@@ -14,7 +14,7 @@ pro TimeUtilTest::assertArrayEquals, a, b
   endelse
 end
 
-pro TimeUtilTest::fail, msg
+pro fail, msg
   print, msg
   stop, 'fail: '+msg
 end
@@ -29,21 +29,24 @@ end
 ;Test of reformatIsoTime method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testReformatIsoTime
-  print,'reformatIsoTime'
-  exampleForm = '2020-01-01T00:00Z'
-  time = '2020-112Z'
-  expResult = '2020-04-21T00:00Z'
-  result = TimeUtil.reformatIsoTime(exampleForm, time)
-  self.assertEquals, expResult, result
+    print,'reformatIsoTime'
+    exampleForm = '2020-01-01T00:00Z'
+    time = '2020-112Z'
+    expResult = '2020-04-21T00:00Z'
+    result = TimeUtil.reformatIsoTime(exampleForm, time)
+    assertEquals, expResult, result
+    assertEquals, TimeUtil.reformatIsoTime('2020-01-01T00:00Z', '2020-112Z'), '2020-04-21T00:00Z'
+    assertEquals, TimeUtil.reformatIsoTime('2020-010', '2020-020Z'), '2020-020'
+    assertEquals, TimeUtil.reformatIsoTime('2020-01-01T00:00Z', '2021-01-01Z'), '2021-01-01T00:00Z'
 end
 
 ;+
 ;Test of monthNameAbbrev method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testMonthNameAbbrev
-  print,'monthNameAbbrev'
-  expResult = 'Mar'
-  result = TimeUtil.monthNameAbbrev(3)
+    print,'monthNameAbbrev'
+    expResult = 'Mar'
+    result = TimeUtil.monthNameAbbrev(3)
   self.assertEquals, expResult, result
 end
 
@@ -51,9 +54,9 @@ end
 ;Test of monthNameAbbrev method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testMonthNameFull
-  print,'monthNameFull'
-  expResult = 'March'
-  result = TimeUtil.monthNameFull(3)
+    print,'monthNameFull'
+    expResult = 'March'
+    result = TimeUtil.monthNameFull(3)
   self.assertEquals, expResult, result
 end
 
@@ -61,10 +64,10 @@ end
 ;Test of monthNumber method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testMonthNumber
-  print,'monthNumber'
-  s = 'December'
-  expResult = 12
-  result = TimeUtil.monthNumber(s)
+    print,'monthNumber'
+    s = 'December'
+    expResult = 12
+    result = TimeUtil.monthNumber(s)
   self.assertEquals, expResult, result
 end
 
@@ -72,25 +75,25 @@ end
 ;Test of countOffDays method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testCountOffDays
-  print,'countOffDays'
-  startTime = '1999-12-31'
-  stopTime = '2000-01-03'
-  expResult = ['1999-12-31Z', '2000-01-01Z', '2000-01-02Z']
-  result = TimeUtil.countOffDays(startTime, stopTime)
+    print,'countOffDays'
+    startTime = '1999-12-31'
+    stopTime = '2000-01-03'
+    expResult = ['1999-12-31Z', '2000-01-01Z', '2000-01-02Z']
+    result = TimeUtil.countOffDays(startTime, stopTime)
   self.assertArrayEquals, expResult, result
-  startTime = '1999-12-31Z'
-  stopTime = '2000-01-03Z'
-  expResult = ['1999-12-31Z', '2000-01-01Z', '2000-01-02Z']
-  result = TimeUtil.countOffDays(startTime, stopTime)
+    startTime = '1999-12-31Z'
+    stopTime = '2000-01-03Z'
+    expResult = ['1999-12-31Z', '2000-01-01Z', '2000-01-02Z']
+    result = TimeUtil.countOffDays(startTime, stopTime)
   self.assertArrayEquals, expResult, result
-  startTime = '1999-12-31T12:00Z'
-  stopTime = '2000-01-03T12:00Z'
-  expResult = ['1999-12-31Z', '2000-01-01Z', '2000-01-02Z']
-  result = TimeUtil.countOffDays(startTime, stopTime)
+    startTime = '1999-12-31T12:00Z'
+    stopTime = '2000-01-03T12:00Z'
+    expResult = ['1999-12-31Z', '2000-01-01Z', '2000-01-02Z']
+    result = TimeUtil.countOffDays(startTime, stopTime)
   self.assertArrayEquals, expResult, result
-  startTime = '1999'
-  stopTime = '2000'
-  result = TimeUtil.countOffDays(startTime, stopTime)
+    startTime = '1999'
+    stopTime = '2000'
+    result = TimeUtil.countOffDays(startTime, stopTime)
   self.assertEquals, n_elements(result), 365
   self.assertEquals, result[0], '1999-01-01Z'
   self.assertEquals, result[364], '1999-12-31Z'
@@ -100,10 +103,10 @@ end
 ;Test of nextDay method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testNextDay
-  print,'nextDay'
-  day = '2019-12-31Z'
-  expResult = '2020-01-01Z'
-  result = TimeUtil.nextDay(day)
+    print,'nextDay'
+    day = '2019-12-31Z'
+    expResult = '2020-01-01Z'
+    result = TimeUtil.nextDay(day)
   self.assertEquals, expResult, result
 end
 
@@ -111,10 +114,10 @@ end
 ;Test of previousDay method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testPreviousDay
-  print,'previousDay'
-  day = '2020-01-01'
-  expResult = '2019-12-31Z'
-  result = TimeUtil.previousDay(day)
+    print,'previousDay'
+    day = '2020-01-01'
+    expResult = '2019-12-31Z'
+    result = TimeUtil.previousDay(day)
   self.assertEquals, expResult, result
 end
 
@@ -122,48 +125,48 @@ end
 ;Test of nextDay method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testNextRange
-  catch, err
-  if err eq 0 then begin
-    print,'nextRange'
-    tr = TimeUtil.parseISO8601TimeRange('2022-12-05Z/2022-12-15Z')
-    result = TimeUtil.formatIso8601TimeRange(TimeUtil.nextRange(tr))
-    expResult = '2022-12-15/2022-12-25'
+    catch, err
+    if err eq 0 then begin
+        print,'nextRange'
+        tr = TimeUtil.parseISO8601TimeRange('2022-12-05Z/2022-12-15Z')
+        result = TimeUtil.formatIso8601TimeRange(TimeUtil.nextRange(tr))
+        expResult = '2022-12-15/2022-12-25'
     self.assertEquals, expResult, result
-  endif else begin
-    stop, !error_state.msg
-  endelse
-  catch, /cancel
+    endif else begin
+        stop, !error_state.msg
+    endelse
+    catch, /cancel
 end
 
 ;+
 ;Test of nextDay method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testPreviousRange
-  catch, err
-  if err eq 0 then begin
-    print,'previousRange'
-    tr = TimeUtil.parseISO8601TimeRange('2022-12-05Z/2022-12-15Z')
-    result = TimeUtil.formatIso8601TimeRange(TimeUtil.previousRange(tr))
-    expResult = '2022-11-25/2022-12-05'
+    catch, err
+    if err eq 0 then begin
+        print,'previousRange'
+        tr = TimeUtil.parseISO8601TimeRange('2022-12-05Z/2022-12-15Z')
+        result = TimeUtil.formatIso8601TimeRange(TimeUtil.previousRange(tr))
+        expResult = '2022-11-25/2022-12-05'
     self.assertEquals, expResult, result
-  endif else begin
-    stop, !error_state.msg
-  endelse
-  catch, /cancel
+    endif else begin
+        stop, !error_state.msg
+    endelse
+    catch, /cancel
 end
 
 ;+
 ;Test of ceil method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testCeil
-  print,'ceil'
-  time = '2000-01-01T00:00'
-  expResult = '2000-01-01T00:00:00.000000000Z'
-  result = TimeUtil.ceil(time)
+    print,'ceil'
+    time = '2000-01-01T00:00'
+    expResult = '2000-01-01T00:00:00.000000000Z'
+    result = TimeUtil.ceil(time)
   self.assertEquals, expResult, result
-  time = '2000-01-01T23:59'
-  expResult = '2000-01-02T00:00:00.000000000Z'
-  result = TimeUtil.ceil(time)
+    time = '2000-01-01T23:59'
+    expResult = '2000-01-02T00:00:00.000000000Z'
+    result = TimeUtil.ceil(time)
   self.assertEquals, expResult, result
 end
 
@@ -171,45 +174,45 @@ end
 ;Test of floor method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testFloor
-  print,'floor'
-  time = '2000-01-01T00:00'
-  expResult = '2000-01-01T00:00:00.000000000Z'
-  result = TimeUtil.floor(time)
-  self.assertEquals, expResult, result
-  time = '2000-01-01T23:59'
-  expResult = '2000-01-01T00:00:00.000000000Z'
-  result = TimeUtil.floor(time)
-  self.assertEquals, expResult, result
+    print,'floor'
+    time = '2000-01-01T00:00'
+    expResult = '2000-01-01T00:00:00.000000000Z'
+    result = TimeUtil.floor(time)
+    self.assertEquals, expResult, result
+    time = '2000-01-01T23:59'
+    expResult = '2000-01-01T00:00:00.000000000Z'
+    result = TimeUtil.floor(time)
+    self.assertEquals, expResult, result
 end
 
 ;+
 ;Test of normalizeTimeString method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testNormalizeTimeString
-  print,'normalizeTimeString'
-  time = '2020-03-04T24:00:00Z'
-  expResult = '2020-03-05T00:00:00.000000000Z'
-  result = TimeUtil.normalizeTimeString(time)
-  self.assertEquals, expResult, result
+    print,'normalizeTimeString'
+    time = '2020-03-04T24:00:00Z'
+    expResult = '2020-03-05T00:00:00.000000000Z'
+    result = TimeUtil.normalizeTimeString(time)
+    self.assertEquals, expResult, result
 end
 
 pro TimeUtilTest::testNormalizeTime
-  print,'normalizeTime'
-  time = [2000, 1, 1, 24, 0, 0, 0]
-  expResult = [2000, 1, 2, 0, 0, 0, 0]
-  TimeUtil.normalizeTime,time
+    print,'normalizeTime'
+    time = [2000, 1, 1, 24, 0, 0, 0]
+    expResult = [2000, 1, 2, 0, 0, 0, 0]
+    TimeUtil.normalizeTime,time
   self.assertArrayEquals, expResult, time
-  time = [2000, 1, 1, -1, 0, 0, 0]
-  expResult = [1999, 12, 31, 23, 0, 0, 0]
-  TimeUtil.normalizeTime,time
+    time = [2000, 1, 1, -1, 0, 0, 0]
+    expResult = [1999, 12, 31, 23, 0, 0, 0]
+    TimeUtil.normalizeTime,time
   self.assertArrayEquals, expResult, time
-  time = [1979, 13, 6, 0, 0, 0, 0]
-  expResult = [1980, 1, 6, 0, 0, 0, 0]
-  TimeUtil.normalizeTime,time
+    time = [1979, 13, 6, 0, 0, 0, 0]
+    expResult = [1980, 1, 6, 0, 0, 0, 0]
+    TimeUtil.normalizeTime,time
   self.assertArrayEquals, expResult, time
-  time = [1979, 12, 37, 0, 0, 0, 0]
-  expResult = [1980, 1, 6, 0, 0, 0, 0]
-  TimeUtil.normalizeTime,time
+    time = [1979, 12, 37, 0, 0, 0, 0]
+    expResult = [1980, 1, 6, 0, 0, 0, 0]
+    TimeUtil.normalizeTime,time
   self.assertArrayEquals, expResult, time
 end
 
@@ -217,14 +220,14 @@ end
 ;Test of isoTimeFromArray method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testIsoTimeFromArray
-  print,'isoTimeFromArray'
-  nn = [1999, 12, 31, 23, 0, 0, 0]
-  expResult = '1999-12-31T23:00:00.000000000Z'
-  result = TimeUtil.isoTimeFromArray(nn)
+    print,'isoTimeFromArray'
+    nn = [1999, 12, 31, 23, 0, 0, 0]
+    expResult = '1999-12-31T23:00:00.000000000Z'
+    result = TimeUtil.isoTimeFromArray(nn)
   self.assertEquals, expResult, result
-  nn = [2000, 1, 45, 23, 0, 0, 0]
-  expResult = '2000-02-14T23:00:00.000000000Z'
-  result = TimeUtil.isoTimeFromArray(nn)
+    nn = [2000, 1, 45, 23, 0, 0, 0]
+    expResult = '2000-02-14T23:00:00.000000000Z'
+    result = TimeUtil.isoTimeFromArray(nn)
   self.assertEquals, expResult, result
 end
 
@@ -232,35 +235,35 @@ end
 ;Test of isoTimeToArray method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testIsoTimeToArray
-  print,'isoTimeToArray'
-  time = ''
-  expResult = [2020, 2, 3, 6, 7, 8, 10001]
-  result = TimeUtil.isoTimeToArray('2020-034T06:07:08.000010001')
+    print,'isoTimeToArray'
+    time = ''
+    expResult = [2020, 2, 3, 6, 7, 8, 10001]
+    result = TimeUtil.isoTimeToArray('2020-034T06:07:08.000010001')
   self.assertArrayEquals, expResult, result
-  expResult = [2012, 1, 17, 2, 0, 0, 245000000]
-  result = TimeUtil.isoTimeToArray('2012-01-17T02:00:00.245')
+    expResult = [2012, 1, 17, 2, 0, 0, 245000000]
+    result = TimeUtil.isoTimeToArray('2012-01-17T02:00:00.245')
   self.assertArrayEquals, expResult, result
-  result = TimeUtil.isoTimeToArray('2020-033T06:07:08.000010001')
-  result = TimeUtil.isoTimeToArray('2020-03-03Z')
-  result = TimeUtil.isoTimeToArray('2020-033Z')
-  result = TimeUtil.isoTimeToArray('2020-033')
-  result = TimeUtil.isoTimeToArray('2020-033T00:00Z')
-  result = TimeUtil.isoTimeToArray('now')
-  result = TimeUtil.isoTimeToArray('lastday')
-  result = TimeUtil.isoTimeToArray('lastday+PT1H')
-  result = TimeUtil.isoTimeToArray('lastminute+PT1M')
+    result = TimeUtil.isoTimeToArray('2020-033T06:07:08.000010001')
+    result = TimeUtil.isoTimeToArray('2020-03-03Z')
+    result = TimeUtil.isoTimeToArray('2020-033Z')
+    result = TimeUtil.isoTimeToArray('2020-033')
+    result = TimeUtil.isoTimeToArray('2020-033T00:00Z')
+    result = TimeUtil.isoTimeToArray('now')
+    result = TimeUtil.isoTimeToArray('lastday')
+    result = TimeUtil.isoTimeToArray('lastday+PT1H')
+    result = TimeUtil.isoTimeToArray('lastminute+PT1M')
 end
 
 ;+
 ;Test of dayOfYear method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testDayOfYear
-  print,'dayOfYear'
-  year = 2000
-  month = 3
-  day = 1
-  expResult = 61
-  result = TimeUtil.dayOfYear(year, month, day)
+    print,'dayOfYear'
+    year = 2000
+    month = 3
+    day = 1
+    expResult = 61
+    result = TimeUtil.dayOfYear(year, month, day)
   self.assertEquals, expResult, result
 end
 
@@ -268,14 +271,14 @@ end
 ;Test of toMillisecondsSince1970 method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testToMillisecondsSince1970
-  print,'toMillisecondsSince1970'
-  result = TimeUtil.toMillisecondsSince1970('2000-01-02T00:00:00.0Z')
+    print,'toMillisecondsSince1970'
+    result = TimeUtil.toMillisecondsSince1970('2000-01-02T00:00:00.0Z')
   self.assertEquals, 10958, result / 86400000
-  ;+
-  ;# 10958.0 days
-  ;-
+    ;+
+    ;# 10958.0 days
+    ;-
   self.assertEquals, 0, result mod 86400000
-  result = TimeUtil.toMillisecondsSince1970('2020-07-09T16:35:27Z')
+    result = TimeUtil.toMillisecondsSince1970('2020-07-09T16:35:27Z')
   self.assertEquals, 1594312527000, result
 end
 
@@ -284,19 +287,19 @@ end
 ;@throws java.lang.Exception
 ;-
 pro TimeUtilTest::testParseISO8601Duration
-  print,'parseISO8601Duration'
-  stringIn = 'PT5H4M'
-  expResult = [0, 0, 0, 5, 4, 0, 0]
-  result = TimeUtil.parseISO8601Duration(stringIn)
+    print,'parseISO8601Duration'
+    stringIn = 'PT5H4M'
+    expResult = [0, 0, 0, 5, 4, 0, 0]
+    result = TimeUtil.parseISO8601Duration(stringIn)
   self.assertArrayEquals, expResult, result
-  expResult = [0, 0, 0, 0, 0, 0, 123000]
-  result = TimeUtil.parseISO8601Duration('PT0.000123S')
+    expResult = [0, 0, 0, 0, 0, 0, 123000]
+    result = TimeUtil.parseISO8601Duration('PT0.000123S')
   self.assertArrayEquals, expResult, result
-  result = TimeUtil.parseISO8601Duration('PT52.000000S')
-  ;+
-  ;Das2 parsing has a problem with this.
-  ;-
-  expResult = [0, 0, 0, 0, 0, 52, 0]
+    result = TimeUtil.parseISO8601Duration('PT52.000000S')
+    ;+
+    ;Das2 parsing has a problem with this.
+    ;-
+    expResult = [0, 0, 0, 0, 0, 52, 0]
   self.assertArrayEquals, expResult, result
 end
 
@@ -304,17 +307,17 @@ end
 ;Test of julianDay method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testJulianDay
-  print,'julianDay'
-  year = 2020
-  month = 7
-  day = 9
-  expResult = 2459040
-  result = TimeUtil.julianDay(year, month, day)
+    print,'julianDay'
+    year = 2020
+    month = 7
+    day = 9
+    expResult = 2459040
+    result = TimeUtil.julianDay(year, month, day)
   self.assertEquals, expResult, result
 end
 
 pro TimeUtilTest::testMonthForDayOfYear
-  print,'monthForDayOfYear'
+    print,'monthForDayOfYear'
   self.assertEquals, TimeUtil.monthForDayOfYear(2000, 45), 2
 end
 
@@ -322,10 +325,10 @@ end
 ;Test of fromJulianDay method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testFromJulianDay
-  print,'fromJulianDay'
-  julian = 2459040
-  expResult = [2020, 7, 9, 0, 0, 0, 0]
-  result = TimeUtil.fromJulianDay(julian)
+    print,'fromJulianDay'
+    julian = 2459040
+    expResult = [2020, 7, 9, 0, 0, 0, 0]
+    result = TimeUtil.fromJulianDay(julian)
   self.assertArrayEquals, expResult, result
 end
 
@@ -333,12 +336,12 @@ end
 ;Test of fromJulianDay method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testFromMillisecondsSince1970
-  print,'fromMillisecondsSince1970'
-  s = TimeUtil.fromMillisecondsSince1970(0)
+    print,'fromMillisecondsSince1970'
+    s = TimeUtil.fromMillisecondsSince1970(0)
   self.assertEquals, s, '1970-01-01T00:00:00.000Z'
-  s = TimeUtil.fromMillisecondsSince1970(2208988800000)
+    s = TimeUtil.fromMillisecondsSince1970(2208988800000)
   self.assertEquals, s, '2040-01-01T00:00:00.000Z'
-  s = TimeUtil.fromMillisecondsSince1970(1)
+    s = TimeUtil.fromMillisecondsSince1970(1)
   self.assertEquals, s, '1970-01-01T00:00:00.001Z'
 end
 
@@ -346,26 +349,26 @@ end
 ;Test of fromJulianDay method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testFromTT2000
-  print,'fromTT2000'
-  s = TimeUtil.fromTT2000(0)
+    print,'fromTT2000'
+    s = TimeUtil.fromTT2000(0)
   self.assertEquals, s, '2000-01-01T11:58:55.816000000Z'
-  s = TimeUtil.fromTT2000(631108869184000000)
+    s = TimeUtil.fromTT2000(631108869184000000)
   self.assertEquals, s, '2020-01-01T00:00:00.000000000Z'
-  s = TimeUtil.fromTT2000(-583934347816000000)
+    s = TimeUtil.fromTT2000(-583934347816000000)
   self.assertEquals, s, '1981-07-01T00:00:00.000000000Z'
-  s = TimeUtil.fromTT2000(-31579135816000000)
+    s = TimeUtil.fromTT2000(-31579135816000000)
   self.assertEquals, s, '1999-01-01T00:00:00.000000000Z'
-  s = TimeUtil.fromTT2000(-63115136816000000)
+    s = TimeUtil.fromTT2000(-63115136816000000)
   self.assertEquals, s, '1998-01-01T00:00:00.000000000Z'
-  s = TimeUtil.fromTT2000(-94651137816000000)
+    s = TimeUtil.fromTT2000(-94651137816000000)
   self.assertEquals, s, '1997-01-01T00:00:00.000000000Z'
-  s = TimeUtil.fromTT2000(-631195148816000000)
+    s = TimeUtil.fromTT2000(-631195148816000000)
   self.assertEquals, s, '1980-01-01T00:00:00.000000000Z'
-  s = TimeUtil.fromTT2000(394372867184000000)
+    s = TimeUtil.fromTT2000(394372867184000000)
   self.assertEquals, s, '2012-07-01T00:00:00.000000000Z'
-  s = TimeUtil.fromTT2000(394372866184000000)
+    s = TimeUtil.fromTT2000(394372866184000000)
   self.assertEquals, s, '2012-06-30T23:59:60.000000000Z'
-  s = TimeUtil.fromTT2000(394372865684000000)
+    s = TimeUtil.fromTT2000(394372865684000000)
   self.assertEquals, s, '2012-06-30T23:59:59.500000000Z'
 end
 
@@ -373,11 +376,11 @@ end
 ;Test of subtract method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testSubtract
-  print,'subtract'
-  base = [2020, 7, 9, 1, 0, 0, 0]
-  offset = [0, 0, 0, 2, 0, 0, 0]
-  expResult = [2020, 7, 8, 23, 0, 0, 0]
-  result = TimeUtil.subtract(base, offset)
+    print,'subtract'
+    base = [2020, 7, 9, 1, 0, 0, 0]
+    offset = [0, 0, 0, 2, 0, 0, 0]
+    expResult = [2020, 7, 8, 23, 0, 0, 0]
+    result = TimeUtil.subtract(base, offset)
   self.assertArrayEquals, expResult, result
 end
 
@@ -385,16 +388,16 @@ end
 ;Test of add method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testAdd
-  print,'add'
-  base = [2020, 7, 8, 23, 0, 0, 0]
-  offset = [0, 0, 0, 2, 0, 0, 0]
-  expResult = [2020, 7, 9, 1, 0, 0, 0]
-  result = TimeUtil.add(base, offset)
+    print,'add'
+    base = [2020, 7, 8, 23, 0, 0, 0]
+    offset = [0, 0, 0, 2, 0, 0, 0]
+    expResult = [2020, 7, 9, 1, 0, 0, 0]
+    result = TimeUtil.add(base, offset)
   self.assertArrayEquals, expResult, result
-  base = [1979, 12, 27, 0, 0, 0, 0]
-  offset = [0, 0, 10, 0, 0, 0, 0]
-  expResult = [1980, 1, 6, 0, 0, 0, 0]
-  result = TimeUtil.add(base, offset)
+    base = [1979, 12, 27, 0, 0, 0, 0]
+    offset = [0, 0, 10, 0, 0, 0, 0]
+    expResult = [1980, 1, 6, 0, 0, 0, 0]
+    result = TimeUtil.add(base, offset)
   self.assertArrayEquals, expResult, result
 end
 
@@ -402,38 +405,38 @@ end
 ;Test of formatIso8601Duration method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testFormatIso8601Duration
-  print,'formatIso8601Duration'
-  nn = [0, 0, 7, 0, 0, 6]
-  expResult = 'P7DT6S'
-  result = TimeUtil.formatIso8601Duration(nn)
+    print,'formatIso8601Duration'
+    nn = [0, 0, 7, 0, 0, 6]
+    expResult = 'P7DT6S'
+    result = TimeUtil.formatIso8601Duration(nn)
   self.assertEquals, expResult, result
-  nn = [0, 0, 0, 0, 0, 0, 200000]
-  expResult = 'PT0.000200S'
-  result = TimeUtil.formatIso8601Duration(nn)
+    nn = [0, 0, 0, 0, 0, 0, 200000]
+    expResult = 'PT0.000200S'
+    result = TimeUtil.formatIso8601Duration(nn)
   self.assertEquals, expResult, result
-  nn = [0, 0, 0, 0, 0, 0, 200000000]
-  expResult = 'PT0.200S'
-  result = TimeUtil.formatIso8601Duration(nn)
+    nn = [0, 0, 0, 0, 0, 0, 200000000]
+    expResult = 'PT0.200S'
+    result = TimeUtil.formatIso8601Duration(nn)
   self.assertEquals, expResult, result
-  nn = [0, 0, 0, 0, 0, 0, 200]
-  expResult = 'PT0.000000200S'
-  result = TimeUtil.formatIso8601Duration(nn)
+    nn = [0, 0, 0, 0, 0, 0, 200]
+    expResult = 'PT0.000000200S'
+    result = TimeUtil.formatIso8601Duration(nn)
   self.assertEquals, expResult, result
-  nn = [0, 0, 0, 0, 0, 2, 200000]
-  expResult = 'PT2.000200S'
-  result = TimeUtil.formatIso8601Duration(nn)
+    nn = [0, 0, 0, 0, 0, 2, 200000]
+    expResult = 'PT2.000200S'
+    result = TimeUtil.formatIso8601Duration(nn)
   self.assertEquals, expResult, result
-  nn = [0, 0, 0, 0, 0, 0, 0]
-  expResult = 'PT0S'
-  result = TimeUtil.formatIso8601Duration(nn)
+    nn = [0, 0, 0, 0, 0, 0, 0]
+    expResult = 'PT0S'
+    result = TimeUtil.formatIso8601Duration(nn)
   self.assertEquals, expResult, result
-  nn = [0, 0, 1, 0, 0, 0, 0]
-  expResult = 'P1D'
-  result = TimeUtil.formatIso8601Duration(nn)
+    nn = [0, 0, 1, 0, 0, 0, 0]
+    expResult = 'P1D'
+    result = TimeUtil.formatIso8601Duration(nn)
   self.assertEquals, expResult, result
-  nn = [0, 0]
-  expResult = 'P0D'
-  result = TimeUtil.formatIso8601Duration(nn)
+    nn = [0, 0]
+    expResult = 'P0D'
+    result = TimeUtil.formatIso8601Duration(nn)
   self.assertEquals, expResult, result
 end
 
@@ -441,107 +444,107 @@ end
 ;Test of now method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testNow
-  print,'now'
-  result = TimeUtil.now()
+    print,'now'
+    result = TimeUtil.now()
 end
 
 ;+
 ;Test of parseISO8601TimeRange method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testParseISO8601TimeRange
-  print,'parseISO8601TimeRange'
-  stringIn = '1998-01-02/1998-01-17'
-  expResult = [1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0]
-  catch, err
-  if err eq 0 then begin
-    result = TimeUtil.parseISO8601TimeRange(stringIn)
+    print,'parseISO8601TimeRange'
+    stringIn = '1998-01-02/1998-01-17'
+    expResult = [1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0]
+    catch, err
+    if err eq 0 then begin
+        result = TimeUtil.parseISO8601TimeRange(stringIn)
     self.assertArrayEquals, expResult, result
-  endif else begin
-    stop, !error_state.msg
-  endelse
-  catch, /cancel
-  stringIn = '2022-W13/P7D'
-  expResult = [2022, 3, 28, 0, 0, 0, 0, 2022, 4, 4, 0, 0, 0, 0]
-  catch, err
-  if err eq 0 then begin
-    result = TimeUtil.parseISO8601TimeRange(stringIn)
+    endif else begin
+        stop, !error_state.msg
+    endelse
+    catch, /cancel
+    stringIn = '2022-W13/P7D'
+    expResult = [2022, 3, 28, 0, 0, 0, 0, 2022, 4, 4, 0, 0, 0, 0]
+    catch, err
+    if err eq 0 then begin
+        result = TimeUtil.parseISO8601TimeRange(stringIn)
     self.assertArrayEquals, expResult, result
-  endif else begin
-    stop, !error_state.msg
-  endelse
-  catch, /cancel
-  stringIn = 'P7D/2022-01-02'
-  expResult = [2021, 12, 26, 0, 0, 0, 0, 2022, 1, 2, 0, 0, 0, 0]
-  catch, err
-  if err eq 0 then begin
-    result = TimeUtil.parseISO8601TimeRange(stringIn)
+    endif else begin
+        stop, !error_state.msg
+    endelse
+    catch, /cancel
+    stringIn = 'P7D/2022-01-02'
+    expResult = [2021, 12, 26, 0, 0, 0, 0, 2022, 1, 2, 0, 0, 0, 0]
+    catch, err
+    if err eq 0 then begin
+        result = TimeUtil.parseISO8601TimeRange(stringIn)
     self.assertArrayEquals, expResult, result
-  endif else begin
-    stop, !error_state.msg
-  endelse
-  catch, /cancel
-  stringIn = '2023-01-18T17:00/18:00'
-  expResult = [2023, 1, 18, 17, 0, 0, 0, 2023, 1, 18, 18, 0, 0, 0]
-  catch, err
-  if err eq 0 then begin
-    result = TimeUtil.parseISO8601TimeRange(stringIn)
+    endif else begin
+        stop, !error_state.msg
+    endelse
+    catch, /cancel
+    stringIn = '2023-01-18T17:00/18:00'
+    expResult = [2023, 1, 18, 17, 0, 0, 0, 2023, 1, 18, 18, 0, 0, 0]
+    catch, err
+    if err eq 0 then begin
+        result = TimeUtil.parseISO8601TimeRange(stringIn)
     self.assertArrayEquals, expResult, result
-  endif else begin
-    stop, !error_state.msg
-  endelse
-  catch, /cancel
-  stringIn = '2013-01-01/07-01'
-  expResult = [2013, 1, 1, 0, 0, 0, 0, 2013, 7, 1, 0, 0, 0, 0]
-  catch, err
-  if err eq 0 then begin
-    result = TimeUtil.parseISO8601TimeRange(stringIn)
+    endif else begin
+        stop, !error_state.msg
+    endelse
+    catch, /cancel
+    stringIn = '2013-01-01/07-01'
+    expResult = [2013, 1, 1, 0, 0, 0, 0, 2013, 7, 1, 0, 0, 0, 0]
+    catch, err
+    if err eq 0 then begin
+        result = TimeUtil.parseISO8601TimeRange(stringIn)
     self.assertArrayEquals, expResult, result
-  endif else begin
-    stop, !error_state.msg
-  endelse
-  catch, /cancel
-  stringIn = '2017-09-13T13:06Z/2023-09-30T23:57:41Z'
-  expResult = [2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 57, 41, 0]
-  catch, err
-  if err eq 0 then begin
-    result = TimeUtil.parseISO8601TimeRange(stringIn)
+    endif else begin
+        stop, !error_state.msg
+    endelse
+    catch, /cancel
+    stringIn = '2017-09-13T13:06Z/2023-09-30T23:57:41Z'
+    expResult = [2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 57, 41, 0]
+    catch, err
+    if err eq 0 then begin
+        result = TimeUtil.parseISO8601TimeRange(stringIn)
     self.assertArrayEquals, expResult, result
-  endif else begin
-    stop, !error_state.msg
-  endelse
-  catch, /cancel
-  stringIn = '2017-09-13T13:06:00Z/2023-09-30T23:00Z'
-  expResult = [2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 0, 0, 0]
-  catch, err
-  if err eq 0 then begin
-    result = TimeUtil.parseISO8601TimeRange(stringIn)
+    endif else begin
+        stop, !error_state.msg
+    endelse
+    catch, /cancel
+    stringIn = '2017-09-13T13:06:00Z/2023-09-30T23:00Z'
+    expResult = [2017, 9, 13, 13, 6, 0, 0, 2023, 9, 30, 23, 0, 0, 0]
+    catch, err
+    if err eq 0 then begin
+        result = TimeUtil.parseISO8601TimeRange(stringIn)
     self.assertArrayEquals, expResult, result
-  endif else begin
-    stop, !error_state.msg
-  endelse
-  catch, /cancel
+    endif else begin
+        stop, !error_state.msg
+    endelse
+    catch, /cancel
 end
 
 ;+
 ;Test of formatIso8601TimeRange method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testFormatIso8601TimeRange
-  print,'formatIso8601TimeRange'
-  nn = [1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0]
-  expResult = '1998-01-02/1998-01-17'
-  result = TimeUtil.formatIso8601TimeRange(nn)
+    print,'formatIso8601TimeRange'
+    nn = [1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0]
+    expResult = '1998-01-02/1998-01-17'
+    result = TimeUtil.formatIso8601TimeRange(nn)
   self.assertEquals, expResult, result
-  nn = [1998, 1, 2, 0, 3, 0, 0, 1998, 1, 17, 0, 3, 0, 0]
-  expResult = '1998-01-02T00:03Z/1998-01-17T00:03Z'
-  result = TimeUtil.formatIso8601TimeRange(nn)
+    nn = [1998, 1, 2, 0, 3, 0, 0, 1998, 1, 17, 0, 3, 0, 0]
+    expResult = '1998-01-02T00:03Z/1998-01-17T00:03Z'
+    result = TimeUtil.formatIso8601TimeRange(nn)
   self.assertEquals, expResult, result
-  nn = [1998, 1, 2, 0, 0, 2, 0, 1998, 1, 17, 0, 0, 6, 0]
-  expResult = '1998-01-02T00:00:02Z/1998-01-17T00:00:06Z'
-  result = TimeUtil.formatIso8601TimeRange(nn)
+    nn = [1998, 1, 2, 0, 0, 2, 0, 1998, 1, 17, 0, 0, 6, 0]
+    expResult = '1998-01-02T00:00:02Z/1998-01-17T00:00:06Z'
+    result = TimeUtil.formatIso8601TimeRange(nn)
   self.assertEquals, expResult, result
-  nn = [1998, 1, 2, 0, 0, 0, 300, 1998, 1, 2, 0, 0, 0, 500]
-  expResult = '1998-01-02T00:00:00.000000300Z/1998-01-02T00:00:00.000000500Z'
-  result = TimeUtil.formatIso8601TimeRange(nn)
+    nn = [1998, 1, 2, 0, 0, 0, 300, 1998, 1, 2, 0, 0, 0, 500]
+    expResult = '1998-01-02T00:00:00.000000300Z/1998-01-02T00:00:00.000000500Z'
+    result = TimeUtil.formatIso8601TimeRange(nn)
   self.assertEquals, expResult, result
 end
 
@@ -549,11 +552,11 @@ end
 ;Test of formatIso8601Time method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testFormatIso8601TimeInTimeRange
-  print,'formatIso8601Time'
-  nn = [1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0]
-  offset = 7
-  expResult = '1998-01-17T00:00:00.000000000Z'
-  result = TimeUtil.formatIso8601TimeInTimeRange(nn, offset)
+    print,'formatIso8601Time'
+    nn = [1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0]
+    offset = 7
+    expResult = '1998-01-17T00:00:00.000000000Z'
+    result = TimeUtil.formatIso8601TimeInTimeRange(nn, offset)
   self.assertEquals, expResult, result
 end
 
@@ -561,10 +564,10 @@ end
 ;Test of formatIso8601Time method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testFormatIso8601TimeInTime
-  print,'formatIso8601Time'
-  nn = [1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0]
-  expResult = '1998-01-02T00:00:00.000000000Z'
-  result = TimeUtil.formatIso8601Time(nn)
+    print,'formatIso8601Time'
+    nn = [1998, 1, 2, 0, 0, 0, 0, 1998, 1, 17, 0, 0, 0, 0]
+    expResult = '1998-01-02T00:00:00.000000000Z'
+    result = TimeUtil.formatIso8601Time(nn)
   self.assertEquals, expResult, result
 end
 
@@ -572,12 +575,12 @@ end
 ;Test of dayOfWeek method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testDayOfWeek
-  print,'dayOfWeek'
-  year = 2022
-  month = 3
-  day = 12
-  expResult = 5
-  result = TimeUtil.dayOfWeek(year, month, day)
+    print,'dayOfWeek'
+    year = 2022
+    month = 3
+    day = 12
+    expResult = 5
+    result = TimeUtil.dayOfWeek(year, month, day)
   self.assertEquals, expResult, result
 end
 
@@ -585,18 +588,18 @@ end
 ;Test of fromWeekOfYear method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testFromWeekOfYear
-  print,'fromWeekOfYear'
-  year = 2022
-  weekOfYear = 13
-  result = replicate(0,7)
-  TimeUtil.fromWeekOfYear,year, weekOfYear, result
-  expResult = [2022, 3, 28, 0, 0, 0, 0]
+    print,'fromWeekOfYear'
+    year = 2022
+    weekOfYear = 13
+    result = replicate(0,7)
+    TimeUtil.fromWeekOfYear,year, weekOfYear, result
+    expResult = [2022, 3, 28, 0, 0, 0, 0]
   self.assertArrayEquals, expResult, result
-  year = 2022
-  weekOfYear = 0
-  result = replicate(0,7)
-  TimeUtil.fromWeekOfYear,year, weekOfYear, result
-  expResult = [2021, 12, 27, 0, 0, 0, 0]
+    year = 2022
+    weekOfYear = 0
+    result = replicate(0,7)
+    TimeUtil.fromWeekOfYear,year, weekOfYear, result
+    expResult = [2021, 12, 27, 0, 0, 0, 0]
   self.assertArrayEquals, expResult, result
 end
 
@@ -604,27 +607,27 @@ end
 ;Test of parseISO8601Time method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testParseISO8601Time
-  print,'parseISO8601Time'
-  string = '2020-033T00:00'
-  expResult = [2020, 2, 2, 0, 0, 0, 0]
-  catch, err
-  if err eq 0 then begin
-    result = TimeUtil.parseISO8601Time(string)
+    print,'parseISO8601Time'
+    string = '2020-033T00:00'
+    expResult = [2020, 2, 2, 0, 0, 0, 0]
+    catch, err
+    if err eq 0 then begin
+        result = TimeUtil.parseISO8601Time(string)
     self.assertArrayEquals, expResult, result
-  endif else begin
-    stop, !error_state.msg
-  endelse
-  catch, /cancel
+    endif else begin
+        stop, !error_state.msg
+    endelse
+    catch, /cancel
 end
 
 ;+
 ;Test of getStartTime method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testGetStartTime
-  print,'getStartTime'
-  timerange = [2025, 2, 4, 5, 6, 7, 8, 2025, 2, 4, 7, 8, 9, 10]
-  expResult = [2025, 2, 4, 5, 6, 7, 8]
-  result = TimeUtil.getStartTime(timerange)
+    print,'getStartTime'
+    timerange = [2025, 2, 4, 5, 6, 7, 8, 2025, 2, 4, 7, 8, 9, 10]
+    expResult = [2025, 2, 4, 5, 6, 7, 8]
+    result = TimeUtil.getStartTime(timerange)
   self.assertArrayEquals, expResult, result
 end
 
@@ -632,10 +635,10 @@ end
 ;Test of getStopTime method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testGetStopTime
-  print,'getStopTime'
-  timerange = [2025, 2, 4, 5, 6, 7, 8, 2025, 2, 4, 7, 8, 9, 10]
-  expResult = [2025, 2, 4, 7, 8, 9, 10]
-  result = TimeUtil.getStopTime(timerange)
+    print,'getStopTime'
+    timerange = [2025, 2, 4, 5, 6, 7, 8, 2025, 2, 4, 7, 8, 9, 10]
+    expResult = [2025, 2, 4, 7, 8, 9, 10]
+    result = TimeUtil.getStopTime(timerange)
   self.assertArrayEquals, expResult, result
 end
 
@@ -643,68 +646,315 @@ end
 ;Test of leapSecondsAt method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testLeapSecondsAt
-  print,'leapSecondsAt'
-  tt2000 = long64(0)
-  expResult = 32
-  result = TimeUtil.leapSecondsAt(tt2000)
-  self.assertEquals, expResult, result
-  result = TimeUtil.leapSecondsAt(536500869184000000)
-  self.assertEquals, 37, result
+    print,'leapSecondsAt'
+    tt2000 = 0
+    expResult = 32
+    result = TimeUtil.leapSecondsAt(tt2000)
+    assertEquals,expResult, result
+    result = TimeUtil.leapSecondsAt(536500869184000000)
+    assertEquals,37, result
 end
 
 ;+
 ;Test of lastLeapSecond method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testLastLeapSecond
-  print,'lastLeapSecond'
+    print,'lastLeapSecond'
   tt2000 = long64(0)
-  expResult = -31579135816000000
-  result = TimeUtil.lastLeapSecond(tt2000)
-  self.assertEquals, expResult, result
+    expResult = -31579135816000000
+    result = TimeUtil.lastLeapSecond(tt2000)
+    assertEquals,expResult, result
 end
 
 ;+
 ;Test of formatHMSN method, of class TimeUtil.
 ;-
 pro TimeUtilTest::testFormatHMSN
-  print,'formatHMSN'
+    print,'formatHMSN'
   nanosecondsSinceMidnight = long64(56)
-  expResult = '00:00:00.000000056'
-  result = TimeUtil.formatHMSN(nanosecondsSinceMidnight)
+    expResult = '00:00:00.000000056'
+    result = TimeUtil.formatHMSN(nanosecondsSinceMidnight)
   self.assertEquals, expResult, result
   nanosecondsSinceMidnight = 3600 * long64(24) * 1000000000
-  expResult = '23:59:60.000000000'
-  result = TimeUtil.formatHMSN(nanosecondsSinceMidnight)
+    expResult = '23:59:60.000000000'
+    result = TimeUtil.formatHMSN(nanosecondsSinceMidnight)
   self.assertEquals, expResult, result
   nanosecondsSinceMidnight = 3600 * long64(24) * 1000000000 + 1 * long64(1000000000) + 500 * long64(1000000)
-  expResult = '23:59:61.500000000'
-  result = TimeUtil.formatHMSN(nanosecondsSinceMidnight)
+    expResult = '23:59:61.500000000'
+    result = TimeUtil.formatHMSN(nanosecondsSinceMidnight)
   self.assertEquals, expResult, result
 end
 
 pro TimeUtilTest::testDaysInMonth
-  print,'daysInMonth'
-  year = 2000
-  month = 2
-  expResult = 29
-  result = TimeUtil.daysInMonth(year, month)
+    print,'daysInMonth'
+    year = 2000
+    month = 2
+    expResult = 29
+    result = TimeUtil.daysInMonth(year, month)
   self.assertEquals, expResult, result
-  year = 2004
-  month = 1
-  expResult = 31
-  result = TimeUtil.daysInMonth(year, month)
+    year = 2004
+    month = 1
+    expResult = 31
+    result = TimeUtil.daysInMonth(year, month)
   self.assertEquals, expResult, result
-  year = 2008
-  month = 12
-  expResult = 31
-  result = TimeUtil.daysInMonth(year, month)
+    year = 2008
+    month = 12
+    expResult = 31
+    result = TimeUtil.daysInMonth(year, month)
   self.assertEquals, expResult, result
 end
 
+;+
+;Test of setStartTime method, of class TimeUtil.
+;-
+pro TimeUtilTest::testSetStartTime
+    print,'setStartTime'
+    time = [2000, 1, 1, 2, 3, 4, 900000]
+    timerange = replicate(0,14)
+    TimeUtil.setStartTime,time, timerange
+    assertArrayEquals,time, timerange[0:7-1]
+end
+
+;+
+;Test of setStopTime method, of class TimeUtil.
+;-
+pro TimeUtilTest::testSetStopTime
+    print,'setStopTime'
+    print,'setStopTime'
+    time = [2000, 1, 1, 2, 3, 4, 900000]
+    timerange = replicate(0,14)
+    TimeUtil.setStopTime,time, timerange
+    assertArrayEquals,time, timerange[7:14-1]
+end
+
+;+
+;Test of fromSecondsSince1970 method, of class TimeUtil.
+;-
+pro TimeUtilTest::testFromSecondsSince1970
+    print,'fromSecondsSince1970'
+    time = 0.0
+    expResult = '1970-01-01T00:00:00.000Z'
+    result = TimeUtil.fromSecondsSince1970(time)
+    assertEquals,expResult, result
+    time = 1707868800.5
+    expResult = '2024-02-14T00:00:00.500Z'
+    result = TimeUtil.fromSecondsSince1970(time)
+    assertEquals,expResult, result
+end
+
+;+
+;Test of createTimeRange method, of class TimeUtil.
+;-
+pro TimeUtilTest::testCreateTimeRange
+    print,'createTimeRange'
+    t1 = [2024, 2, 14, 3, 4, 5, 0]
+    t2 = [2024, 2, 14, 6, 4, 5, 0]
+    expResult = [2024, 2, 14, 3, 4, 5, 0, 2024, 2, 14, 6, 4, 5, 0]
+    result = TimeUtil.createTimeRange(t1, t2)
+    assertArrayEquals,expResult, result
+end
+
+;+
+;Test of formatIso8601Time method, of class TimeUtil.
+;-
+pro TimeUtilTest::testFormatIso8601Time_intArr_int
+    print,'formatIso8601Time'
+    time = [2024, 2, 14, 3, 4, 5, 0, 2024, 2, 14, 6, 4, 5, 0]
+    offset = TimeUtil.TIME_DIGITS
+    expResult = '2024-02-14T06:04:05.000000000Z'
+    result = TimeUtil.formatIso8601Time(time, offset)
+    assertEquals,expResult, result
+end
+
+;+
+;Test of formatIso8601Time method, of class TimeUtil.
+;-
+pro TimeUtilTest::testFormatIso8601Time_intArr
+    print,'formatIso8601Time'
+    nn = [2024, 2, 14, 6, 4, 5, 0]
+    expResult = '2024-02-14T06:04:05.000000000Z'
+    result = TimeUtil.formatIso8601Time(nn)
+    assertEquals,expResult, result
+end
+
+;+
+;Test of isValidTime method, of class TimeUtil.
+;-
+pro TimeUtilTest::testIsValidTime
+    print,'isValidTime'
+    time = [2024, 2, 15, 3, 4, 5, 600000000]
+    expResult = 1
+    result = TimeUtil.isValidTime(time)
+    assertEquals,expResult, result
+    time = [9999, 2, 15, 3, 4, 5, 600000000]
+    expResult = 0
+    catch, err
+    if err eq 0 then begin
+        result = TimeUtil.isValidTime(time)
+        fail,'should not be valid'
+    endif else begin
+; pass
+    endelse
+    catch, /cancel
+    time = [2024, 1, 245, 3, 4, 5, 600000000]
+    expResult = 1
+    result = TimeUtil.isValidTime(time)
+    assertEquals,expResult, result
+end
+
+;+
+;Test of isValidFormattedTime method, of class TimeUtil.
+;-
+pro TimeUtilTest::testIsValidFormattedTime
+    print,'isValidFormattedTime'
+    time = '2024-02-14T00:00Z'
+    expResult = 1
+    result = TimeUtil.isValidFormattedTime(time)
+    assertEquals,expResult, result
+    time = 'now-P1D'
+    result = TimeUtil.isValidFormattedTime(time)
+    assertEquals,1, result
+    time = '2000'
+    result = TimeUtil.isValidFormattedTime(time)
+    assertEquals,1, result
+    time = '2000-01'
+    result = TimeUtil.isValidFormattedTime(time)
+    assertEquals,1, result
+    time = 'now'
+    result = TimeUtil.isValidFormattedTime(time)
+    assertEquals,1, result
+    time = 'lastyear'
+    result = TimeUtil.isValidFormattedTime(time)
+    assertEquals,1, result
+    time = 'lastmonth'
+    result = TimeUtil.isValidFormattedTime(time)
+    assertEquals,1, result
+    time = 'lastday'
+    result = TimeUtil.isValidFormattedTime(time)
+    assertEquals,1, result
+    time = 'lasthour'
+    result = TimeUtil.isValidFormattedTime(time)
+    assertEquals,1, result
+    time = 'now-P1D'
+    result = TimeUtil.isValidFormattedTime(time)
+    assertEquals,1, result
+    time = 'lastday-P1D'
+    result = TimeUtil.isValidFormattedTime(time)
+    assertEquals,1, result
+end
+
+;+
+;Test of gt method, of class TimeUtil.
+;-
+pro TimeUtilTest::testGt
+    print,'gt'
+    t1 = [2024, 1, 1, 0, 0, 0, 0]
+    t2 = [2024, 1, 1, 0, 0, 0, 1]
+    expResult = 0
+    result = TimeUtil.gt_(t1, t2)
+    assertEquals,expResult, result
+    expResult = 1
+    result = TimeUtil.gt_(t2, t1)
+    assertEquals,expResult, result
+    expResult = 0
+    result = TimeUtil.gt_(t1, t1)
+    assertEquals,expResult, result
+end
+
+;+
+;Test of eq method, of class TimeUtil.
+;-
+pro TimeUtilTest::testEq
+    print,'eq'
+    t1 = [2024, 1, 1, 0, 0, 0, 0]
+    t2 = [2024, 1, 1, 0, 0, 0, 1]
+    expResult = 0
+    result = TimeUtil.eq_(t1, t2)
+    assertEquals,expResult, result
+    expResult = 0
+    result = TimeUtil.eq_(t2, t1)
+    assertEquals,expResult, result
+    expResult = 1
+    result = TimeUtil.eq_(t1, t1)
+    assertEquals,expResult, result
+end
+
+;+
+;Test of formatIso8601TimeBrief method, of class TimeUtil.
+;-
+pro TimeUtilTest::testFormatIso8601TimeBrief_intArr
+    print,'formatIso8601TimeBrief'
+    time = [2000, 1, 1, 0, 0, 0, 0]
+    expResult = '2000-01-01T00:00Z'
+    result = TimeUtil.formatIso8601TimeBrief(time)
+    assertEquals,expResult, result
+    time = [2000, 1, 1, 0, 0, 1, 0]
+    expResult = '2000-01-01T00:00:01Z'
+    result = TimeUtil.formatIso8601TimeBrief(time)
+    assertEquals,expResult, result
+    time = [2000, 1, 1, 0, 0, 1, 500000000]
+    expResult = '2000-01-01T00:00:01.500Z'
+    result = TimeUtil.formatIso8601TimeBrief(time)
+    assertEquals,expResult, result
+    time = [2000, 1, 1, 0, 0, 1, 500500000]
+    expResult = '2000-01-01T00:00:01.500500Z'
+    result = TimeUtil.formatIso8601TimeBrief(time)
+    assertEquals,expResult, result
+end
+
+;+
+;Test of formatIso8601TimeBrief method, of class TimeUtil.
+;-
+pro TimeUtilTest::testFormatIso8601TimeBrief_intArr_int
+    print,'formatIso8601TimeBrief'
+    time = [1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 0, 0]
+    expResult = '1999-01-01T00:00Z'
+    result = TimeUtil.formatIso8601TimeBrief(time, 0)
+    assertEquals,expResult, result
+    time = [1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 1, 0]
+    expResult = '2000-01-01T00:00:01Z'
+    result = TimeUtil.formatIso8601TimeBrief(time, TimeUtil.TIME_DIGITS)
+    assertEquals,expResult, result
+end
+
+;+
+;Test of formatIso8601TimeInTimeRangeBrief method, of class TimeUtil.
+;-
+pro TimeUtilTest::testFormatIso8601TimeInTimeRangeBrief
+    print,'formatIso8601TimeInTimeRangeBrief'
+    time = [1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 0, 0]
+    expResult = '1999-01-01T00:00Z'
+    result = TimeUtil.formatIso8601TimeInTimeRangeBrief(time, 0)
+    assertEquals,expResult, result
+    time = [1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 1, 0]
+    expResult = '2000-01-01T00:00:01Z'
+    result = TimeUtil.formatIso8601TimeInTimeRangeBrief(time, TimeUtil.TIME_DIGITS)
+    assertEquals,expResult, result
+end
+
+;+
+;Test of isValidTimeRange method, of class TimeUtil.
+;-
+pro TimeUtilTest::testIsValidTimeRange
+    print,'isValidTimeRange'
+    timerange = [1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 0, 0]
+    expResult = 1
+    result = TimeUtil.isValidTimeRange(timerange)
+    assertEquals,expResult, result
+    timerange = [2000, 1, 1, 0, 0, 0, 0, 1999, 1, 1, 0, 0, 0, 0]
+    expResult = 0
+    result = TimeUtil.isValidTimeRange(timerange)
+    assertEquals,expResult, result
+    timerange = [2000, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 0, 0]
+    expResult = 0
+    result = TimeUtil.isValidTimeRange(timerange)
+    assertEquals,expResult, result
+end
+
 pro TimeUtilTest__define
-  dummy={TimeUtilTest,dummy:0}
-  ; pass
-  return
+    dummy={TimeUtilTest,dummy:0}
+; pass
+    return
 end
 ; Run the following code on the command line:
 ; o=obj_new('TimeUtilTest')

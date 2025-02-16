@@ -163,7 +163,7 @@ function TimeUtil::getStopTime, timerange
 end
 
 ;+
-;copy the components of time into the start position (indeces 7-14) of the time range.
+;copy the components of time into the start position (indices 0-7) of the time range.
 ;This one-line method was introduced to clarify code and make conversion to
 ;other languages (in particular Python) easier.
 ;
@@ -181,7 +181,7 @@ pro TimeUtil::setStartTime, time, timerange
 end
 
 ;+
-;copy the components of time into the stop position (indeces 7-14) of the time range.
+;copy the components of time into the stop position (indices 7-14) of the time range.
 ;
 ; Parameters:
 ;   time - the seven-element stop time
@@ -250,6 +250,8 @@ end
 function TimeUtil::fromSecondsSince1970, time
     return, TimeUtil.fromMillisecondsSince1970(time*1000.)
 end
+
+
 
 
 ;+
@@ -378,16 +380,12 @@ function TimeUtil::fromTT2000, tt2000
     leapSecondCheck = TimeUtil.leapSecondsAt(tt2000 + 1000000000)
     nanosecondsSinceMidnight = (tt2000 - leapSeconds * long64(1000000000) - long64(32184000000) + 43200000000000) mod 86400000000000
     if leapSecondCheck gt leapSeconds then begin
-        ;+
         ;the instant is during a leap second
-        ;-
         nanosecondsSinceMidnight += 86400000000000
     endif 
     tt2000Midnight = tt2000 - nanosecondsSinceMidnight
     if 1 then begin
-        ;+
         ;leapSecondCheck-leapSeconds==1 ) {
-        ;-
         nanosecondsSince2000 = (tt2000Midnight - leapSeconds * 1000000000)
         julianDay = 2451545 + long(floor((nanosecondsSince2000) / 86400000000000.)) + 1
         ymd = TimeUtil.fromJulianDay(julianDay)
@@ -1183,7 +1181,9 @@ end
 ;<pre>
 ;{@code
 ;from org.hapiserver.TimeUtil import *
-;print rewriteIsoTime( '2020-01-01T00:00Z', '2020-112Z' ) # ->  '2020-04-21T00:00Z'
+;print reformatIsoTime( '2020-01-01T00:00Z', '2020-112Z' ) # ->  '2020-04-21T00:00Z'
+;print reformatIsoTime( '2020-010', '2020-020Z' ) # ->  '2020-020'
+;print reformatIsoTime( '2020-01-01T00:00Z', '2021-01-01Z' ) # ->  '2021-01-01T00:00Z'
 ;}
 ;</pre> This allows direct comparisons of times for sorting.
 ;This works by looking at the character in the 8th position (starting with zero) of the
@@ -1205,6 +1205,15 @@ end
 function TimeUtil::reformatIsoTime, exampleForm, time
     compile_opt idl2, static
     common TimeUtil, TimeUtil_VERSION, TimeUtil_TIME_DIGITS, TimeUtil_DATE_DIGITS, TimeUtil_TIME_RANGE_DIGITS, TimeUtil_COMPONENT_YEAR, TimeUtil_COMPONENT_MONTH, TimeUtil_COMPONENT_DAY, TimeUtil_COMPONENT_HOUR, TimeUtil_COMPONENT_MINUTE, TimeUtil_COMPONENT_SECOND, TimeUtil_COMPONENT_NANOSECOND, TimeUtil_DAYS_IN_MONTH, TimeUtil_DAY_OFFSET, TimeUtil_MONTH_NAMES, TimeUtil_MONTH_NAMES_FULL, TimeUtil_FORMATTER_MS_1970, TimeUtil_FORMATTER_MS_1970_NS, TimeUtil_J2000_EPOCH_MILLIS, TimeUtil_LEAP_SECONDS, TimeUtil_iso8601duration, TimeUtil_iso8601DurationPattern, TimeUtil_VALID_FIRST_YEAR, TimeUtil_VALID_LAST_YEAR
+    if strlen(exampleForm) eq 8 then begin
+        if strmid(time,4,1) eq '-' then begin
+            return, strmid(time,0,8)
+        endif else begin
+            nn = TimeUtil.isoTimeToArray(TimeUtil.normalizeTimeString(time))
+            nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2])
+            return, string(format='%d-%03d',nn[0], nn[2])
+        endelse
+    endif 
     c = strmid(exampleForm,8,1)
     nn = TimeUtil.isoTimeToArray(TimeUtil.normalizeTimeString(time))
     SWITCH c OF
