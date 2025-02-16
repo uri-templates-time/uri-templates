@@ -13,6 +13,9 @@ class TimeUtilTest(unittest.TestCase):
         expResult = '2020-04-21T00:00Z'
         result = TimeUtil.reformatIsoTime(exampleForm, time)
         self.assertEqual(expResult,result)
+        self.assertEqual(TimeUtil.reformatIsoTime('2020-01-01T00:00Z', '2020-112Z'),'2020-04-21T00:00Z')
+        self.assertEqual(TimeUtil.reformatIsoTime('2020-010', '2020-020Z'),'2020-020')
+        self.assertEqual(TimeUtil.reformatIsoTime('2020-01-01T00:00Z', '2021-01-01Z'),'2021-01-01T00:00Z')
 
     # Test of monthNameAbbrev method, of class TimeUtil.
     def testMonthNameAbbrev(self):
@@ -531,6 +534,187 @@ class TimeUtilTest(unittest.TestCase):
         month = 12
         expResult = 31
         result = TimeUtil.daysInMonth(year, month)
+        self.assertEqual(expResult,result)
+
+    # Test of setStartTime method, of class TimeUtil.
+    def testSetStartTime(self):
+        print('setStartTime')
+        time = [2000, 1, 1, 2, 3, 4, 900000]
+        timerange = [0] * 14
+        TimeUtil.setStartTime(time, timerange)
+        self.assertEqual(time,timerange[0:7])
+
+    # Test of setStopTime method, of class TimeUtil.
+    def testSetStopTime(self):
+        print('setStopTime')
+        print('setStopTime')
+        time = [2000, 1, 1, 2, 3, 4, 900000]
+        timerange = [0] * 14
+        TimeUtil.setStopTime(time, timerange)
+        self.assertEqual(time,timerange[7:14])
+
+    # Test of fromSecondsSince1970 method, of class TimeUtil.
+    def testFromSecondsSince1970(self):
+        print('fromSecondsSince1970')
+        time = 0.0
+        expResult = '1970-01-01T00:00:00.000Z'
+        result = TimeUtil.fromSecondsSince1970(time)
+        self.assertEqual(expResult,result)
+        time = 1707868800.5
+        expResult = '2024-02-14T00:00:00.500Z'
+        result = TimeUtil.fromSecondsSince1970(time)
+        self.assertEqual(expResult,result)
+
+    # Test of createTimeRange method, of class TimeUtil.
+    def testCreateTimeRange(self):
+        print('createTimeRange')
+        t1 = [2024, 2, 14, 3, 4, 5, 0]
+        t2 = [2024, 2, 14, 6, 4, 5, 0]
+        expResult = [2024, 2, 14, 3, 4, 5, 0, 2024, 2, 14, 6, 4, 5, 0]
+        result = TimeUtil.createTimeRange(t1, t2)
+        self.assertEqual(expResult,result)
+
+    # Test of formatIso8601Time method, of class TimeUtil.
+    def testFormatIso8601Time_intArr(self):
+        print('formatIso8601Time')
+        nn = [2024, 2, 14, 6, 4, 5, 0]
+        expResult = '2024-02-14T06:04:05.000000000Z'
+        result = TimeUtil.formatIso8601Time(nn)
+        self.assertEqual(expResult,result)
+
+    # Test of isValidTime method, of class TimeUtil.
+    def testIsValidTime(self):
+        print('isValidTime')
+        time = [2024, 2, 15, 3, 4, 5, 600000000]
+        expResult = True
+        result = TimeUtil.isValidTime(time)
+        self.assertEqual(expResult,result)
+        time = [9999, 2, 15, 3, 4, 5, 600000000]
+        expResult = False
+        try:
+            result = TimeUtil.isValidTime(time)
+            fail('should not be valid')
+        except Exception as ex:  # J2J: exceptions
+            pass
+        time = [2024, 1, 245, 3, 4, 5, 600000000]
+        expResult = True
+        result = TimeUtil.isValidTime(time)
+        self.assertEqual(expResult,result)
+
+    # Test of isValidFormattedTime method, of class TimeUtil.
+    def testIsValidFormattedTime(self):
+        print('isValidFormattedTime')
+        time = '2024-02-14T00:00Z'
+        expResult = True
+        result = TimeUtil.isValidFormattedTime(time)
+        self.assertEqual(expResult,result)
+        time = 'now-P1D'
+        result = TimeUtil.isValidFormattedTime(time)
+        self.assertEqual(True,result)
+        time = '2000'
+        result = TimeUtil.isValidFormattedTime(time)
+        self.assertEqual(True,result)
+        time = '2000-01'
+        result = TimeUtil.isValidFormattedTime(time)
+        self.assertEqual(True,result)
+        time = 'now'
+        result = TimeUtil.isValidFormattedTime(time)
+        self.assertEqual(True,result)
+        time = 'lastyear'
+        result = TimeUtil.isValidFormattedTime(time)
+        self.assertEqual(True,result)
+        time = 'lastmonth'
+        result = TimeUtil.isValidFormattedTime(time)
+        self.assertEqual(True,result)
+        time = 'lastday'
+        result = TimeUtil.isValidFormattedTime(time)
+        self.assertEqual(True,result)
+        time = 'lasthour'
+        result = TimeUtil.isValidFormattedTime(time)
+        self.assertEqual(True,result)
+        time = 'now-P1D'
+        result = TimeUtil.isValidFormattedTime(time)
+        self.assertEqual(True,result)
+        time = 'lastday-P1D'
+        result = TimeUtil.isValidFormattedTime(time)
+        self.assertEqual(True,result)
+
+    # Test of gt method, of class TimeUtil.
+    def testGt(self):
+        print('gt')
+        t1 = [2024, 1, 1, 0, 0, 0, 0]
+        t2 = [2024, 1, 1, 0, 0, 0, 1]
+        expResult = False
+        result = TimeUtil.gt(t1, t2)
+        self.assertEqual(expResult,result)
+        expResult = True
+        result = TimeUtil.gt(t2, t1)
+        self.assertEqual(expResult,result)
+        expResult = False
+        result = TimeUtil.gt(t1, t1)
+        self.assertEqual(expResult,result)
+
+    # Test of eq method, of class TimeUtil.
+    def testEq(self):
+        print('eq')
+        t1 = [2024, 1, 1, 0, 0, 0, 0]
+        t2 = [2024, 1, 1, 0, 0, 0, 1]
+        expResult = False
+        result = TimeUtil.eq(t1, t2)
+        self.assertEqual(expResult,result)
+        expResult = False
+        result = TimeUtil.eq(t2, t1)
+        self.assertEqual(expResult,result)
+        expResult = True
+        result = TimeUtil.eq(t1, t1)
+        self.assertEqual(expResult,result)
+
+    # Test of formatIso8601TimeBrief method, of class TimeUtil.
+    def testFormatIso8601TimeBrief_intArr(self):
+        print('formatIso8601TimeBrief')
+        time = [2000, 1, 1, 0, 0, 0, 0]
+        expResult = '2000-01-01T00:00Z'
+        result = TimeUtil.formatIso8601TimeBrief(time)
+        self.assertEqual(expResult,result)
+        time = [2000, 1, 1, 0, 0, 1, 0]
+        expResult = '2000-01-01T00:00:01Z'
+        result = TimeUtil.formatIso8601TimeBrief(time)
+        self.assertEqual(expResult,result)
+        time = [2000, 1, 1, 0, 0, 1, 500000000]
+        expResult = '2000-01-01T00:00:01.500Z'
+        result = TimeUtil.formatIso8601TimeBrief(time)
+        self.assertEqual(expResult,result)
+        time = [2000, 1, 1, 0, 0, 1, 500500000]
+        expResult = '2000-01-01T00:00:01.500500Z'
+        result = TimeUtil.formatIso8601TimeBrief(time)
+        self.assertEqual(expResult,result)
+
+    # Test of formatIso8601TimeInTimeRangeBrief method, of class TimeUtil.
+    def testFormatIso8601TimeInTimeRangeBrief(self):
+        print('formatIso8601TimeInTimeRangeBrief')
+        time = [1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 0, 0]
+        expResult = '1999-01-01T00:00Z'
+        result = TimeUtil.formatIso8601TimeInTimeRangeBrief(time, 0)
+        self.assertEqual(expResult,result)
+        time = [1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 1, 0]
+        expResult = '2000-01-01T00:00:01Z'
+        result = TimeUtil.formatIso8601TimeInTimeRangeBrief(time, TimeUtil.TIME_DIGITS)
+        self.assertEqual(expResult,result)
+
+    # Test of isValidTimeRange method, of class TimeUtil.
+    def testIsValidTimeRange(self):
+        print('isValidTimeRange')
+        timerange = [1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 0, 0]
+        expResult = True
+        result = TimeUtil.isValidTimeRange(timerange)
+        self.assertEqual(expResult,result)
+        timerange = [2000, 1, 1, 0, 0, 0, 0, 1999, 1, 1, 0, 0, 0, 0]
+        expResult = False
+        result = TimeUtil.isValidTimeRange(timerange)
+        self.assertEqual(expResult,result)
+        timerange = [2000, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 0, 0]
+        expResult = False
+        result = TimeUtil.isValidTimeRange(timerange)
         self.assertEqual(expResult,result)
 
 

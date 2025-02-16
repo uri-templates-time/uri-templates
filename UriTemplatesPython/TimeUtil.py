@@ -12,9 +12,7 @@ from collections import OrderedDict
 # </ul>
 #
 # @author jbf
-
-
-class TimeUtil:    
+class TimeUtil:
     VERSION = '20250205.1'
 
     # Number of time components: year, month, day, hour, minute, second, nanosecond
@@ -134,7 +132,7 @@ class TimeUtil:
         result[0:TimeUtil.TIME_DIGITS]=timerange[TimeUtil.TIME_DIGITS:2*TimeUtil.TIME_DIGITS]
         return result
 
-    # copy the components of time into the start position (indeces 7-14) of the time range.
+    # copy the components of time into the start position (indices 0-7) of the time range.
     # This one-line method was introduced to clarify code and make conversion to 
     # other languages (in particular Python) easier.
     # @param time the seven-element start time
@@ -145,7 +143,7 @@ class TimeUtil:
             raise Exception('timerange should be 14-element array.')
         timerange[0:TimeUtil.TIME_DIGITS]=time[0:TimeUtil.TIME_DIGITS]
 
-    # copy the components of time into the stop position (indeces 7-14) of the time range.
+    # copy the components of time into the stop position (indices 7-14) of the time range.
     # @param time the seven-element stop time
     # @param timerange the fourteen-element time range.
     @staticmethod
@@ -574,35 +572,33 @@ class TimeUtil:
 
     # format the duration into human-readable time, for example
     # [ 0, 0, 7, 0, 0, 6 ] is formatted into "P7DT6S"
-    # @param nn seven-element array of [ Y m d H M S nanos ]
+    # @param nn_in seven-element array of [ Y m d H M S N ]
     # @return ISO8601 duration
     @staticmethod
-    def formatIso8601Duration(nn):
+    def formatIso8601Duration(nn_in):
         units = ['Y', 'M', 'D', 'H', 'M', 'S']
-        if len(nn) > 7:
+        addedDigits = len(nn_in) < 6
+        if len(nn_in) > 7:
             raise Exception('decomposed time can have at most 7 digits')
-        sb = 'P'
-        if (len(nn) < 5):
-            n = len(nn)
+        if len(nn_in) < 7:
+            nn = [0] * 7
+            nn[0:len(nn_in)]=nn_in[0:len(nn_in)]
         else:
-            n = 5
-        needT = False
-        for i in range(0, n):
-            if i == 3:
-                needT = True
+            nn = nn_in
+        sb = 'P'
+        n = 7
+        needT = True
+        for i in range(0, 5):
             if nn[i] > 0:
-                if needT:
+                if i >= 3:
                     sb+= 'T'
                     needT = False
                 sb+= str(nn[i]) + str(units[i])
-        if len(nn) > 5 and nn[5] > 0 or len(nn) > 6 and nn[6] > 0 or len(sb) == 2:
+        if nn[5] > 0 or nn[6] > 0 or len(sb) == 2:
             if needT:
                 sb+= 'T'
             seconds = nn[5]
-            if len(nn) == 7:
-                nanoseconds = nn[6]
-            else:
-                nanoseconds = 0
+            nanoseconds = nn[6]
             if nanoseconds == 0:
                 sb+= str(seconds)
             elif nanoseconds % 1000000 == 0:
@@ -613,10 +609,10 @@ class TimeUtil:
                 sb+= str('%.9f' % (seconds + nanoseconds / 1e9))
             sb+= 'S'
         if len(sb) == 1:
-            if len(nn) > 3:
-                sb+= 'T0S'
-            else:
+            if addedDigits:
                 sb+= '0D'
+            else:
+                sb+= 'T0S'
         return sb
 
     iso8601duration = 'P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?(\\d*?\\.?\\d*)S)?)?'
@@ -689,7 +685,6 @@ class TimeUtil:
         if len(time) == 4:
             result = [int(time), 1, 1, 0, 0, 0, 0]
         elif time.startswith('now') or time.startswith('last'):
-            remainder = None
             if time.startswith('now'):
                 n = TimeUtil.now()
                 remainder = time[3:]
@@ -745,10 +740,10 @@ class TimeUtil:
                     week = TimeUtil.parseInteger(time[5:])
                     result = [year, 0, 0, 0, 0, 0, 0]
                     TimeUtil.fromWeekOfYear(year, week, result)
-                    time = ''
+                    timehms = ''
                 else:
                     result = [TimeUtil.parseInteger(time[0:4]), TimeUtil.parseInteger(time[5:7]), 1, 0, 0, 0, 0]
-                    time = ''
+                    timehms = ''
             elif len(time) == 8:
                 if time[5] == 'W':
                     # 2022-W08
@@ -756,36 +751,36 @@ class TimeUtil:
                     week = TimeUtil.parseInteger(time[6:])
                     result = [year, 0, 0, 0, 0, 0, 0]
                     TimeUtil.fromWeekOfYear(year, week, result)
-                    time = ''
+                    timehms = ''
                 else:
                     result = [TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0]
-                    time = ''
+                    timehms = ''
             elif time[8] == 'T':
                 if time[4].isdigit():
                     result = [TimeUtil.parseInteger(time[0:4]), TimeUtil.parseInteger(time[4:6]), TimeUtil.parseInteger(time[6:8]), 0, 0, 0, 0]
-                    time = time[9:]
+                    timehms = time[9:]
                 else:
                     result = [TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0]
-                    time = time[9:]
+                    timehms = time[9:]
             elif time[8] == 'Z':
                 result = [TimeUtil.parseInteger(time[0:4]), 1, TimeUtil.parseInteger(time[5:8]), 0, 0, 0, 0]
-                time = time[9:]
+                timehms = time[9:]
             else:
                 result = [TimeUtil.parseInteger(time[0:4]), TimeUtil.parseInteger(time[5:7]), TimeUtil.parseInteger(time[8:10]), 0, 0, 0, 0]
                 if len(time) == 10:
-                    time = ''
+                    timehms = ''
                 else:
-                    time = time[11:]
-            if time.endswith('Z'):
-                time = time[0:len(time) - 1]
-            if len(time) >= 2:
-                result[3] = TimeUtil.parseInteger(time[0:2])
-            if len(time) >= 5:
-                result[4] = TimeUtil.parseInteger(time[3:5])
-            if len(time) >= 8:
-                result[5] = TimeUtil.parseInteger(time[6:8])
-            if len(time) > 9:
-                result[6] = int((10**(18 - len(time)))) * TimeUtil.parseInteger(time[9:])
+                    timehms = time[11:]
+            if timehms.endswith('Z'):
+                timehms = timehms[0:len(timehms) - 1]
+            if len(timehms) >= 2:
+                result[3] = TimeUtil.parseInteger(timehms[0:2])
+            if len(timehms) >= 5:
+                result[4] = TimeUtil.parseInteger(timehms[3:5])
+            if len(timehms) >= 8:
+                result[5] = TimeUtil.parseInteger(timehms[6:8])
+            if len(timehms) > 9:
+                result[6] = int((10**(18 - len(timehms)))) * TimeUtil.parseInteger(timehms[9:])
             TimeUtil.normalizeTime(result)
         return result
 
@@ -794,7 +789,9 @@ class TimeUtil:
     # <pre>
     # {@code
     # from org.hapiserver.TimeUtil import *
-    # print rewriteIsoTime( '2020-01-01T00:00Z', '2020-112Z' ) # ->  '2020-04-21T00:00Z'
+    # print reformatIsoTime( '2020-01-01T00:00Z', '2020-112Z' ) # ->  '2020-04-21T00:00Z'
+    # print reformatIsoTime( '2020-010', '2020-020Z' ) # ->  '2020-020'
+    # print reformatIsoTime( '2020-01-01T00:00Z', '2021-01-01Z' ) # ->  '2021-01-01T00:00Z'
     # }
     # </pre> This allows direct comparisons of times for sorting. 
     # This works by looking at the character in the 8th position (starting with zero) of the 
@@ -810,6 +807,13 @@ class TimeUtil:
     # @return same time but in the same form as exampleForm.
     @staticmethod
     def reformatIsoTime(exampleForm, time):
+        if len(exampleForm) == 8:
+            if time[4] == '-':
+                return time[0:8]
+            else:
+                nn = TimeUtil.isoTimeToArray(TimeUtil.normalizeTimeString(time))
+                nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2])
+                return '%d-%03d' % (nn[0], nn[2])
         c = exampleForm[8]
         nn = TimeUtil.isoTimeToArray(TimeUtil.normalizeTimeString(time))
         if c == 'T':
