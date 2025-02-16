@@ -31,6 +31,9 @@ class TimeUtilTest {
         var expResult = "2020-04-21T00:00Z";
         var result = TimeUtil.reformatIsoTime(exampleForm, time);
         assertEquals(expResult, result);
+        assertEquals(TimeUtil.reformatIsoTime("2020-01-01T00:00Z", "2020-112Z"), "2020-04-21T00:00Z");
+        assertEquals(TimeUtil.reformatIsoTime("2020-010", "2020-020Z"), "2020-020");
+        assertEquals(TimeUtil.reformatIsoTime("2020-01-01T00:00Z", "2021-01-01Z"), "2021-01-01T00:00Z");
     }
 
     /**
@@ -682,6 +685,250 @@ class TimeUtilTest {
         assertEquals(expResult, result);
     }
 
+    /**
+     * Test of setStartTime method, of class TimeUtil.
+     */
+    testSetStartTime() {
+        console.info("setStartTime");
+        var time = [2000, 1, 1, 2, 3, 4, 900000];
+        var timerange = Array.apply(null, Array(14)).map(function (x, i) { return 0; });
+        TimeUtil.setStartTime(time, timerange);
+        assertArrayEquals(time, timerange.slice(0,7));
+    }
+
+    /**
+     * Test of setStopTime method, of class TimeUtil.
+     */
+    testSetStopTime() {
+        console.info("setStopTime");
+        console.info("setStopTime");
+        var time = [2000, 1, 1, 2, 3, 4, 900000];
+        var timerange = Array.apply(null, Array(14)).map(function (x, i) { return 0; });
+        TimeUtil.setStopTime(time, timerange);
+        assertArrayEquals(time, timerange.slice(7,14));
+    }
+
+    /**
+     * Test of fromSecondsSince1970 method, of class TimeUtil.
+     */
+    testFromSecondsSince1970() {
+        console.info("fromSecondsSince1970");
+        var time = 0.0;
+        var expResult = "1970-01-01T00:00:00.000Z";
+        var result = TimeUtil.fromSecondsSince1970(time);
+        assertEquals(expResult, result);
+        time = 1707868800.5;
+        expResult = "2024-02-14T00:00:00.500Z";
+        result = TimeUtil.fromSecondsSince1970(time);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of createTimeRange method, of class TimeUtil.
+     */
+    testCreateTimeRange() {
+        console.info("createTimeRange");
+        var t1 = [2024, 2, 14, 3, 4, 5, 0];
+        var t2 = [2024, 2, 14, 6, 4, 5, 0];
+        var expResult = [2024, 2, 14, 3, 4, 5, 0, 2024, 2, 14, 6, 4, 5, 0];
+        var result = TimeUtil.createTimeRange(t1, t2);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of formatIso8601Time method, of class TimeUtil.
+     */
+    testFormatIso8601Time_intArr_int() {
+        console.info("formatIso8601Time");
+        var time = [2024, 2, 14, 3, 4, 5, 0, 2024, 2, 14, 6, 4, 5, 0];
+        var offset = TimeUtil.TIME_DIGITS;
+        var expResult = "2024-02-14T06:04:05.000000000Z";
+        var result = TimeUtil.formatIso8601Time(time, offset);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of formatIso8601Time method, of class TimeUtil.
+     */
+    testFormatIso8601Time_intArr() {
+        console.info("formatIso8601Time");
+        var nn = [2024, 2, 14, 6, 4, 5, 0];
+        var expResult = "2024-02-14T06:04:05.000000000Z";
+        var result = TimeUtil.formatIso8601Time(nn);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of isValidTime method, of class TimeUtil.
+     */
+    testIsValidTime() {
+        console.info("isValidTime");
+        var time = [2024, 2, 15, 3, 4, 5, 600000000];
+        var expResult = true;
+        var result = TimeUtil.isValidTime(time);
+        assertEquals(expResult, result);
+        time = [9999, 2, 15, 3, 4, 5, 600000000];
+        expResult = false;
+        try {
+            result = TimeUtil.isValidTime(time);
+            fail("should not be valid");
+        } catch (ex) {
+        }
+        time = [2024, 1, 245, 3, 4, 5, 600000000];
+        expResult = true;
+        result = TimeUtil.isValidTime(time);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of isValidFormattedTime method, of class TimeUtil.
+     */
+    testIsValidFormattedTime() {
+        console.info("isValidFormattedTime");
+        var time = "2024-02-14T00:00Z";
+        var expResult = true;
+        var result = TimeUtil.isValidFormattedTime(time);
+        assertEquals(expResult, result);
+        time = "now-P1D";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals(true, result);
+        time = "2000";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals(true, result);
+        time = "2000-01";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals(true, result);
+        time = "now";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals(true, result);
+        time = "lastyear";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals(true, result);
+        time = "lastmonth";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals(true, result);
+        time = "lastday";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals(true, result);
+        time = "lasthour";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals(true, result);
+        time = "now-P1D";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals(true, result);
+        time = "lastday-P1D";
+        result = TimeUtil.isValidFormattedTime(time);
+        assertEquals(true, result);
+    }
+
+    /**
+     * Test of gt method, of class TimeUtil.
+     */
+    testGt() {
+        console.info("gt");
+        var t1 = [2024, 1, 1, 0, 0, 0, 0];
+        var t2 = [2024, 1, 1, 0, 0, 0, 1];
+        var expResult = false;
+        var result = TimeUtil.gt(t1, t2);
+        assertEquals(expResult, result);
+        expResult = true;
+        result = TimeUtil.gt(t2, t1);
+        assertEquals(expResult, result);
+        expResult = false;
+        result = TimeUtil.gt(t1, t1);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of eq method, of class TimeUtil.
+     */
+    testEq() {
+        console.info("eq");
+        var t1 = [2024, 1, 1, 0, 0, 0, 0];
+        var t2 = [2024, 1, 1, 0, 0, 0, 1];
+        var expResult = false;
+        var result = TimeUtil.eq(t1, t2);
+        assertEquals(expResult, result);
+        expResult = false;
+        result = TimeUtil.eq(t2, t1);
+        assertEquals(expResult, result);
+        expResult = true;
+        result = TimeUtil.eq(t1, t1);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of formatIso8601TimeBrief method, of class TimeUtil.
+     */
+    testFormatIso8601TimeBrief_intArr() {
+        console.info("formatIso8601TimeBrief");
+        var time = [2000, 1, 1, 0, 0, 0, 0];
+        var expResult = "2000-01-01T00:00Z";
+        var result = TimeUtil.formatIso8601TimeBrief(time);
+        assertEquals(expResult, result);
+        time = [2000, 1, 1, 0, 0, 1, 0];
+        expResult = "2000-01-01T00:00:01Z";
+        result = TimeUtil.formatIso8601TimeBrief(time);
+        assertEquals(expResult, result);
+        time = [2000, 1, 1, 0, 0, 1, 500000000];
+        expResult = "2000-01-01T00:00:01.500Z";
+        result = TimeUtil.formatIso8601TimeBrief(time);
+        assertEquals(expResult, result);
+        time = [2000, 1, 1, 0, 0, 1, 500500000];
+        expResult = "2000-01-01T00:00:01.500500Z";
+        result = TimeUtil.formatIso8601TimeBrief(time);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of formatIso8601TimeBrief method, of class TimeUtil.
+     */
+    testFormatIso8601TimeBrief_intArr_int() {
+        console.info("formatIso8601TimeBrief");
+        var time = [1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 0, 0];
+        var expResult = "1999-01-01T00:00Z";
+        var result = TimeUtil.formatIso8601TimeBrief(time, 0);
+        assertEquals(expResult, result);
+        time = [1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 1, 0];
+        expResult = "2000-01-01T00:00:01Z";
+        result = TimeUtil.formatIso8601TimeBrief(time, TimeUtil.TIME_DIGITS);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of formatIso8601TimeInTimeRangeBrief method, of class TimeUtil.
+     */
+    testFormatIso8601TimeInTimeRangeBrief() {
+        console.info("formatIso8601TimeInTimeRangeBrief");
+        var time = [1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 0, 0];
+        var expResult = "1999-01-01T00:00Z";
+        var result = TimeUtil.formatIso8601TimeInTimeRangeBrief(time, 0);
+        assertEquals(expResult, result);
+        time = [1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 1, 0];
+        expResult = "2000-01-01T00:00:01Z";
+        result = TimeUtil.formatIso8601TimeInTimeRangeBrief(time, TimeUtil.TIME_DIGITS);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of isValidTimeRange method, of class TimeUtil.
+     */
+    testIsValidTimeRange() {
+        console.info("isValidTimeRange");
+        var timerange = [1999, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 0, 0];
+        var expResult = true;
+        var result = TimeUtil.isValidTimeRange(timerange);
+        assertEquals(expResult, result);
+        timerange = [2000, 1, 1, 0, 0, 0, 0, 1999, 1, 1, 0, 0, 0, 0];
+        expResult = false;
+        result = TimeUtil.isValidTimeRange(timerange);
+        assertEquals(expResult, result);
+        timerange = [2000, 1, 1, 0, 0, 0, 0, 2000, 1, 1, 0, 0, 0, 0];
+        expResult = false;
+        result = TimeUtil.isValidTimeRange(timerange);
+        assertEquals(expResult, result);
+    }
+
 }
 test = new TimeUtilTest();
 test.testReformatIsoTime();
@@ -724,4 +971,18 @@ test.testLeapSecondsAt();
 test.testLastLeapSecond();
 test.testFormatHMSN();
 test.testDaysInMonth();
+test.testSetStartTime();
+test.testSetStopTime();
+test.testFromSecondsSince1970();
+test.testCreateTimeRange();
+test.testFormatIso8601Time_intArr_int();
+test.testFormatIso8601Time_intArr();
+test.testIsValidTime();
+test.testIsValidFormattedTime();
+test.testGt();
+test.testEq();
+test.testFormatIso8601TimeBrief_intArr();
+test.testFormatIso8601TimeBrief_intArr_int();
+test.testFormatIso8601TimeInTimeRangeBrief();
+test.testIsValidTimeRange();
 

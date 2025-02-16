@@ -165,7 +165,7 @@ class TimeUtil {
     }
 
     /**
-     * copy the components of time into the start position (indeces 7-14) of the time range.
+     * copy the components of time into the start position (indices 0-7) of the time range.
      * This one-line method was introduced to clarify code and make conversion to 
      * other languages (in particular Python) easier.
      * @param time the seven-element start time
@@ -177,7 +177,7 @@ class TimeUtil {
     }
 
     /**
-     * copy the components of time into the stop position (indeces 7-14) of the time range.
+     * copy the components of time into the stop position (indices 7-14) of the time range.
      * @param time the seven-element stop time
      * @param timerange the fourteen-element time range.
      */
@@ -219,7 +219,7 @@ class TimeUtil {
 
     /**
  See <https://cdf.gsfc.nasa.gov/html/CDFLeapSeconds.txt>
-     */    
+     */
     static {
         TimeUtil.LEAP_SECONDS_TT2000 = [];
         TimeUtil.LEAP_SECONDS_COUNT = [];
@@ -280,7 +280,7 @@ class TimeUtil {
         TimeUtil.LEAP_SECONDS_TT2000[27]=536500869184000000;
         TimeUtil.LEAP_SECONDS_COUNT[27]=37;
     }
-    
+
     /**
      * return the number of complete leap seconds added for the tt2000 time, starting
      * 10 at 1972-01-01T00:00:01Z.
@@ -706,31 +706,38 @@ class TimeUtil {
     /**
      * format the duration into human-readable time, for example
      * [ 0, 0, 7, 0, 0, 6 ] is formatted into "P7DT6S"
-     * @param nn seven-element array of [ Y m d H M S nanos ]
+     * @param nn_in seven-element array of [ Y m d H M S N ]
      * @return ISO8601 duration
      */
-    static formatIso8601Duration(nn) {
+    static formatIso8601Duration(nn_in) {
         var units = ['Y', 'M', 'D', 'H', 'M', 'S'];
-        if (nn.length > 7) throw "decomposed time can have at most 7 digits";
+        var nn;
+        var addedDigits = nn_in.length < 6;
+        if (nn_in.length > 7) throw "decomposed time can have at most 7 digits";
+        if (nn_in.length < 7) {
+            nn = [0,0,0,0,0,0,0];
+            arraycopy( nn_in, 0, nn, 0, nn_in.length );
+        } else {
+            nn = nn_in;
+        }
         var sb = "P";
-        var n = (nn.length < 5) ? nn.length : 5;
-        var needT = false;
-        for ( var i = 0; i < n; i++) {
-            if (i === 3) needT = true;
+        var n = 7;
+        var needT = true;
+        for ( var i = 0; i < 5; i++) {
             if (nn[i] > 0) {
-                if (needT) {
+                if (i >= 3) {
                     sb+= "T";
                     needT = false;
                 }
                 sb+= String(nn[i]) + String(units[i]);
             }
         }
-        if (nn.length > 5 && nn[5] > 0 || nn.length > 6 && nn[6] > 0 || sb.length === 2) {
+        if (nn[5] > 0 || nn[6] > 0 || sb.length === 2) {
             if (needT) {
                 sb+= "T";
             }
             var seconds = nn[5];
-            var nanoseconds = nn.length === 7 ? nn[6] : 0;
+            var nanoseconds = nn[6];
             if (nanoseconds === 0) {
                 sb+= String(seconds);
             } else if (nanoseconds % 1000000 === 0) {
@@ -745,10 +752,10 @@ class TimeUtil {
             sb+= "S";
         }
         if (sb.length === 1) {
-            if (nn.length > 3) {
-                sb+= "T0S";
-            } else {
+            if (addedDigits) {
                 sb+= "0D";
+            } else {
+                sb+= "T0S";
             }
         }
         return sb;
@@ -842,7 +849,7 @@ class TimeUtil {
             result = [parseInt(time), 1, 1, 0, 0, 0, 0];
         } else if (time.startsWith("now") || time.startsWith("last")) {
             var n;
-            var remainder = null;
+            var remainder;
             if (time.startsWith("now")) {
                 n = TimeUtil.now();
                 remainder = time.substring(3);
@@ -911,6 +918,7 @@ class TimeUtil {
             if (/[0-9]/.test(time.charAt(4)) && /[0-9]/.test(time.charAt(5))) {
                 throw "date and time must contain delimiters between fields";
             }
+            var timehms;
             if (time.length === 7) {
                 if (time.charAt(4) == 'W') {
                     // 2022W08
@@ -918,10 +926,10 @@ class TimeUtil {
                     var week = TimeUtil.parseInteger(time.substring(5));
                     result = [year, 0, 0, 0, 0, 0, 0];
                     TimeUtil.fromWeekOfYear(year, week, result);
-                    time = "";
+                    timehms = "";
                 } else {
                     result = [TimeUtil.parseInteger(time.substring(0, 4)), TimeUtil.parseInteger(time.substring(5, 7)), 1, 0, 0, 0, 0];
-                    time = "";
+                    timehms = "";
                 }
             } else if (time.length === 8) {
                 if (time.charAt(5) == 'W') {
@@ -930,47 +938,47 @@ class TimeUtil {
                     var week = TimeUtil.parseInteger(time.substring(6));
                     result = [year, 0, 0, 0, 0, 0, 0];
                     TimeUtil.fromWeekOfYear(year, week, result);
-                    time = "";
+                    timehms = "";
                 } else {
                     result = [TimeUtil.parseInteger(time.substring(0, 4)), 1, TimeUtil.parseInteger(time.substring(5, 8)), 0, 0, 0, 0];
-                    time = "";
+                    timehms = "";
                 }
             } else if (time.charAt(8) == 'T') {
                 if (/[0-9]/.test(time.charAt(4))) {
                     result = [TimeUtil.parseInteger(time.substring(0, 4)), TimeUtil.parseInteger(time.substring(4, 6)), TimeUtil.parseInteger(time.substring(6, 8)), 0, 0, 0, 0];
-                    time = time.substring(9);
+                    timehms = time.substring(9);
                 } else {
                     result = [TimeUtil.parseInteger(time.substring(0, 4)), 1, TimeUtil.parseInteger(time.substring(5, 8)), 0, 0, 0, 0];
-                    time = time.substring(9);
+                    timehms = time.substring(9);
                 }
             } else if (time.charAt(8) == 'Z') {
                 result = [TimeUtil.parseInteger(time.substring(0, 4)), 1, TimeUtil.parseInteger(time.substring(5, 8)), 0, 0, 0, 0];
-                time = time.substring(9);
+                timehms = time.substring(9);
             } else {
                 result = [TimeUtil.parseInteger(time.substring(0, 4)), TimeUtil.parseInteger(time.substring(5, 7)), TimeUtil.parseInteger(time.substring(8, 10)), 0, 0, 0, 0];
                 if (time.length === 10) {
-                    time = "";
+                    timehms = "";
                 } else {
-                    time = time.substring(11);
+                    timehms = time.substring(11);
                 }
             }
             
             
             
-            if (time.endsWith("Z")) {
-                time = time.substring(0, time.length - 1);
+            if (timehms.endsWith("Z")) {
+                timehms = timehms.substring(0, timehms.length - 1);
             }
-            if (time.length >= 2) {
-                result[3] = TimeUtil.parseInteger(time.substring(0, 2));
+            if (timehms.length >= 2) {
+                result[3] = TimeUtil.parseInteger(timehms.substring(0, 2));
             }
-            if (time.length >= 5) {
-                result[4] = TimeUtil.parseInteger(time.substring(3, 5));
+            if (timehms.length >= 5) {
+                result[4] = TimeUtil.parseInteger(timehms.substring(3, 5));
             }
-            if (time.length >= 8) {
-                result[5] = TimeUtil.parseInteger(time.substring(6, 8));
+            if (timehms.length >= 8) {
+                result[5] = TimeUtil.parseInteger(timehms.substring(6, 8));
             }
-            if (time.length > 9) {
-                result[6] = Math.trunc( (Math.pow(10, 18 - time.length)) ) * TimeUtil.parseInteger(time.substring(9));
+            if (timehms.length > 9) {
+                result[6] = Math.trunc( (Math.pow(10, 18 - timehms.length)) ) * TimeUtil.parseInteger(timehms.substring(9));
             }
             TimeUtil.normalizeTime(result);
         }
@@ -984,7 +992,9 @@ class TimeUtil {
      * <pre>
      * {@code
      * from org.hapiserver.TimeUtil import *
-     * print rewriteIsoTime( '2020-01-01T00:00Z', '2020-112Z' ) # ->  '2020-04-21T00:00Z'
+     * print reformatIsoTime( '2020-01-01T00:00Z', '2020-112Z' ) # ->  '2020-04-21T00:00Z'
+     * print reformatIsoTime( '2020-010', '2020-020Z' ) # ->  '2020-020'
+     * print reformatIsoTime( '2020-01-01T00:00Z', '2021-01-01Z' ) # ->  '2021-01-01T00:00Z'
      * }
      * </pre> This allows direct comparisons of times for sorting. 
      * This works by looking at the character in the 8th position (starting with zero) of the 
@@ -1000,6 +1010,15 @@ class TimeUtil {
      * @return same time but in the same form as exampleForm.
      */
     static reformatIsoTime(exampleForm, time) {
+        if (exampleForm.length === 8) {
+            if (time.charAt(4) == '-') {
+                return time.substring(0, 8);
+            } else {
+                var nn = TimeUtil.isoTimeToArray(TimeUtil.normalizeTimeString(time));
+                nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2]);
+                return sprintf("%d-%03d",nn[0], nn[2]);
+            }
+        }
         var c = exampleForm.charAt(8);
         var nn = TimeUtil.isoTimeToArray(TimeUtil.normalizeTimeString(time));
         switch (c) {
